@@ -1,0 +1,12 @@
+rootProject.name = "destiny"
+
+include "cart-service",
+        "order-service",
+        "payment-service",
+        "product-service",
+        "promotion-service",
+        "stock-service",
+        "user-service",
+        "gateway",
+        "eureka-server",
+        "notification-service"
