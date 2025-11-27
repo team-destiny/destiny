@@ -64,7 +64,6 @@ data/
 
 # Kafka / RabbitMQ / Redis / MySQL local data (로컬 디비 찌꺼기 제외)
 kafka-data/
-kafka/
 zookeeper/
 mysql-data/
 redis-data/
