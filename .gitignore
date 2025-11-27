@@ -1,37 +1,95 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+### OS ###
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Icon?
+Thumbs.db
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
-
-### IntelliJ IDEA ###
-.idea
-*.iws
+### IDE / IntelliJ ###
 *.iml
-*.ipr
+.idea/
+.idea_modules/
 out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+*.iws
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
+# VSCode (혹시 팀원이 쓰는 경우)
 .vscode/
+
+### Java / Gradle ###
+# compiled files
+*.class
+*.jar
+*.war
+*.ear
+
+# gradle directories
+.gradle/
+build/
+
+# gradle cache
+.gradle-build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# logs
+*.log
+logs/
+*.out
+
+### Spring Boot ###
+# Embedded server working dir
+tmp/
+target/
+bin/
+HELP.*
+
+# Spring Boot devtools caches
+.spring-boot-devtools.properties
+spring.log
+
+### Test ###
+test-output/
+junit-platform.properties
+
+### MSA / Docker 관련 ###
+docker-compose.override.yml
+docker-data/
+volumes/
+data/
+.env
+.env.local
+.env.*.local
+*.pid
+
+# Kafka / RabbitMQ / Redis / MySQL local data (로컬 디비 찌꺼기 제외)
+kafka-data/
+kafka/
+zookeeper/
+mysql-data/
+redis-data/
+
+### Node / Front-end (Gateway UI 등 있을 경우) ###
+node_modules/
+dist/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+### Eclipse (혹시 팀원 중 Eclipse 사용자 있을 때) ###
+.settings/
+.classpath
+.project
+
+### Annotation processors ###
+/generated/
+
+### Security keys (실수 방지) ###
+*.pem
+*.key
+*.crt
+*.p12
+*.keystore
+*.jks
+secret/
+secrets/
