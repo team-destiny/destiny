@@ -1,4 +1,4 @@
-package com.gbg.brandservice;
+package com.destiny.brandservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

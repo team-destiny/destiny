@@ -1,4 +1,4 @@
-package com.gbg.brandservice.presentation.dto.response;
+package com.destiny.brandservice.presentation.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

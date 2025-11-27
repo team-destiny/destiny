@@ -1,11 +1,9 @@
-package com.gbg.brandservice.presentation.controller;
+package com.destiny.brandservice.presentation.controller;
 
-import com.gbg.brandservice.application.service.BrandService;
-import com.gbg.brandservice.presentation.dto.request.BrandCreateRequest;
-import com.gbg.brandservice.presentation.dto.response.BrandCreateResponse;
-import com.gbg.brandservice.presentation.dto.response.BrandResponse;
+import com.destiny.brandservice.application.service.BrandService;
+import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
+import com.destiny.brandservice.presentation.dto.response.BrandResponse;
 import jakarta.validation.Valid;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
