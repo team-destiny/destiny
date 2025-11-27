@@ -3,6 +3,7 @@ package com.gbg.brandservice.presentation.controller;
 import com.gbg.brandservice.application.service.BrandService;
 import com.gbg.brandservice.presentation.dto.request.BrandCreateRequest;
 import com.gbg.brandservice.presentation.dto.response.BrandCreateResponse;
+import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -23,21 +24,12 @@ public class BrandController {
     private final BrandService brandService;
 
     @PostMapping
-    public ResponseEntity<BrandCreateResponse> createBrand(
-        @RequestBody BrandCreateRequest req
+    public ResponseEntity<UUID> createBrand(
+        @RequestBody @Valid BrandCreateRequest req
     ) {
+        UUID brand = brandService.createBrand(req);
 
-        BrandCreateResponse brandCreateResponse = new BrandCreateResponse(
-            UUID.randomUUID(),
-            req.managerId(),
-            req.brandName(),
-            LocalDateTime.now(),
-            UUID.randomUUID(),
-            LocalDateTime.now(),
-            UUID.randomUUID()
-        );
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(brandCreateResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(brand);
     }
 
 }

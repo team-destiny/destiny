@@ -1,5 +1,6 @@
 package com.gbg.brandservice.domain.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,18 +23,20 @@ public class Brand {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID brandId;
 
+    @Column(nullable = false)
     private UUID managerId;
 
+    @Column(nullable = false, length = 255)
     private String brandName;
 
-    /* TODO
+    /*  TODO
         11. 27  | 공통 모듈 적용 안되는 이슈
                   이슈 해결되면 BaseEntity 상속 받아야 함.
      */
 
     public static Brand of(UUID managerId, String brandName) {
         Brand brand = new Brand();
-        brand.brandId = managerId;
+        brand.managerId = managerId;
         brand.brandName = brandName;
         return brand;
     }
