@@ -1,10 +1,12 @@
 package com.gbg.brandservice.presentation.dto.request;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
 public record BrandCreateRequest(
-    String brandName,
-    UUID managerId
+    @NotNull @Size(min = 2) String brandName,
+    @NotNull UUID managerId
 ) {
 
 }
