@@ -1,6 +1,6 @@
-package com.gbg.brandservice.domain.repository;
+package com.destiny.brandservice.domain.repository;
 
-import com.gbg.brandservice.domain.entity.Brand;
+import com.destiny.brandservice.domain.entity.Brand;
 import java.util.Optional;
 import java.util.UUID;
 

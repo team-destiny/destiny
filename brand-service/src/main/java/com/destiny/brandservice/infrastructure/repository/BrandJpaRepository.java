@@ -1,6 +1,6 @@
-package com.gbg.brandservice.infrastructure.repository;
+package com.destiny.brandservice.infrastructure.repository;
 
-import com.gbg.brandservice.domain.entity.Brand;
+import com.destiny.brandservice.domain.entity.Brand;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 

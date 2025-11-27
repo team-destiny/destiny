@@ -1,9 +1,9 @@
-package com.gbg.brandservice.application.service;
+package com.destiny.brandservice.application.service;
 
-import com.gbg.brandservice.domain.entity.Brand;
-import com.gbg.brandservice.domain.repository.BrandRepository;
-import com.gbg.brandservice.presentation.dto.request.BrandCreateRequest;
-import com.gbg.brandservice.presentation.dto.response.BrandResponse;
+import com.destiny.brandservice.domain.entity.Brand;
+import com.destiny.brandservice.domain.repository.BrandRepository;
+import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
+import com.destiny.brandservice.presentation.dto.response.BrandResponse;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
