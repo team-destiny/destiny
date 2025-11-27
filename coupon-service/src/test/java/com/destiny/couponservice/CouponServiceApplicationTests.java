@@ -1,4 +1,4 @@
-package com.destiny.coupon_service;
+package com.destiny.couponservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
