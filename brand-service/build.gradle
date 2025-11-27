@@ -4,7 +4,7 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
-group = 'com.gbg'
+group = 'com.destiny'
 version = '0.0.1-SNAPSHOT'
 description = 'brand-service'
 
@@ -34,6 +34,7 @@ dependencies {
 
     // data & jpa
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     runtimeOnly 'org.postgresql:postgresql'
 
     // kafka & feign

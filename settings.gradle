@@ -9,4 +9,5 @@ include "cart-service",
         "user-service",
         "gateway",
         "eureka-server",
-        "notification-service"
+        "notification-service",
+        "brand-service"
