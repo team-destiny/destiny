@@ -3,6 +3,7 @@ package com.gbg.brandservice.presentation.controller;
 import com.gbg.brandservice.application.service.BrandService;
 import com.gbg.brandservice.presentation.dto.request.BrandCreateRequest;
 import com.gbg.brandservice.presentation.dto.response.BrandCreateResponse;
+import com.gbg.brandservice.presentation.dto.response.BrandResponse;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -30,6 +31,15 @@ public class BrandController {
         UUID brand = brandService.createBrand(req);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(brand);
+    }
+
+    @GetMapping("/{brandId}")
+    public ResponseEntity<BrandResponse> getBrand(
+        @PathVariable UUID brandId
+    ) {
+        BrandResponse brand = brandService.getBrand(brandId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(brand);
     }
 
 }
