@@ -7,6 +7,7 @@ import com.destiny.brandservice.presentation.dto.response.BrandResponse;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -14,7 +15,7 @@ public class BrandService {
 
     private final BrandRepository brandRepository;
 
-
+    @Transactional
     public UUID createBrand(BrandCreateRequest req) {
 
         Brand brand = Brand.of(req.managerId(), req.brandName());
@@ -22,6 +23,7 @@ public class BrandService {
         return brandRepository.create(brand).getBrandId();
     }
 
+    @Transactional(readOnly = true)
     public BrandResponse getBrand(UUID brandId) {
 
         Brand brand = findBrand(brandId);
