@@ -1,4 +1,4 @@
-package com.destiny.coupon_service;
+package com.destiny.couponservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
