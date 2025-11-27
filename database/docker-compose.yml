@@ -1,0 +1,124 @@
+networks:
+  ecommerce:
+    external: true
+
+services:
+  user-db:
+    image: postgres:17
+    container_name: user-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: user_db
+    ports:
+      - "5432:5432"
+    networks:
+      - ecommerce
+
+  product-db:
+    image: postgres:17
+    container_name: product-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: product_db
+    ports:
+      - "5433:5432"
+    networks:
+      - ecommerce
+
+  stock-db:
+    image: postgres:17
+    container_name: stock-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: stock_db
+    ports:
+      - "5434:5432"
+    networks:
+      - ecommerce
+
+  order-db:
+    image: postgres:17
+    container_name: order-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: order_db
+    ports:
+      - "5435:5432"
+    networks:
+      - ecommerce
+
+  brand-db:
+    image: postgres:17
+    container_name: brand-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: brand_db
+    ports:
+      - "5436:5432"
+    networks:
+      - ecommerce
+
+  payment-db:
+    image: postgres:17
+    container_name: payment-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: payment_db
+    ports:
+      - "5437:5432"
+    networks:
+      - ecommerce
+
+  notification-db:
+    image: postgres:17
+    container_name: notification-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: notification_db
+    ports:
+      - "5438:5432"
+    networks:
+      - ecommerce
+
+  coupon-db:
+    image: postgres:17
+    container_name: coupon-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: coupon_db
+    ports:
+      - "5439:5432"
+    networks:
+      - ecommerce
+
+  review-db:
+    image: postgres:17
+    container_name: review-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: review_db
+    ports:
+      - "5440:5432"
+    networks:
+      - ecommerce
+
+  cart-db:
+    image: postgres:17
+    container_name: cart-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: cart_db
+    ports:
+      - "5441:5432"
+    networks:
+      - ecommerce
