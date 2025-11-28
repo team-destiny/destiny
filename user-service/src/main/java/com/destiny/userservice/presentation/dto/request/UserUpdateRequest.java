@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Pattern;
 
 public record UserUpdateRequest(
     String name,
-    @Pattern(regexp="\\d{3}-\\d{4}-\\d{3}") String phone,
+    @Pattern(regexp="\\d{3}-\\d{4}-\\d{4}") String phone,
     @Email String email,
     String zipcode,
     String address1,
