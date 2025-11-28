@@ -1,9 +1,13 @@
 package com.destiny.orderservice.domain.entity;
 
+import com.destiny.global.entity.BaseEntity;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -16,10 +20,43 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class OrderItem {
+public class OrderItem extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID orderId;
+    private UUID orderItemId;
+    private UUID productId;
+    private UUID itemPromotionId;
+    private Integer stock;
+    private Integer unitPrice;
+    private Integer finalPrice;
+    private Integer itemDiscountAmount;
+    private OrderItemStatus status;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private Order order;
 
+    public static OrderItem of(
+        UUID productId,
+        UUID itemPromotionId,
+        Integer stock,
+        Integer unitPrice,
+        Integer finalPrice,
+        Integer itemDiscountAmount
+    ) {
+        OrderItem orderItem = new OrderItem();
+        orderItem.productId = productId;
+        orderItem.itemPromotionId = itemPromotionId;
+        orderItem.stock = stock;
+        orderItem.unitPrice = unitPrice;
+        orderItem.finalPrice = finalPrice;
+        orderItem.itemDiscountAmount = itemDiscountAmount;
+        orderItem.status = OrderItemStatus.PENDING;
+
+        return orderItem;
+    }
+
+    public void addOrder(Order order) {
+        this.order = order;
+    }
 }
