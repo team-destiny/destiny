@@ -8,12 +8,12 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor
-public class CartFindAllResponseDtoV1 {
+public class CartFindAllResponse {
 
-    private final List<CartFindItemResponseDtoV1> items;
+    private final List<CartFindItemResponse> items;
 
-    public static CartFindAllResponseDtoV1 from(List<CartFindItemResponseDtoV1> items) {
-        return CartFindAllResponseDtoV1.builder()
+    public static CartFindAllResponse from(List<CartFindItemResponse> items) {
+        return CartFindAllResponse.builder()
             .items(items).build();
     }
 

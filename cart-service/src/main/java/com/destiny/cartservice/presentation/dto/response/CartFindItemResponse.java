@@ -8,7 +8,7 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor
-public class CartFindItemResponseDtoV1 {
+public class CartFindItemResponse {
 
     private final UUID cartId;
     private final UUID productId;

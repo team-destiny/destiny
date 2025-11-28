@@ -1,12 +1,13 @@
 package com.destiny.cartservice.application.service;
 
-import com.destiny.cartservice.presentation.dto.request.CartDeleteRequestDtoV1;
-import com.destiny.cartservice.presentation.dto.request.CartSaveRequestDtoV1;
-import com.destiny.cartservice.presentation.dto.request.CartUpdateQuantityRequestDtoV1;
-import com.destiny.cartservice.presentation.dto.response.CartFindAllResponseDtoV1;
-import com.destiny.cartservice.presentation.dto.response.CartSaveResponseDtoV1;
-import com.destiny.cartservice.presentation.dto.response.CartUpdateQuantityResponseDtoV1;
+import com.destiny.cartservice.presentation.dto.request.CartDeleteRequest;
+import com.destiny.cartservice.presentation.dto.request.CartSaveRequest;
+import com.destiny.cartservice.presentation.dto.request.CartUpdateQuantityRequest;
+import com.destiny.cartservice.presentation.dto.response.CartFindAllResponse;
+import com.destiny.cartservice.presentation.dto.response.CartSaveResponse;
+import com.destiny.cartservice.presentation.dto.response.CartUpdateQuantityResponse;
 import java.security.Principal;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,30 +15,30 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class CartServiceImpl implements CartServiceV1 {
+public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional(readOnly = true)
-    public CartFindAllResponseDtoV1 findAllCarts(Principal principal) {
+    public CartFindAllResponse findAllCarts(Principal principal) {
         return null;
     }
 
     @Override
-    public CartSaveResponseDtoV1 saveCartItem(Principal principal, CartSaveRequestDtoV1 request) {
+    public CartSaveResponse saveCartItem(Principal principal, CartSaveRequest request) {
         return null;
     }
 
     @Override
-    public CartUpdateQuantityResponseDtoV1 updateCartItemQuantity(
+    public CartUpdateQuantityResponse updateCartItemQuantity(
         Principal principal,
-        String cartId,
-        CartUpdateQuantityRequestDtoV1 request
+        UUID cartId,
+        CartUpdateQuantityRequest request
     ) {
         return null;
     }
 
 
     @Override
-    public void deleteCartItems(Principal principal, CartDeleteRequestDtoV1 request) {
+    public void deleteCartItems(Principal principal, CartDeleteRequest request) {
     }
 }
