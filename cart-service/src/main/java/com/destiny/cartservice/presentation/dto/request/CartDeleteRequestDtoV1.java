@@ -1,6 +1,7 @@
 package com.destiny.cartservice.presentation.dto.request;
 
 import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CartDeleteRequestDtoV1 {
 
-    private List<String> cartIds;
+    private List<UUID> cartIds;
 
 }

@@ -1,5 +1,6 @@
 package com.destiny.cartservice.presentation.dto.response;
 
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,9 +10,9 @@ import lombok.Getter;
 @AllArgsConstructor
 public class CartSaveResponseDtoV1 {
 
-    private final String cartId;
-    private final Long productId;
-    private final Long optionId;
+    private final UUID cartId;
+    private final UUID productId;
+    private final UUID optionId;
     private final int quantity;
     private final String productName;
     private final String optionName;

@@ -1,5 +1,6 @@
 package com.destiny.cartservice.presentation.dto.request;
 
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -7,8 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CartSaveRequestDtoV1 {
 
-    private Long productId;
-    private Long optionId; // nullable
+    private UUID productId;
+    private UUID optionId; // nullable
     private int quantity;
 
 }
