@@ -20,12 +20,12 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional(readOnly = true)
     public CartFindAllResponse findAllCarts(Principal principal) {
-        return null;
+        throw new UnsupportedOperationException("아직 미구현된 메서드입니다.");
     }
 
     @Override
     public CartSaveResponse saveCartItem(Principal principal, CartSaveRequest request) {
-        return null;
+        throw new UnsupportedOperationException("아직 미구현된 메서드입니다.");
     }
 
     @Override
@@ -34,11 +34,12 @@ public class CartServiceImpl implements CartService {
         UUID cartId,
         CartUpdateQuantityRequest request
     ) {
-        return null;
+        throw new UnsupportedOperationException("아직 미구현된 메서드입니다.");
     }
 
 
     @Override
     public void deleteCartItems(Principal principal, CartDeleteRequest request) {
+        throw new UnsupportedOperationException("아직 미구현된 메서드입니다.");
     }
 }

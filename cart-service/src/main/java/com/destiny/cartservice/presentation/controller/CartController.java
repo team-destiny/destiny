@@ -7,6 +7,7 @@ import com.destiny.cartservice.presentation.dto.request.CartUpdateQuantityReques
 import com.destiny.cartservice.presentation.dto.response.CartFindAllResponse;
 import com.destiny.cartservice.presentation.dto.response.CartSaveResponse;
 import com.destiny.cartservice.presentation.dto.response.CartUpdateQuantityResponse;
+import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class CartController {
     // 장바구니 담기
     @PostMapping
     public ResponseEntity<CartSaveResponse> saveCart(Principal principal,
-        @RequestBody CartSaveRequest request) {
+        @RequestBody @Valid CartSaveRequest request) {
         CartSaveResponse response = cartService.saveCartItem(principal, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -48,7 +49,7 @@ public class CartController {
     @PatchMapping("/{cartId}/quantity")
     public ResponseEntity<CartUpdateQuantityResponse> updateCartItemQuantity(
         Principal principal, @PathVariable UUID cartId,
-        @RequestBody CartUpdateQuantityRequest request) {
+        @RequestBody @Valid CartUpdateQuantityRequest request) {
         CartUpdateQuantityResponse response = cartService.updateCartItemQuantity(principal,
             cartId, request);
         return ResponseEntity.ok(response);
