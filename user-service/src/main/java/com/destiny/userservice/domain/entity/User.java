@@ -39,7 +39,7 @@ public class User extends BaseEntity {
     private String address2;
     private LocalDateTime birth;
 
-    private Double point;
+    private Long point;
     @Enumerated(EnumType.STRING)
     private MembershipGrade membershipGrade;
     private Long totalPrice;
