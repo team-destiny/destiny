@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "p_coupon_templates")
+@Table(name = "p_coupon_template")
 public class CouponTemplate extends BaseEntity {
 
     @Id
