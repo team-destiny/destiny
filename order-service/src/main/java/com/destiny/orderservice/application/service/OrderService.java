@@ -4,6 +4,8 @@ import com.destiny.orderservice.domain.entity.Order;
 import com.destiny.orderservice.domain.entity.OrderItem;
 import com.destiny.orderservice.domain.entity.OrderStatus;
 import com.destiny.orderservice.domain.repository.OrderRepository;
+import com.destiny.orderservice.infrastructure.messaging.dto.SagaStartedEvent;
+import com.destiny.orderservice.infrastructure.messaging.producer.OrderEventProducer;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
 import com.destiny.orderservice.presentation.dto.response.OrderDetailResponse;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderEventProducer orderEventProducer;
 
     @Transactional
     public UUID createOrder(OrderCreateRequest req) {
@@ -43,9 +46,13 @@ public class OrderService {
             order.addItem(orderItem);
         }
 
-        // TODO : 사가 오케스트레이션으로 카프카 메시지 발송
+        UUID orderId = orderRepository.createOrder(order).getOrderId();
 
-        return orderRepository.createOrder(order).getOrderId();
+        // TODO : 사가 오케스트레이션으로 카프카 메시지 발송
+        SagaStartedEvent event = SagaStartedEvent.from(order);
+        orderEventProducer.send(event);
+
+        return orderId;
     }
 
     @Transactional(readOnly = true)

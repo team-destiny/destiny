@@ -24,7 +24,9 @@ public class OrderController {
     public ResponseEntity<UUID> createOrder(@RequestBody OrderCreateRequest req){
         UUID order = orderService.createOrder(req);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(order);
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(order);
     }
 
     @GetMapping("/{orderId}")
