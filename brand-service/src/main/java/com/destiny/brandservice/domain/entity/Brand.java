@@ -1,5 +1,6 @@
 package com.destiny.brandservice.domain.entity;
 
+import com.destiny.global.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,7 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-public class Brand {
+public class Brand extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -28,11 +29,6 @@ public class Brand {
 
     @Column(nullable = false, length = 255)
     private String brandName;
-
-    /*  TODO
-        11. 27  | 공통 모듈 적용 안되는 이슈
-                  이슈 해결되면 BaseEntity 상속 받아야 함.
-     */
 
     public static Brand of(UUID managerId, String brandName) {
         Brand brand = new Brand();
