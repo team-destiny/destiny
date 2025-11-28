@@ -10,6 +10,7 @@ import com.destiny.userservice.domain.entity.UserStatus;
 import com.destiny.userservice.presentation.dto.request.UserPasswordUpdateRequest;
 import com.destiny.userservice.presentation.dto.request.UserUpdateRequest;
 import com.destiny.userservice.presentation.dto.response.UserGetResponse;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,7 +45,7 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}")
-    public ApiResponse<UserGetResponse> updateUser(@PathVariable UUID userId, @RequestBody UserUpdateRequest userUpdateRequest) {
+    public ApiResponse<UserGetResponse> updateUser(@PathVariable UUID userId, @Valid @RequestBody UserUpdateRequest userUpdateRequest) {
         // TODO : userService.uadateUser(userId, uesrGetRequest);
 
         User user = getMockUser(userId);
@@ -76,7 +77,7 @@ public class UserController {
     }
 
     @PostMapping("/{userId}/password")
-    public ApiResponse updatePassword(@PathVariable UUID userId, @RequestBody UserPasswordUpdateRequest userPasswordUpdateRequest) {
+    public ApiResponse updatePassword(@PathVariable UUID userId, @Valid @RequestBody UserPasswordUpdateRequest userPasswordUpdateRequest) {
         // TODO : userService.updatePassword(userId, requestDto);
 
         return ApiResponse.success(CommonSuccessCode.OK);
