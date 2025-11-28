@@ -2,6 +2,8 @@ package com.destiny.orderservice.domain.entity;
 
 import com.destiny.global.entity.BaseEntity;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -31,6 +33,7 @@ public class OrderItem extends BaseEntity {
     private Integer unitPrice;
     private Integer finalPrice;
     private Integer itemDiscountAmount;
+    @Enumerated(EnumType.STRING)
     private OrderItemStatus status;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
@@ -39,18 +42,15 @@ public class OrderItem extends BaseEntity {
     public static OrderItem of(
         UUID productId,
         UUID itemPromotionId,
-        Integer stock,
-        Integer unitPrice,
-        Integer finalPrice,
-        Integer itemDiscountAmount
+        Integer stock
     ) {
         OrderItem orderItem = new OrderItem();
         orderItem.productId = productId;
         orderItem.itemPromotionId = itemPromotionId;
         orderItem.stock = stock;
-        orderItem.unitPrice = unitPrice;
-        orderItem.finalPrice = finalPrice;
-        orderItem.itemDiscountAmount = itemDiscountAmount;
+        orderItem.unitPrice = null;
+        orderItem.finalPrice = null;
+        orderItem.itemDiscountAmount = null;
         orderItem.status = OrderItemStatus.PENDING;
 
         return orderItem;

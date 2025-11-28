@@ -3,6 +3,8 @@ package com.destiny.orderservice.domain.entity;
 import com.destiny.global.entity.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -31,6 +33,7 @@ public class Order extends BaseEntity {
     private Integer originalAmount;
     private Integer finalAmount;
     private Integer discountAmount;
+    @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
     private String paymentMethod;
     private String recipientName;
@@ -45,9 +48,6 @@ public class Order extends BaseEntity {
     public static Order of(
         UUID userId,
         UUID couponId,
-        Integer originalAmount,
-        Integer finalAmount,
-        Integer discountAmount,
         String paymentMethod,
         String recipientName,
         String recipientPhone,
@@ -59,9 +59,9 @@ public class Order extends BaseEntity {
         Order order = new Order();
         order.userId = userId;
         order.couponId = couponId;
-        order.originalAmount = originalAmount;
-        order.finalAmount = finalAmount;
-        order.discountAmount = discountAmount;
+        order.originalAmount = null;
+        order.finalAmount = null;
+        order.discountAmount = null;
         order.orderStatus = OrderStatus.CREATED;
         order.paymentMethod = paymentMethod;
         order.recipientName = recipientName;
