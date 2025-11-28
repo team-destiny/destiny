@@ -47,5 +47,20 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus;
 
-
+    public User() {
+        this.username = username;
+        this.password = password;
+        this.userRole = userRole;
+        this.name = name;
+        this.phone = phone;
+        this.email = email;
+        this.zipCode = zipCode;
+        this.address1 = address1;
+        this.address2 = address2;
+        this.birth = birth;
+        this.point = point;
+        this.membershipGrade = membershipGrade;
+        this.totalPrice = totalPrice;
+        this.userStatus = userStatus;
+    }
 }
