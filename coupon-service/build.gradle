@@ -20,6 +20,13 @@ configurations {
 	}
 }
 
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+
 repositories {
 	mavenCentral()
 }
@@ -30,7 +37,7 @@ ext {
 
 dependencies {
     // common dependencies
-//    implementation 'com.github.team-destiny:destiny-global:0.0.1'
+    implementation 'com.github.team-destiny:destiny-global:0.0.1'
 
     // data & jpa
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -46,6 +53,7 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
