@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/v1/users")
 public class UserController {
+    // TODO : userSuccessCode 만들기
 
     private final UserService userService;
 
@@ -49,7 +50,7 @@ public class UserController {
         User user = getMockUser(userId);
         UserGetResponse body = UserGetResponse.of(user);
 
-        return ApiResponse.success(CommonSuccessCode.CREATED, body);
+        return ApiResponse.success(CommonSuccessCode.OK, body);
     }
 
     // TODO : userService 생성 후 제거
