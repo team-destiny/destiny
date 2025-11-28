@@ -8,7 +8,7 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor
-public class CartSaveResponseDtoV1 {
+public class CartUpdateQuantityResponse {
 
     private final UUID cartId;
     private final UUID productId;
@@ -17,4 +17,5 @@ public class CartSaveResponseDtoV1 {
     private final String productName;
     private final String optionName;
     private final int price;
+
 }

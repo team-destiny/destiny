@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class CartSaveRequestDtoV1 {
+public class CartSaveRequest {
 
     private UUID productId;
     private UUID optionId; // nullable
