@@ -47,20 +47,29 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus;
 
-    public User() {
-        this.username = username;
-        this.password = password;
-        this.userRole = userRole;
-        this.name = name;
-        this.phone = phone;
-        this.email = email;
-        this.zipCode = zipCode;
-        this.address1 = address1;
-        this.address2 = address2;
-        this.birth = birth;
-        this.point = point;
-        this.membershipGrade = membershipGrade;
-        this.totalPrice = totalPrice;
-        this.userStatus = userStatus;
+    public User() {}
+
+    public static User createUser(String username, String password, UserRole userRole, String name,
+        String phone, String email, String zipCode, String address1, String address2,
+        LocalDateTime birth, Long point, MembershipGrade membershipGrade, Long totalPrice,
+        UserStatus userStatus) {
+        User user = new User();
+
+        user.username = username;
+        user.password = password;
+        user.userRole = userRole;
+        user.name = name;
+        user.phone = phone;
+        user.email = email;
+        user.zipCode = zipCode;
+        user.address1 = address1;
+        user.address2 = address2;
+        user.birth = birth;
+        user.point = point;
+        user.membershipGrade = membershipGrade;
+        user.totalPrice = totalPrice;
+        user.userStatus = userStatus;
+
+        return user;
     }
 }
