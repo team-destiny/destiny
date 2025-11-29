@@ -62,8 +62,8 @@ public class OrderService {
             () -> new RuntimeException("주문을 찾을 수 없습니다.")
         );
 
-        // 사가 처리 전 상태 : CREATE
-        if (order.getOrderStatus().equals(OrderStatus.CREATED)) {
+        // 사가 처리 전 상태 : PENDING
+        if (order.getOrderStatus().equals(OrderStatus.PENDING)) {
             return OrderProcessingResponse.of(order.getOrderId(), order.getOrderStatus());
         }
 
