@@ -3,6 +3,7 @@ package com.destiny.couponservice.application.service.impl;
 import com.destiny.couponservice.application.service.CouponTemplateService;
 import com.destiny.couponservice.application.service.exception.CouponErrorCode;
 import com.destiny.couponservice.domain.entity.CouponTemplate;
+import com.destiny.couponservice.domain.enums.DiscountType;
 import com.destiny.couponservice.domain.repository.CouponTemplateRepository;
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateCreateRequest;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateResponse;
@@ -25,8 +26,27 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
     @Transactional
     public CouponTemplateCreateResponse create(CouponTemplateCreateRequest req) {
 
+        // 중복 코드 검증
         if (couponTemplateRepository.existsByCode(req.getCode())) {
             throw new BizException(CouponErrorCode.DUPLICATE_TEMPLATE_CODE);
+        }
+
+        //  날짜 범위 검증
+        if (req.getAvailableTo().isBefore(req.getAvailableFrom())) {
+            throw new BizException(CouponErrorCode.INVALID_DATE_RANGE);
+        }
+
+        // 할인 값 검증
+        if (req.getDiscountType() == DiscountType.RATE) {
+            // 정률 할인: 1~100%
+            if (req.getDiscountValue() < 1 || req.getDiscountValue() > 100) {
+                throw new BizException(CouponErrorCode.INVALID_DISCOUNT_VALUE);
+            }
+
+            // 정률 할인일 때 최대 할인 금액 필수
+            if (req.getMaxDiscountAmount() == null) {
+                throw new BizException(CouponErrorCode.MISSING_MAX_DISCOUNT);
+            }
         }
 
         CouponTemplate couponTemplate = CouponTemplate.builder()
@@ -60,7 +80,7 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
             .maxDiscountAmount(saved.getMaxDiscountAmount())
             .dailyIssueLimit(saved.getDailyIssueLimit())
             .perUserTotalLimit(saved.getPerUserTotalLimit())
-            .createdAt(saved.getCreatedAt())   // Auditing 값
+            .createdAt(saved.getCreatedAt())
             .build();
     }
 
