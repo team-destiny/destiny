@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class OrderSagaStartedConsumer {
+public class SagaConsumer {
 
-    @KafkaListener(topics = "order-saga-started", groupId = "saga-orchestrator")
+    @KafkaListener(topics = "order-create-request", groupId = "saga-orchestrator")
     public void consumer(String message) {
       log.info("SagaStartedEvent Received : {}", message);
     }

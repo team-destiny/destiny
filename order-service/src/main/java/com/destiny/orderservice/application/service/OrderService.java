@@ -4,7 +4,7 @@ import com.destiny.orderservice.domain.entity.Order;
 import com.destiny.orderservice.domain.entity.OrderItem;
 import com.destiny.orderservice.domain.entity.OrderStatus;
 import com.destiny.orderservice.domain.repository.OrderRepository;
-import com.destiny.orderservice.infrastructure.messaging.dto.SagaStartedEvent;
+import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCreateRequestEvent;
 import com.destiny.orderservice.infrastructure.messaging.producer.OrderEventProducer;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
@@ -49,7 +49,7 @@ public class OrderService {
         UUID orderId = orderRepository.createOrder(order).getOrderId();
 
         // TODO : 사가 오케스트레이션으로 카프카 메시지 발송
-        SagaStartedEvent event = SagaStartedEvent.from(order);
+        OrderCreateRequestEvent event = OrderCreateRequestEvent.from(order);
         orderEventProducer.send(event);
 
         return orderId;

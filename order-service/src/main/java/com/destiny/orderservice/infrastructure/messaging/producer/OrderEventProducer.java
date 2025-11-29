@@ -1,6 +1,6 @@
 package com.destiny.orderservice.infrastructure.messaging.producer;
 
-import com.destiny.orderservice.infrastructure.messaging.dto.SagaStartedEvent;
+import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCreateRequestEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +16,11 @@ public class OrderEventProducer {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    public void send(SagaStartedEvent event) {
+    public void send(OrderCreateRequestEvent event) {
         try {
             String payload = objectMapper.writeValueAsString(event);
 
-            kafkaTemplate.send("order-saga-started", payload);
+            kafkaTemplate.send("order-creat-request", payload);
             log.info("Producer : order-saga-started success -> {}", payload);
 
         } catch (JsonProcessingException e) {
