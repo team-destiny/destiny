@@ -1,3 +1,31 @@
+server:
+  port: 18170
+
 spring:
   application:
     name: cart-service
+
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:cart-db;MODE=PostgreSQL
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
