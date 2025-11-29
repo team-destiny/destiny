@@ -2,9 +2,14 @@ package com.destiny.couponservice.infrastructure.repository;
 
 import com.destiny.couponservice.domain.entity.CouponTemplate;
 import com.destiny.couponservice.domain.repository.CouponTemplateRepository;
+import com.destiny.couponservice.infrastructure.repository.spec.CouponTemplateSpecification;
+import com.destiny.couponservice.presentation.dto.request.CouponTemplateSearchRequest;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -27,4 +32,16 @@ public class CouponTemplateRepositoryImpl implements CouponTemplateRepository {
     public boolean existsByCode(String code) {
         return couponTemplateJpaRepository.existsByCode(code);
     }
+
+    @Override
+    public Page<CouponTemplate> search(CouponTemplateSearchRequest req, Pageable pageable) {
+        Specification<CouponTemplate> spec = Specification.allOf(
+            CouponTemplateSpecification.codeContains(req.getCode()),
+            CouponTemplateSpecification.nameContains(req.getName()),
+            CouponTemplateSpecification.typeEquals(req.getDiscountType()));
+
+        return couponTemplateJpaRepository.findAll(spec, pageable);
+    }
+
+
 }

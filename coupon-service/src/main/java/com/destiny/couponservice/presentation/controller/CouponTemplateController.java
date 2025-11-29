@@ -2,14 +2,18 @@ package com.destiny.couponservice.presentation.controller;
 
 import com.destiny.couponservice.application.service.CouponTemplateService;
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateCreateRequest;
+import com.destiny.couponservice.presentation.dto.request.CouponTemplateSearchRequest;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateResponse;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateGetResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,5 +44,13 @@ public class CouponTemplateController {
         CouponTemplateGetResponse response = couponTemplateService.getTemplate(templateId);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<CouponTemplateGetResponse>> searchTemplates(
+        @ModelAttribute CouponTemplateSearchRequest req,
+        Pageable pageable
+    ) {
+        return ResponseEntity.ok(couponTemplateService.search(req, pageable));
     }
 }
