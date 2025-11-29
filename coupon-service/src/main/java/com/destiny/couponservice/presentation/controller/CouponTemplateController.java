@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/coupon-templates")
+@RequestMapping("/v1/coupon-templates")
 public class CouponTemplateController {
 
     private final CouponTemplateService couponTemplateService;
