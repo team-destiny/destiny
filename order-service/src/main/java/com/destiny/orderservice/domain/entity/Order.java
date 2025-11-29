@@ -62,7 +62,7 @@ public class Order extends BaseEntity {
         order.originalAmount = null;
         order.finalAmount = null;
         order.discountAmount = null;
-        order.orderStatus = OrderStatus.CREATED;
+        order.orderStatus = OrderStatus.PENDING;
         order.paymentMethod = paymentMethod;
         order.recipientName = recipientName;
         order.recipientPhone = recipientPhone;

@@ -20,7 +20,7 @@ public class OrderEventProducer {
         try {
             String payload = objectMapper.writeValueAsString(event);
 
-            kafkaTemplate.send("order-creat-request", payload);
+            kafkaTemplate.send("order-create-request", payload);
             log.info("Producer : order-saga-started success -> {}", payload);
 
         } catch (JsonProcessingException e) {
