@@ -54,6 +54,24 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
             }
         }
 
+        //  날짜 범위 검증
+        if (req.getAvailableTo().isBefore(req.getAvailableFrom())) {
+            throw new BizException(CouponErrorCode.INVALID_DATE_RANGE);
+        }
+
+        // 할인 값 검증
+        if (req.getDiscountType() == DiscountType.RATE) {
+            // 정률 할인: 1~100%
+            if (req.getDiscountValue() < 1 || req.getDiscountValue() > 100) {
+                throw new BizException(CouponErrorCode.INVALID_DISCOUNT_VALUE);
+            }
+
+            // 정률 할인일 때 최대 할인 금액 필수
+            if (req.getMaxDiscountAmount() == null) {
+                throw new BizException(CouponErrorCode.MISSING_MAX_DISCOUNT);
+            }
+        }
+
         CouponTemplate couponTemplate = CouponTemplate.builder()
             .code(req.getCode())
             .name(req.getName())
