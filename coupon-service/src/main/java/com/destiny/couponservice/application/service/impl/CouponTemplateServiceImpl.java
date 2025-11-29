@@ -6,12 +6,15 @@ import com.destiny.couponservice.domain.entity.CouponTemplate;
 import com.destiny.couponservice.domain.enums.DiscountType;
 import com.destiny.couponservice.domain.repository.CouponTemplateRepository;
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateCreateRequest;
+import com.destiny.couponservice.presentation.dto.request.CouponTemplateSearchRequest;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateResponse;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateGetResponse;
 import com.destiny.global.exception.BizException;
 import jakarta.transaction.Transactional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -110,4 +113,32 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
             .updatedAt(template.getUpdatedAt())
             .build();
     }
+
+    // 쿠폰템플릿 목록 조회
+    @Override
+    @Transactional
+    public Page<CouponTemplateGetResponse> search(CouponTemplateSearchRequest req,
+        Pageable pageable) {
+
+        return couponTemplateRepository.search(req, pageable)
+            .map(template -> CouponTemplateGetResponse.builder()
+                .id(template.getId())
+                .code(template.getCode())
+                .name(template.getName())
+                .discountType(template.getDiscountType())
+                .discountValue(template.getDiscountValue())
+                .minOrderAmount(template.getMinOrderAmount())
+                .isDuplicateUsable(template.getIsDuplicateUsable())
+                .maxDiscountAmount(template.getMaxDiscountAmount())
+                .dailyIssueLimit(template.getDailyIssueLimit())
+                .perUserTotalLimit(template.getPerUserTotalLimit())
+                .availableFrom(template.getAvailableFrom())
+                .availableTo(template.getAvailableTo())
+                .createdAt(template.getCreatedAt())
+                .updatedAt(template.getUpdatedAt())
+                .build()
+            );
+    }
+
+
 }
