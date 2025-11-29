@@ -72,4 +72,4 @@ public class WidgetController {
 
         return ResponseEntity.status(code).body(jsonObject);
     }
-    }
+}
