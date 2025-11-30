@@ -181,5 +181,15 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
 
         return CouponTemplateGetResponse.from(template);
     }
+
+    @Override
+    @Transactional
+    public void delete(UUID templateId) {
+
+        CouponTemplate template = couponTemplateRepository.findById(templateId)
+            .orElseThrow(() -> new BizException(CouponErrorCode.TEMPLATE_NOT_FOUND));
+
+        couponTemplateRepository.delete(template);
+    }
 }
 

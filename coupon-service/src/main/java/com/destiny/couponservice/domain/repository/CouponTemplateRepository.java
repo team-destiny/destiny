@@ -17,4 +17,6 @@ public interface CouponTemplateRepository {
 
     Page<CouponTemplate> search(CouponTemplateSearchRequest req, Pageable pageable);
 
+    void delete(CouponTemplate template);
+
 }

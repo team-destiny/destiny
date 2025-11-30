@@ -19,4 +19,6 @@ public interface CouponTemplateService {
 
     CouponTemplateGetResponse update(UUID templateId, CouponTemplateUpdateRequest request);
 
+    void delete(UUID templateId);
+
 }

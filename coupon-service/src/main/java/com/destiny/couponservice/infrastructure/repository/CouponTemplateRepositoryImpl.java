@@ -43,5 +43,9 @@ public class CouponTemplateRepositoryImpl implements CouponTemplateRepository {
         return couponTemplateJpaRepository.findAll(spec, pageable);
     }
 
+    @Override
+    public void delete(CouponTemplate template) {
+        couponTemplateJpaRepository.delete(template);
+    }
 
 }
