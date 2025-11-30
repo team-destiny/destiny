@@ -21,14 +21,16 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID userId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String username;
     @Column(nullable = false)
     private String password;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
-    private String name;
+    @Column(nullable = false, unique = true)
+    private String nickname;
     @Column(nullable = false)
     private String phone;
     @Column(nullable = false)
@@ -40,6 +42,7 @@ public class User extends BaseEntity {
     private LocalDateTime birth;
 
     private Long point;
+
     @Enumerated(EnumType.STRING)
     private MembershipGrade membershipGrade;
     private Long totalPrice;
@@ -49,7 +52,7 @@ public class User extends BaseEntity {
 
     public User() {}
 
-    public static User createUser(String username, String password, UserRole userRole, String name,
+    public static User createUser(String username, String password, UserRole userRole, String nickname,
         String phone, String email, String zipCode, String address1, String address2,
         LocalDateTime birth, Long point, MembershipGrade membershipGrade, Long totalPrice,
         UserStatus userStatus) {
@@ -58,7 +61,7 @@ public class User extends BaseEntity {
         user.username = username;
         user.password = password;
         user.userRole = userRole;
-        user.name = name;
+        user.nickname = nickname;
         user.phone = phone;
         user.email = email;
         user.zipCode = zipCode;
