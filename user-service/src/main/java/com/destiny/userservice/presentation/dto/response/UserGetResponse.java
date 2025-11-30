@@ -10,7 +10,7 @@ public record UserGetResponse(
     UUID userId,
     UserRole userRole,
     String username,
-    String name,
+    String nickname,
     String phone,
     String email,
     String zipCode,
@@ -24,7 +24,7 @@ public record UserGetResponse(
         return new UserGetResponse(user.getUserId()
             , user.getUserRole()
             , user.getUsername()
-            , user.getName()
+            , user.getNickname()
             , user.getPhone()
             , user.getEmail()
             , user.getZipCode()
