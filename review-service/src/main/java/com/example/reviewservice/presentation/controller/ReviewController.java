@@ -7,6 +7,7 @@ import com.example.reviewservice.domain.entity.Review;
 import com.example.reviewservice.presentation.dto.request.ReviewCreateRequest;
 import com.example.reviewservice.presentation.dto.request.ReviewUpdateRequest;
 import com.example.reviewservice.presentation.dto.response.ReviewResponse;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,7 +29,7 @@ public class ReviewController {
 
     @PostMapping
     public ApiResponse<ReviewResponse> createReview(
-        @RequestBody ReviewCreateRequest reviewCreateRequest
+        @Valid @RequestBody ReviewCreateRequest reviewCreateRequest
     ) {
         // 더미 데이터 – 실제로는 DB 저장 후 결과 반환
         Review review = getMockReview(reviewCreateRequest);
