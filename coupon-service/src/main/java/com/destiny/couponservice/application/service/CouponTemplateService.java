@@ -2,6 +2,7 @@ package com.destiny.couponservice.application.service;
 
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateCreateRequest;
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateSearchRequest;
+import com.destiny.couponservice.presentation.dto.request.CouponTemplateUpdateRequest;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateResponse;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateGetResponse;
 import java.util.UUID;
@@ -15,5 +16,7 @@ public interface CouponTemplateService {
     CouponTemplateGetResponse getTemplate(UUID templateId);
 
     Page<CouponTemplateGetResponse> search(CouponTemplateSearchRequest request, Pageable pageable);
+
+    CouponTemplateGetResponse update(UUID templateId, CouponTemplateUpdateRequest request);
 
 }
