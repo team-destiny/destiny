@@ -7,10 +7,12 @@ import com.destiny.couponservice.domain.enums.DiscountType;
 import com.destiny.couponservice.domain.repository.CouponTemplateRepository;
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateCreateRequest;
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateSearchRequest;
+import com.destiny.couponservice.presentation.dto.request.CouponTemplateUpdateRequest;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateResponse;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateGetResponse;
 import com.destiny.global.exception.BizException;
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -121,24 +123,63 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
         Pageable pageable) {
 
         return couponTemplateRepository.search(req, pageable)
-            .map(template -> CouponTemplateGetResponse.builder()
-                .id(template.getId())
-                .code(template.getCode())
-                .name(template.getName())
-                .discountType(template.getDiscountType())
-                .discountValue(template.getDiscountValue())
-                .minOrderAmount(template.getMinOrderAmount())
-                .isDuplicateUsable(template.getIsDuplicateUsable())
-                .maxDiscountAmount(template.getMaxDiscountAmount())
-                .dailyIssueLimit(template.getDailyIssueLimit())
-                .perUserTotalLimit(template.getPerUserTotalLimit())
-                .availableFrom(template.getAvailableFrom())
-                .availableTo(template.getAvailableTo())
-                .createdAt(template.getCreatedAt())
-                .updatedAt(template.getUpdatedAt())
-                .build()
-            );
+            .map(CouponTemplateGetResponse::from);
     }
 
 
+    //쿠폰 템플릿 수정
+    @Override
+    @Transactional
+    public CouponTemplateGetResponse update(UUID templateId, CouponTemplateUpdateRequest req) {
+
+        CouponTemplate template = couponTemplateRepository.findById(templateId)
+            .orElseThrow(() -> new BizException(CouponErrorCode.TEMPLATE_NOT_FOUND));
+
+        //  패치 후 기준 값 계산 (null 은 기존 값 유지)
+        DiscountType newType =
+            req.getDiscountType() != null ? req.getDiscountType() : template.getDiscountType();
+        Integer newDiscountValue =
+            req.getDiscountValue() != null ? req.getDiscountValue() : template.getDiscountValue();
+
+        LocalDateTime newFrom =
+            req.getAvailableFrom() != null ? req.getAvailableFrom() : template.getAvailableFrom();
+        LocalDateTime newTo =
+            req.getAvailableTo() != null ? req.getAvailableTo() : template.getAvailableTo();
+
+        Integer newMaxDiscountAmount =
+            req.getMaxDiscountAmount() != null
+                ? req.getMaxDiscountAmount()
+                : template.getMaxDiscountAmount();
+
+        if (newTo.isBefore(newFrom)) {
+            throw new BizException(CouponErrorCode.INVALID_DATE_RANGE);
+        }
+
+        if (newType == DiscountType.RATE) {
+            if (newDiscountValue == null
+                || newDiscountValue < 1
+                || newDiscountValue > 100) {
+                throw new BizException(CouponErrorCode.INVALID_DISCOUNT_VALUE);
+            }
+            if (newMaxDiscountAmount == null) {
+                throw new BizException(CouponErrorCode.MISSING_MAX_DISCOUNT);
+            }
+        }
+
+        template.update(
+            req.getName(),
+            req.getDiscountType(),
+            req.getDiscountValue(),
+            req.getMinOrderAmount(),
+            req.getIsDuplicateUsable(),
+            req.getMaxDiscountAmount(),
+            req.getDailyIssueLimit(),
+            req.getPerUserTotalLimit(),
+            req.getAvailableFrom(),
+            req.getAvailableTo()
+        );
+
+        return CouponTemplateGetResponse.from(template);
+    }
 }
+
