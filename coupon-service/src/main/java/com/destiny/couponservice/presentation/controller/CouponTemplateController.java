@@ -3,6 +3,7 @@ package com.destiny.couponservice.presentation.controller;
 import com.destiny.couponservice.application.service.CouponTemplateService;
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateCreateRequest;
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateSearchRequest;
+import com.destiny.couponservice.presentation.dto.request.CouponTemplateUpdateRequest;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateResponse;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateGetResponse;
 import jakarta.validation.Valid;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,5 +54,14 @@ public class CouponTemplateController {
         Pageable pageable
     ) {
         return ResponseEntity.ok(couponTemplateService.search(req, pageable));
+    }
+
+    @PatchMapping("/{templateId}")
+    public ResponseEntity<CouponTemplateGetResponse> updateTemplate(
+        @PathVariable UUID templateId,
+        @Valid @RequestBody CouponTemplateUpdateRequest request
+    ) {
+        CouponTemplateGetResponse response = couponTemplateService.update(templateId, request);
+        return ResponseEntity.ok(response);
     }
 }
