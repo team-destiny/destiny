@@ -11,4 +11,5 @@ include "cart-service",
         "eureka-server",
         "notification-service",
         "brand-service",
-        "saga-orchestrator"
+        "saga-orchestrator",
+        "review-service"
