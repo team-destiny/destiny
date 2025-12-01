@@ -58,6 +58,7 @@ Content-Type: application/json
   "username": "admin001",
   "password": "Admin1234!",
   "userRole": "MASTER",
+  "adminToken": "my-super-secret-admin-token",
   "email": "admin@example.com"
 }
 

@@ -33,9 +33,8 @@ public class AuthService {
         }
 
         UserRole userRole = userSignUpRequest.userRole();
-        if(userSignUpRequest.adminToken() != null){
+        if(userRole == UserRole.MASTER){
             validationAdminToken(userSignUpRequest.adminToken());
-            userRole = UserRole.MASTER;
         }
 
         User user = User.createUser(
