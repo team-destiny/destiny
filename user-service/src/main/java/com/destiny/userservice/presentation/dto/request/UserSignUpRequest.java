@@ -14,7 +14,7 @@ public record UserSignUpRequest(
     String username,
     @NotBlank(message = "비밀번호는 필수입니다.")
     @Size(min = 8, max = 15, message = "비밀번호는 8-15자 이내여야 합니다.")
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[a-zA-z\\d!@#$%^&*]+$",
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[a-zA-Z\\d!@#$%^&*]+$",
         message = "비밀번호는 영대소문자, 숫자, 특수문자를 모두 포함해야 합니다.")
     String password,
     @NotBlank(message = "이메일은 필수입니다.")
