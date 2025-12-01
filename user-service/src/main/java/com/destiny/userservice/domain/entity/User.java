@@ -1,15 +1,18 @@
 package com.destiny.userservice.domain.entity;
 
 import com.destiny.global.entity.BaseEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.Getter;
 
@@ -21,57 +24,58 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID userId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String username;
     @Column(nullable = false)
     private String password;
+    @Column(nullable = false)
+    private String email;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
-    @Column(nullable = false, unique = true)
-    private String nickname;
-    @Column(nullable = false)
-    private String phone;
-    @Column(nullable = false)
-    private String email;
-
-    private String zipCode;
-    private String address1;
-    private String address2;
-    private LocalDateTime birth;
-
-    private Long point;
-
-    @Enumerated(EnumType.STRING)
-    private MembershipGrade membershipGrade;
-    private Long totalPrice;
-
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
+    private UserInfo userInfo;
+
     public User() {}
 
-    public static User createUser(String username, String password, UserRole userRole, String nickname,
-        String phone, String email, String zipCode, String address1, String address2,
-        LocalDateTime birth, Long point, MembershipGrade membershipGrade, Long totalPrice,
-        UserStatus userStatus) {
+    public static User createUser(
+        String username,
+        String password,
+        String email,
+        UserRole userRole,
+        String nickname,
+        String phone,
+        String zipCode,
+        String address1,
+        String address2,
+        LocalDate birth) {
+
         User user = new User();
 
         user.username = username;
         user.password = password;
-        user.userRole = userRole;
-        user.nickname = nickname;
-        user.phone = phone;
         user.email = email;
-        user.zipCode = zipCode;
-        user.address1 = address1;
-        user.address2 = address2;
-        user.birth = birth;
-        user.point = point;
-        user.membershipGrade = membershipGrade;
-        user.totalPrice = totalPrice;
-        user.userStatus = userStatus;
+        user.userRole = (userRole == null ? UserRole.CUSTOMER : userRole);
+        user.userStatus = UserStatus.ACTIVE;
+
+        boolean needUserInfo = user.userRole != UserRole.MASTER;
+
+        if (needUserInfo) {
+            UserInfo userInfo = UserInfo.createUserInfo(
+                user,
+                nickname,
+                phone,
+                zipCode,
+                address1,
+                address2,
+                birth
+            );
+            user.userInfo = userInfo;
+        }
 
         return user;
     }

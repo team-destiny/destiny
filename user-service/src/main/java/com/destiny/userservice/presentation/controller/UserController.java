@@ -3,7 +3,6 @@ package com.destiny.userservice.presentation.controller;
 import com.destiny.global.code.CommonSuccessCode;
 import com.destiny.global.response.ApiResponse;
 import com.destiny.userservice.application.service.UserService;
-import com.destiny.userservice.domain.entity.MembershipGrade;
 import com.destiny.userservice.domain.entity.User;
 import com.destiny.userservice.domain.entity.UserRole;
 import com.destiny.userservice.domain.entity.UserStatus;
@@ -12,7 +11,7 @@ import com.destiny.userservice.presentation.dto.request.UserUpdateRequest;
 import com.destiny.userservice.presentation.dto.response.UserGetResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +40,7 @@ public class UserController {
         User user = getMockUser(userId);
         UserGetResponse body = UserGetResponse.of(user);
 
-        return ApiResponse.success(CommonSuccessCode.CREATED, body);
+        return ApiResponse.success(CommonSuccessCode.OK, body);
     }
 
     @PatchMapping("/{userId}")
@@ -59,18 +58,14 @@ public class UserController {
         User user = User.createUser(
             "username"
             , "a123!@#"
+            , "master@email.com"
             , UserRole.MASTER
             , "관리자"
             ,"010-1234-5678"
-            , "master@email.com"
             , "12345"
             , "서울 송파구"
             , "101호"
-            , LocalDateTime.now()
-            , 0L
-            , MembershipGrade.FAMILY
-            , 1000000L
-            , UserStatus.ACTIVE
+            , LocalDate.now()
         );
 
         return user;
