@@ -39,16 +39,19 @@ public class BrandService {
         );
     }
 
-    public List<BrandResponse> brandList() {
+    public List<BrandResponse> brandList(String brandName) {
 
-        List<Brand> brands = brandRepository.findAll();
+        if (brandName == null || brandName.isEmpty()) {
+            return brandRepository.findAll()
+                .stream()
+                .map(BrandResponse::from)
+                .toList();
+        }
 
-        return brands.stream()
-            .map(b -> new BrandResponse(
-                b.getBrandId(),
-                b.getManagerId(),
-                b.getBrandName()
-            )).toList();
+        return brandRepository.findByName(brandName)
+            .stream()
+            .map(BrandResponse::from)
+            .toList();
     }
 
     @Transactional
