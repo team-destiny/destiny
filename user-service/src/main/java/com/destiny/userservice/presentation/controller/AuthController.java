@@ -3,10 +3,10 @@ package com.destiny.userservice.presentation.controller;
 import com.destiny.global.code.CommonSuccessCode;
 import com.destiny.global.response.ApiResponse;
 import com.destiny.userservice.application.service.AuthService;
+import com.destiny.userservice.presentation.annotation.IssueTokens;
 import com.destiny.userservice.presentation.dto.request.UserLoginRequest;
 import com.destiny.userservice.presentation.dto.request.UserSignUpRequest;
 import com.destiny.userservice.presentation.dto.response.TokenResponse;
-import com.destiny.userservice.presentation.dto.response.UserLoginResponse;
 import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,15 +32,14 @@ public class AuthController {
         return ApiResponse.success(CommonSuccessCode.CREATED, body);
     }
 
+    @IssueTokens
     @PostMapping("/login")
-    public ApiResponse<UserLoginResponse> login(
+    public ApiResponse<Void> login(
         @Valid @RequestBody UserLoginRequest userLoginRequest
     ) {
-        String accessToken = "dummy-access-token";
-        String refreshToken = "dummy-refresh-token";
-        UserLoginResponse body = UserLoginResponse.of(accessToken, refreshToken);
+        authService.login(userLoginRequest);
 
-        return ApiResponse.success(CommonSuccessCode.OK, body);
+        return ApiResponse.success(CommonSuccessCode.OK);
     }
 
     @PostMapping("/logout")

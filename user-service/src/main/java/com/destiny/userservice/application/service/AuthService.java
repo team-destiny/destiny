@@ -1,15 +1,19 @@
 package com.destiny.userservice.application.service;
 
 import com.destiny.global.exception.BizException;
+import com.destiny.userservice.domain.dto.LoginTokens;
 import com.destiny.userservice.domain.entity.User;
 import com.destiny.userservice.domain.entity.UserRole;
 import com.destiny.userservice.domain.exception.UserErrorCode;
 import com.destiny.userservice.domain.repository.UserRepository;
+import com.destiny.userservice.infrastructure.security.jwt.JwtTokenGenerator;
+import com.destiny.userservice.presentation.aop.TokenContextHolder;
+import com.destiny.userservice.presentation.dto.request.UserLoginRequest;
 import com.destiny.userservice.presentation.dto.request.UserSignUpRequest;
 import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +26,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenGenerator jwtTokenGenerator;
 
     @Value("${user.admin.token}")
     private String masterAdminToken;   // 설정에서 주입
@@ -63,5 +68,20 @@ public class AuthService {
             log.warn("관리자 회원가입 시도 실패 - 잘못된 adminToken 사용");
             throw new BizException(UserErrorCode.INVALID_ADMIN_TOKEN);
         }
+    }
+
+    public void login(UserLoginRequest userLoginRequest) {
+        User user = userRepository.findByUsername(userLoginRequest.username());
+
+        if(!passwordEncoder.matches(userLoginRequest.password(), user.getPassword())){
+            throw new BizException(UserErrorCode.INVALID_LOGIN_CREDENTIALS);
+        }
+
+        String accessToken = jwtTokenGenerator.generateAccessToken(user);
+        String refreshToken =jwtTokenGenerator.generateRefreshToken(user.getUserId().toString());
+
+        TokenContextHolder.setToken(new LoginTokens(accessToken, refreshToken));
+
+        log.info("로그인 성공 - userId={}, username={}", user.getUserId(), user.getUsername());
     }
 }

@@ -29,4 +29,10 @@ public class UserJpaRepositoryAdaptor implements UserRepository {
         return userJpaRepository.existsByUsernameAndDeletedAtIsNull(username);
     }
 
+    @Override
+    public User findByUsername(String username) {
+        return userJpaRepository.findByUsername(username)
+            .orElseThrow(() -> new BizException(UserErrorCode.USER_NOT_FOUND));
+    }
+
 }
