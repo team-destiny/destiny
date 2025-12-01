@@ -2,8 +2,10 @@ package com.destiny.sagaorchestrator.application.service;
 
 import com.destiny.sagaorchestrator.domain.entity.SagaState;
 import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.producer.SagaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SagaService {
 
     private final SagaRepository sagaRepository;
+    private final SagaProducer sagaProducer;
 
     @Transactional
     public void createSaga(OrderCreateRequestEvent event) {
@@ -30,14 +33,21 @@ public class SagaService {
         event.items().forEach(item -> {
             saga.getProductResults().put(
                 item.productId(),
-                // 아직 검증 전이므로 null값
-                null
+                // 아직 검증 전이므로 하드 코딩 직접 값 넣어주었음.
+                new  ProductValidateResult(
+                    item.productId(),
+                    null,
+                    10000,
+                    10000,
+                    5,
+                    0
+                )
             );
         });
 
         sagaRepository.createSaga(saga);
         /*
-        // 4) 상품 검증 이벤트 발행
+        // 3) 상품 검증 이벤트 발행
         event.items().forEach(item -> {
             productProducer.send(
                 item.productId(),
@@ -46,6 +56,10 @@ public class SagaService {
             );
         });
          */
+
+        // etc : 쿠폰 검증 이벤트부터 먼저 테스트.
+        // 이후 아래 메서드는 상품 검증 이후 실행해야 하는 메서드로 productValidate로 이동 예정
+        sagaProducer.sendCouponValidate(new CouponValidateCommand(event.couponId()));
     }
 
     // TODO : 상품 서비스 검증 및 상품 가격 가지고 오기
