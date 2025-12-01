@@ -7,7 +7,6 @@ import com.destiny.userservice.domain.exception.UserErrorCode;
 import com.destiny.userservice.domain.repository.UserRepository;
 import com.destiny.userservice.presentation.dto.request.UserSignUpRequest;
 import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
-import java.security.MessageDigest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -60,8 +59,7 @@ public class AuthService {
     }
 
     private void validationAdminToken(String requestToken) {
-        if(requestToken == null || !MessageDigest.isEqual(requestToken.getBytes(), masterAdminToken.getBytes())){
-
+        if(requestToken == null || !requestToken.equals(masterAdminToken)){
             log.warn("관리자 회원가입 시도 실패 - 잘못된 adminToken 사용");
             throw new BizException(UserErrorCode.INVALID_ADMIN_TOKEN);
         }
