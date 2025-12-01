@@ -3,14 +3,12 @@ package com.destiny.userservice.presentation.controller;
 import com.destiny.global.code.CommonSuccessCode;
 import com.destiny.global.response.ApiResponse;
 import com.destiny.userservice.application.service.AuthService;
-import com.destiny.userservice.domain.entity.User;
 import com.destiny.userservice.presentation.dto.request.UserLoginRequest;
 import com.destiny.userservice.presentation.dto.request.UserSignUpRequest;
 import com.destiny.userservice.presentation.dto.response.TokenResponse;
 import com.destiny.userservice.presentation.dto.response.UserLoginResponse;
 import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
 import jakarta.validation.Valid;
-import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,26 +32,9 @@ public class AuthController {
         return ApiResponse.success(CommonSuccessCode.CREATED, body);
     }
 
-    private User getMockUser(UserSignUpRequest userSignUpRequest) {
-        User user = User.createUser(
-            userSignUpRequest.username()
-            , userSignUpRequest.password()
-            , userSignUpRequest.email()
-            , null
-            , userSignUpRequest.nickname()
-            , userSignUpRequest.phone()
-            , userSignUpRequest.zipcode()
-            , userSignUpRequest.address1()
-            , userSignUpRequest.address2()
-            , LocalDate.now()
-        );
-
-        return user;
-    }
-
     @PostMapping("/login")
     public ApiResponse<UserLoginResponse> login(
-        @RequestBody UserLoginRequest userLoginRequest
+        @Valid @RequestBody UserLoginRequest userLoginRequest
     ) {
         String accessToken = "dummy-access-token";
         String refreshToken = "dummy-refresh-token";
