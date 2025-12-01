@@ -7,4 +7,5 @@ public interface UserRepository {
     User save(User user);
     User findById(UUID userId);
     boolean existsByUsernameAndDeletedAtIsNull(String username);
+    User findByUsername(String username);
 }
