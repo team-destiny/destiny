@@ -26,3 +26,13 @@ eureka:
 user:
   admin:
     token: my-super-secret-admin-token
+
+jwt:
+  secretKey: XVFkQby3tnqMa8MUDANspAtarbl1VZyT
+  access-expiration-millis: 1800000 # 30분
+  refresh-expiration-millis: 1209600000 # 14일
+  access-header-name: Authorization
+  refresh-cookie-name: X-Refresh-Token
+  header-prefix: Bearer
+  access-subject: AccessToken
+  refresh-subject: RefreshToken
