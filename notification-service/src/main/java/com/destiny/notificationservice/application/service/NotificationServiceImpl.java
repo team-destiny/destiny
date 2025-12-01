@@ -5,7 +5,6 @@ import com.destiny.notificationservice.presentation.dto.request.OrderCreatedNoti
 import com.destiny.notificationservice.presentation.dto.request.SagaErrorNotificationRequest;
 import com.destiny.notificationservice.presentation.dto.response.NotificationLogPageResponse;
 import com.destiny.notificationservice.presentation.dto.response.NotificationResultResponse;
-import javax.management.Notification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
