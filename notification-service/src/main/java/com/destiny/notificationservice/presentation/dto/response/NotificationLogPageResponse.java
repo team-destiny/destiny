@@ -1,6 +1,7 @@
 package com.destiny.notificationservice.presentation.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,15 +12,10 @@ import lombok.Getter;
 @AllArgsConstructor
 public class NotificationLogPageResponse {
 
-    private final UUID logId;
-    private final UUID brandId;
-    private final String message;
+    private final List<NotificationLogItemResponse> content;
 
-    private final String status;
-
-    private final Integer responseCode;
-    private final String responseMessage;
-    private final String errorCode;
-    private final String errorMessage;
-    private final LocalDateTime createdAt;
+    private final int page;
+    private final int size;
+    private final long totalItems;
+    private final int totalPages;
 }
