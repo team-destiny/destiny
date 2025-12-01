@@ -5,6 +5,7 @@ import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
 import com.destiny.brandservice.presentation.dto.request.BrandUpdateRequest;
 import com.destiny.brandservice.presentation.dto.response.BrandResponse;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,15 @@ public class BrandController {
         UUID brand = brandService.createBrand(req);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(brand);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<BrandResponse>> brandList() {
+        List<BrandResponse> brands = brandService.brandList();
+
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(brands);
     }
 
     @GetMapping("/{brandId}")
