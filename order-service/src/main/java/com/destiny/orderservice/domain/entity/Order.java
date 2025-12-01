@@ -33,8 +33,10 @@ public class Order extends BaseEntity {
     private Integer originalAmount;
     private Integer finalAmount;
     private Integer discountAmount;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
+
     private String paymentMethod;
     private String recipientName;
     private String recipientPhone;
