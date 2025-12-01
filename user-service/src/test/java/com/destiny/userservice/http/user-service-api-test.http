@@ -1,9 +1,72 @@
+@baseUrl = http://localhost:18080
+
+### 회원가입 (customer)
+POST {{baseUrl}}/v1/auths/signup
+Content-Type: application/json
+
+{
+  "username": "user001",
+  "password": "Test1234!",
+  "nickname": "테스트유저",
+  "phone": "010-1234-5678",
+  "email": "test001@example.com",
+  "zipCode": "01234",
+  "address1": "서울시 어딘가 1길 10",
+  "address2": "101동 1001호",
+  "birth": "1998-01-01"
+}
+
+### 회원가입 (중복 사용자)
+POST {{baseUrl}}/v1/auths/signup
+Content-Type: application/json
+
+{
+  "username": "user001",
+  "password": "Test1234!",
+  "nickname": "중복유저",
+  "phone": "010-2222-3333",
+  "email": "dup@example.com",
+  "zipCode": "01234",
+  "address1": "서울시 중복로 1",
+  "address2": "202동 202호",
+  "birth": "1998-01-01"
+}
+
+### 회원가입 (업체)
+POST {{baseUrl}}/v1/auths/signup
+Content-Type: application/json
+
+{
+  "username": "partner001",
+  "password": "Test1234!",
+  "userRole": "PARTNER",
+  "nickname": "업체",
+  "phone": "010-2222-3333",
+  "email": "partner001@example.com",
+  "zipCode": "01234",
+  "address1": "서울시 중복로 1",
+  "address2": "202동 202호",
+  "birth": "1998-01-01"
+}
+
+
+### 회원가입 (관리자)
+POST {{baseUrl}}/v1/auths/signup
+Content-Type: application/json
+
+{
+  "username": "admin001",
+  "password": "Admin1234!",
+  "userRole": "MASTER",
+  "email": "admin@example.com"
+}
+
 ### 회원 개별 조회
-GET http://localhost:18080/v1/users/550e8400-e29b-41d4-a716-111111110000
+GET {{baseUrl}}/v1/users/550e8400-e29b-41d4-a716-111111110000
 Content-Type: application/json
 
 ### 회원 정보 수정
-PATCH http://localhost:18080/v1/users/550e8400-e29b-41d4-a716-111111110000
+PATCH {{baseUrl}}/v1/users/550e8400-e29b-41d4-a716-111111110000
 Content-Type: application/json
 
 {
@@ -13,7 +76,7 @@ Content-Type: application/json
 }
 
 ### 비밀번호 수정
-POST http://localhost:18080/v1/users/550e8400-e29b-41d4-a716-111111110000/password
+POST {{baseUrl}}/v1/users/550e8400-e29b-41d4-a716-111111110000/password
 Content-Type: application/json
 
 {
@@ -22,9 +85,9 @@ Content-Type: application/json
 }
 
 ### 회원 목록 조회
-GET http://localhost:18080/v1/users
+GET {{baseUrl}}/v1/users
 Content-Type: application/json
 
 ### 회원 상태 변경
-POST http://localhost:18080/v1/users/550e8400-e29b-41d4-a716-111111110000/status?userStatus=ACTIVE
+POST {{baseUrl}}/v1/users/550e8400-e29b-41d4-a716-111111110000/status?userStatus=ACTIVE
 Content-Type: application/json
