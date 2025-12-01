@@ -63,6 +63,26 @@ public class SagaState {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    public void updateOriginalAmount(Integer originalAmount) {
+        this.originalAmount = originalAmount;
+    }
+
+    public void updateFinalAmount(Integer finalAmount) {
+        this.finalAmount = finalAmount;
+    }
+
+    public void updateDiscountAmount(Integer discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public void updatePaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public void updatePaymentValid(boolean paymentValid) {
+        this.paymentValid = paymentValid;
+    }
+
     public void updateStatus(SagaStatus status) {
         this.status = status;
     }
