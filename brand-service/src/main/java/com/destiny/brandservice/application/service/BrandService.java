@@ -56,6 +56,19 @@ public class BrandService {
         return updateBrand.getBrandId();
     }
 
+    @Transactional
+    public void deleteBrand(UUID brandId) {
+
+        Brand brand = findBrand(brandId);
+
+        if (brand.isDeleted()) {
+            throw new BizException(BrandError.BRAND_NOT_FOUND);
+        }
+
+        // TODO : 베이스엔티티 유저 아이디 들어가는 부분 Long -> UUID 수정 필요
+        brand.markDeleted(1L);
+    }
+
     private Brand findBrand(UUID brandId) {
 
         return brandRepository.findBrand(brandId).orElseThrow(
@@ -63,5 +76,4 @@ public class BrandService {
             () -> new BizException(BrandError.BRAND_NOT_FOUND)
         );
     }
-
 }
