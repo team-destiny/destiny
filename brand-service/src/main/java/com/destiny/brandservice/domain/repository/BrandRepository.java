@@ -9,4 +9,6 @@ public interface BrandRepository {
     Brand create(Brand brand);
 
     Optional<Brand> findBrand(UUID brandId);
+
+    Brand update(Brand brand);
 }

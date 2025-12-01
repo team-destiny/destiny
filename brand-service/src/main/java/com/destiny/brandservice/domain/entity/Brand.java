@@ -30,6 +30,14 @@ public class Brand extends BaseEntity {
     @Column(nullable = false, length = 255)
     private String brandName;
 
+    public void updateManagerId(UUID managerId) {
+        this.managerId = managerId;
+    }
+
+    public void updateBrandName(String brandName) {
+        this.brandName = brandName;
+    }
+
     public static Brand of(UUID managerId, String brandName) {
         Brand brand = new Brand();
         brand.managerId = managerId;

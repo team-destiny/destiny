@@ -2,8 +2,11 @@ package com.destiny.brandservice.application.service;
 
 import com.destiny.brandservice.domain.entity.Brand;
 import com.destiny.brandservice.domain.repository.BrandRepository;
+import com.destiny.brandservice.infrastructure.exception.BrandError;
 import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
+import com.destiny.brandservice.presentation.dto.request.BrandUpdateRequest;
 import com.destiny.brandservice.presentation.dto.response.BrandResponse;
+import com.destiny.global.exception.BizException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,11 +38,30 @@ public class BrandService {
         );
     }
 
+    @Transactional
+    public UUID updateBrand(UUID brandId, BrandUpdateRequest req) {
+
+        Brand brand = findBrand(brandId);
+
+        if (req.managerId() != null) {
+            brand.updateManagerId(req.managerId());
+        }
+
+        if (req.brandName() != null) {
+            brand.updateBrandName(req.brandName());
+        }
+
+        Brand updateBrand = brandRepository.update(brand);
+
+        return updateBrand.getBrandId();
+    }
+
     private Brand findBrand(UUID brandId) {
 
         return brandRepository.findBrand(brandId).orElseThrow(
             // TODO : 공통 모듈 상속 받은 이후 따로 예외 코드 정리 해야함.
-            () -> new RuntimeException("Brand Id가 유효하지 않습니다.")
+            () -> new BizException(BrandError.BRAND_NOT_FOUND)
         );
     }
+
 }
