@@ -1,4 +1,4 @@
-package com.destiny.userservice.infrastructure.config;
+package com.destiny.userservice.infrastructure.security.config;
 
 
 import lombok.RequiredArgsConstructor;
