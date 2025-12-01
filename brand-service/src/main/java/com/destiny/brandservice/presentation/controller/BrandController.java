@@ -2,17 +2,22 @@ package com.destiny.brandservice.presentation.controller;
 
 import com.destiny.brandservice.application.service.BrandService;
 import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
+import com.destiny.brandservice.presentation.dto.request.BrandUpdateRequest;
 import com.destiny.brandservice.presentation.dto.response.BrandResponse;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -31,6 +36,17 @@ public class BrandController {
         return ResponseEntity.status(HttpStatus.CREATED).body(brand);
     }
 
+    @GetMapping
+    public ResponseEntity<List<BrandResponse>> brandList(
+        @RequestParam(required = false) String brandName
+    ) {
+        List<BrandResponse> brands = brandService.brandList(brandName);
+
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(brands);
+    }
+
     @GetMapping("/{brandId}")
     public ResponseEntity<BrandResponse> getBrand(
         @PathVariable UUID brandId
@@ -38,6 +54,29 @@ public class BrandController {
         BrandResponse brand = brandService.getBrand(brandId);
 
         return ResponseEntity.status(HttpStatus.OK).body(brand);
+    }
+
+    @PatchMapping("/{brandId}")
+    public ResponseEntity<UUID> updateBrand(
+        @PathVariable UUID brandId,
+        @RequestBody BrandUpdateRequest req
+    ) {
+
+        UUID brand = brandService.updateBrand(brandId, req);
+
+        return ResponseEntity.status(HttpStatus.OK).body(brand);
+    }
+
+    @DeleteMapping("/{brandId}")
+    public ResponseEntity<String> deleteBrand(
+        @PathVariable UUID brandId
+    ) {
+
+        brandService.deleteBrand(brandId);
+
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .body("브랜드 삭제가 완료되었습니다.");
     }
 
 }
