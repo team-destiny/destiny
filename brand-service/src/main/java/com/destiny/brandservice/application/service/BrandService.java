@@ -7,6 +7,7 @@ import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
 import com.destiny.brandservice.presentation.dto.request.BrandUpdateRequest;
 import com.destiny.brandservice.presentation.dto.response.BrandResponse;
 import com.destiny.global.exception.BizException;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,18 @@ public class BrandService {
             brand.getManagerId(),
             brand.getBrandName()
         );
+    }
+
+    public List<BrandResponse> brandList() {
+
+        List<Brand> brands = brandRepository.findAll();
+
+        return brands.stream()
+            .map(b -> new BrandResponse(
+                b.getBrandId(),
+                b.getManagerId(),
+                b.getBrandName()
+            )).toList();
     }
 
     @Transactional

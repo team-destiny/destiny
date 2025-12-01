@@ -2,6 +2,7 @@ package com.destiny.brandservice.infrastructure.repository;
 
 import com.destiny.brandservice.domain.entity.Brand;
 import com.destiny.brandservice.domain.repository.BrandRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -29,5 +30,11 @@ public class BrandRepositoryImpl implements BrandRepository {
     public Brand update(Brand brand) {
 
         return brandJpaRepository.save(brand);
+    }
+
+    @Override
+    public List<Brand> findAll() {
+
+        return brandJpaRepository.findAll();
     }
 }
