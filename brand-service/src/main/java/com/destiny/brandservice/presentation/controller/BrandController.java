@@ -2,6 +2,7 @@ package com.destiny.brandservice.presentation.controller;
 
 import com.destiny.brandservice.application.service.BrandService;
 import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
+import com.destiny.brandservice.presentation.dto.request.BrandUpdateRequest;
 import com.destiny.brandservice.presentation.dto.response.BrandResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,6 +38,17 @@ public class BrandController {
         @PathVariable UUID brandId
     ) {
         BrandResponse brand = brandService.getBrand(brandId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(brand);
+    }
+
+    @PatchMapping("/{brandId}")
+    public ResponseEntity<UUID> updateBrand(
+        @PathVariable UUID brandId,
+        @RequestBody BrandUpdateRequest req
+    ) {
+
+        UUID brand = brandService.updateBrand(brandId, req);
 
         return ResponseEntity.status(HttpStatus.OK).body(brand);
     }
