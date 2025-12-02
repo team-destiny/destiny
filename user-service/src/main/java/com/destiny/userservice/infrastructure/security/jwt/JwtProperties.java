@@ -15,6 +15,7 @@ public class JwtProperties {
     private final String headerPrefix;
     private final String accessSubject;
     private final String refreshSubject;
+    private final boolean isRefreshCookieSecure;
 
     public JwtProperties(
         @Value("${jwt.secretKey}") String secretKey,
@@ -24,7 +25,8 @@ public class JwtProperties {
         @Value("${jwt.refresh-cookie-name}") String refreshCookieName,
         @Value("${jwt.header-prefix}") String headerPrefix,
         @Value("${jwt.access-subject}") String accessSubject,
-        @Value("${jwt.refresh-subject}") String refreshSubject
+        @Value("${jwt.refresh-subject}") String refreshSubject,
+        @Value("${jwt.is-refresh-cookie-secure}") boolean isRefreshCookieSecure
     ) {
         this.secretKey = secretKey;
         this.accessExpirationMillis = accessExpirationMillis;
@@ -34,5 +36,6 @@ public class JwtProperties {
         this.headerPrefix = headerPrefix;
         this.accessSubject = accessSubject;
         this.refreshSubject = refreshSubject;
+        this.isRefreshCookieSecure = isRefreshCookieSecure;
     }
 }
