@@ -1,23 +1,27 @@
 package com.destiny.productservice.domain.entity;
 
+import static org.springframework.data.elasticsearch.annotations.FieldType.Text;
+
 import com.destiny.productservice.application.dto.ProductMessage;
 import com.destiny.productservice.presentation.dto.response.ProductResponse;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 @Getter
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "p_product_view")
+@Document(indexName = "product")
 public class ProductView {
 
     @Id
+    @Field(type = Text)
     private UUID id;
 
     private String name;
@@ -26,6 +30,7 @@ public class ProductView {
 
     private String brand;
 
+    @Field(type = FieldType.Keyword)
     private ProductStatus status;
 
     private String color;
