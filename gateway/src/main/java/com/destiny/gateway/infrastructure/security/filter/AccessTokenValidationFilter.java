@@ -48,13 +48,14 @@ public class AccessTokenValidationFilter implements GlobalFilter, Ordered {
             throw new GatewayException(GatewayErrorCode.INTERNAL_SERVER_ERROR);
         }
 
-        String id = decodedAccessJwt.getClaim("id").asString();
-        if (!StringUtils.hasText(id)) {
+        String userId = decodedAccessJwt.getClaim("userId").asString();
+        if (!StringUtils.hasText(userId)) {
             throw new GatewayException(GatewayErrorCode.GATEWAY_TOKEN_INVALID);
         }
 
         // TODO : 토큰 블랙리스트 검증 추가
-        
+
+        log.info("Access Token 검증 완료");
         return chain.filter(exchange);
     }
 
