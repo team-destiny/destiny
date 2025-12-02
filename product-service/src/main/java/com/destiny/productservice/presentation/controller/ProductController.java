@@ -1,9 +1,9 @@
 package com.destiny.productservice.presentation.controller;
 
+import com.destiny.productservice.application.dto.ProductSearch;
 import com.destiny.productservice.application.service.ProductCommandService;
 import com.destiny.productservice.application.service.ProductQueryService;
 import com.destiny.productservice.presentation.dto.request.CreateProductRequest;
-import com.destiny.productservice.presentation.dto.request.ProductSearch;
 import com.destiny.productservice.presentation.dto.request.UpdateProductRequest;
 import com.destiny.productservice.presentation.dto.response.ProductResponse;
 import java.util.UUID;
@@ -66,11 +66,12 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping
+    @PatchMapping("/{productId}")
     public ResponseEntity<Void> updateProduct(
+        @PathVariable("productId")  UUID productId,
         @RequestBody UpdateProductRequest request) {
 
-        productCommandService.updateProduct(request);
+        productCommandService.updateProduct(productId, request);
 
         return ResponseEntity.ok().build();
     }
