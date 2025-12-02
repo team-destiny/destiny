@@ -34,6 +34,7 @@ public class PaymentCommandService {
         // PG사 독립적인 PgRequestDto를 전달합니다.
         PgResponseDto response = paymentGateway.authorize(request);
 
+        if (response.isSuccess()) {
             // 2. 성공 시 DB에 결제 기록 저장
             Payment payment = Payment.createSuccess(
                 response.orderId(),
@@ -45,6 +46,12 @@ public class PaymentCommandService {
             paymentRepository.save(payment);
 
             // TODO: 주문 서비스에 결제 완료 알림 (Kafka)
+        } else {
+            // TODO 3. 실패 시 로직 처리
+            // 실패한 경우에도 기록을 남기거나, 예외를 던져 상위 계층에서 처리하도록 할 수 있습니다.
+            // throw new PaymentFailedException(response.failMessage());
+        }
+
         return response;
     }
 
