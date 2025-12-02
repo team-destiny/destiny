@@ -1,5 +1,6 @@
 package com.destiny.sagaorchestrator.infrastructure.messaging.producer;
 
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +22,21 @@ public class SagaProducer {
 
 
     // TODO : 재고 차감
+
+
+    // TODO : 쿠폰 검증
+    public void sendCouponValidate(CouponValidateCommand event) {
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("coupon-validate-request", message);
+            log.info("send success ->  coupon success {}", message);
+
+        } catch (JsonProcessingException e) {
+
+            log.error("send failed -> coupon failed {}" , e.getMessage());
+        }
+    }
 
 
 

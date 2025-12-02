@@ -1,5 +1,7 @@
 package com.destiny.sagaorchestrator.domain.entity;
 
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateResult;
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,11 +11,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -29,8 +34,9 @@ public class SagaState {
     private UUID sagaId;
 
     private UUID orderId;
-
     private UUID userId;
+    private UUID couponId;
+    private Integer discountAmount;
 
     @Enumerated(EnumType.STRING)
     private SagaStatus status;
@@ -39,8 +45,16 @@ public class SagaState {
     private SagaStep step;
 
     private String failureStep;
-
     private String failureReason;
+
+    @Type(JsonType.class)
+    @Column(columnDefinition = "jsonb")
+    private Map<UUID, ProductValidateResult> productResults = new HashMap<>();
+
+    private String paymentMethod;
+    private boolean paymentValid;
+    private Integer originalAmount;
+    private Integer finalAmount;
 
     @CreatedDate
     @Column(updatable = false)
@@ -48,6 +62,26 @@ public class SagaState {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    public void updateOriginalAmount(Integer originalAmount) {
+        this.originalAmount = originalAmount;
+    }
+
+    public void updateFinalAmount(Integer finalAmount) {
+        this.finalAmount = finalAmount;
+    }
+
+    public void updateDiscountAmount(Integer discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public void updatePaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public void updatePaymentValid(boolean paymentValid) {
+        this.paymentValid = paymentValid;
+    }
 
     public void updateStatus(SagaStatus status) {
         this.status = status;
@@ -67,11 +101,13 @@ public class SagaState {
 
     public static SagaState of(
         UUID orderId,
-        UUID userId
+        UUID userId,
+        UUID couponId
     ) {
         SagaState sagaState = new SagaState();
         sagaState.orderId = orderId;
         sagaState.userId = userId;
+        sagaState.couponId = couponId;
         sagaState.status = SagaStatus.CREATED;
         sagaState.step = SagaStep.ORDER_CREATED;
         return sagaState;

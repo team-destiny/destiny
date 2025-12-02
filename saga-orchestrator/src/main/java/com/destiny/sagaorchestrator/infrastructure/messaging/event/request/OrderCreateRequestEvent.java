@@ -6,6 +6,7 @@ import java.util.UUID;
 public record OrderCreateRequestEvent(
     UUID orderId,
     UUID userId,
+    UUID couponId,
     List<OrderItemCreateRequestEvent> items
 ) {
 

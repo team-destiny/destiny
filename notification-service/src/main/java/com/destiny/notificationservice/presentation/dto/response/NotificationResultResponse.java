@@ -1,15 +1,10 @@
 package com.destiny.notificationservice.presentation.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+public record NotificationResultResponse (
 
-@Getter
-@Builder
-@AllArgsConstructor
-public class NotificationResultResponse {
+    String status,
+    String message
 
-    private final String status;
-    private final String message;
+) {
 
 }

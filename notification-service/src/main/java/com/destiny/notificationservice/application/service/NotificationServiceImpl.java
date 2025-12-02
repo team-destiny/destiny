@@ -19,10 +19,7 @@ public class NotificationServiceImpl implements NotificationService {
     public NotificationResultResponse sendOrderCreatedNotification(
         OrderCreatedNotificationRequest request
     ) {
-        return NotificationResultResponse.builder()
-            .status("SUCCESS")
-            .message("Notification request accepted")
-            .build();
+        return new NotificationResultResponse("SUCCESS", "Notification request accepted");
 
     }
 
@@ -30,10 +27,7 @@ public class NotificationServiceImpl implements NotificationService {
     public NotificationResultResponse sendSagaErrorNotification(
         SagaErrorNotificationRequest request
     ) {
-        return NotificationResultResponse.builder()
-            .status("SUCCESS")
-            .message("Saga error notification received")
-            .build();
+        return new NotificationResultResponse("SUCCESS", "Saga error notification received");
 
     }
 
