@@ -1,6 +1,8 @@
 package com.destiny.productservice.domain.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -27,6 +29,7 @@ public class Product extends BaseEntity {
 
     private String brand;
 
+    @Enumerated(EnumType.STRING)
     private ProductStatus status;
 
     private String color;
