@@ -60,10 +60,15 @@ public class KafkaConfig {
 
         Map<String, Object> configProps = new HashMap<>();
 
+        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "product-group");
+        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, serverHost);
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+        configProps.put(
+            JsonDeserializer.TRUSTED_PACKAGES,
+            "com.destiny.productservice.application.dto"
+        );
 
         return new DefaultKafkaConsumerFactory<>(configProps);
     }
