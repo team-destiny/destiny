@@ -1,4 +1,4 @@
-package com.destiny.productservice.presentation.dto.request;
+package com.destiny.productservice.application.dto;
 
 public record ProductSearch(
     Long minPrice,
