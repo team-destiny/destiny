@@ -3,13 +3,16 @@ package com.destiny.orderservice.application.service;
 import com.destiny.orderservice.domain.entity.Order;
 import com.destiny.orderservice.domain.entity.OrderItem;
 import com.destiny.orderservice.domain.entity.OrderStatus;
+import com.destiny.orderservice.domain.repository.OrderItemRepository;
 import com.destiny.orderservice.domain.repository.OrderRepository;
 import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCreateRequestEvent;
 import com.destiny.orderservice.infrastructure.messaging.producer.OrderEventProducer;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
 import com.destiny.orderservice.presentation.dto.response.OrderDetailResponse;
+import com.destiny.orderservice.presentation.dto.response.OrderItemForBrandResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderProcessingResponse;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final OrderEventProducer orderEventProducer;
 
     @Transactional
@@ -53,6 +57,16 @@ public class OrderService {
         orderEventProducer.send(event);
 
         return orderId;
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderItemForBrandResponse> getItemsForBrand(UUID brandId) {
+
+        List<OrderItem> items = orderItemRepository.findByBrandId(brandId);
+
+        return items.stream()
+            .map(OrderItemForBrandResponse::from)
+            .toList();
     }
 
     @Transactional(readOnly = true)
