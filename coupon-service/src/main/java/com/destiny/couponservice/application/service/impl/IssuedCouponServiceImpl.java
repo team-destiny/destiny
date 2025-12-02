@@ -11,7 +11,11 @@ import com.destiny.couponservice.presentation.dto.response.IssuedCouponResponseD
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponSearchResponse;
 import com.destiny.global.exception.BizException;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -93,11 +97,21 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
         Page<IssuedCoupon> page = issuedCouponRepository.findByUserIdAndStatus(userId, status,
             pageable);
 
-        // TODO: N+1 최적화 예정
+        List<UUID> templateIds = page.getContent().stream()
+            .map(IssuedCoupon::getCouponTemplateId)
+            .distinct()
+            .toList();
+
+        List<CouponTemplate> templates = couponTemplateRepository.findByIdIn(templateIds);
+
+        Map<UUID, CouponTemplate> templateMap = templates.stream()
+            .collect(Collectors.toMap(CouponTemplate::getId, Function.identity()));
+
         Page<IssuedCouponResponseDto> dtoPage = page.map(issued -> {
-            CouponTemplate template = couponTemplateRepository.findById(
-                    issued.getCouponTemplateId())
-                .orElseThrow(() -> new BizException(IssuedCouponErrorCode.TEMPLATE_NOT_FOUND));
+            CouponTemplate template = templateMap.get(issued.getCouponTemplateId());
+            if (template == null) {
+                throw new BizException(IssuedCouponErrorCode.TEMPLATE_NOT_FOUND);
+            }
             return IssuedCouponResponseDto.from(issued, template);
         });
 
