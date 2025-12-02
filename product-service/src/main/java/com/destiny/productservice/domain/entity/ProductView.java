@@ -1,6 +1,7 @@
 package com.destiny.productservice.domain.entity;
 
 import com.destiny.productservice.application.dto.ProductMessage;
+import com.destiny.productservice.presentation.dto.response.ProductResponse;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -43,15 +44,15 @@ public class ProductView {
         );
     }
 
-    public static ProductView from(ProductMessage message) {
-        return new ProductView(
-            message.id(),
-            message.name(),
-            message.price(),
-            message.brand(),
-            message.status(),
-            message.color(),
-            message.size()
+    public static ProductResponse toProductResponse(ProductView productView) {
+        return new ProductResponse(
+            productView.id,
+            productView.name,
+            productView.price,
+            productView.getBrand(),
+            productView.status,
+            productView.color,
+            productView.size
         );
     }
 

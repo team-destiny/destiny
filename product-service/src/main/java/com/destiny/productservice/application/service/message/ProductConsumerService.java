@@ -21,7 +21,7 @@ public class ProductConsumerService {
     private final ProductCommandRepository productCommandRepository;
     private final ProductQueryRepository productQueryRepository;
 
-    @KafkaListener(groupId = "product", topics = "product_after_create")
+    @KafkaListener(groupId = "product", topics = "product.after.create")
     @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeCreateProductMessage(ProductMessage productMessage) {
@@ -39,7 +39,7 @@ public class ProductConsumerService {
         }
     }
 
-    @KafkaListener(groupId = "product", topics = "product_after_update")
+    @KafkaListener(groupId = "product", topics = "product.after.update")
     @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeUpdateProductMessage(ProductMessage message) {
@@ -54,5 +54,14 @@ public class ProductConsumerService {
         } catch (Exception e) {
             log.error("{} product update failed. {}", productView.getId(), e.getMessage());
         }
+    }
+
+    @KafkaListener(groupId = "product", topics = "product.after.delete")
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
+    @Transactional
+    public void consumeDeleteProductMessage(ProductMessage message) {
+
+        // TODO userId 파라미터 필요
+
     }
 }

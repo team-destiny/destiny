@@ -8,4 +8,5 @@ public interface ProductCommandRepository {
     Optional<Product> findById(UUID id);
     Product save(Product product);
     void deleteById(UUID id);
+    boolean existsByNameAndBrand(String name, String brand);
 }

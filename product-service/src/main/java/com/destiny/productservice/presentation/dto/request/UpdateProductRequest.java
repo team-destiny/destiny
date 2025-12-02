@@ -1,6 +1,6 @@
 package com.destiny.productservice.presentation.dto.request;
 
-import com.destiny.productservice.application.command.UpdateProductCommand;
+import com.destiny.productservice.domain.entity.ProductStatus;
 import java.util.UUID;
 
 public record UpdateProductRequest(
@@ -8,11 +8,7 @@ public record UpdateProductRequest(
     String name,
     Long price,
     String brand,
-    String productStatus,
+    ProductStatus status,
     String color,
     String size
-) {
-    public UpdateProductCommand toCommand() {
-        return new UpdateProductCommand(id, name, price, brand, productStatus, color, size);
-    }
-}
+) { }
