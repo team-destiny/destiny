@@ -1,7 +1,7 @@
 package com.destiny.couponservice.application.service.impl;
 
 import com.destiny.couponservice.application.service.CouponTemplateService;
-import com.destiny.couponservice.application.service.exception.CouponErrorCode;
+import com.destiny.couponservice.application.service.exception.CouponTemplateErrorCode;
 import com.destiny.couponservice.domain.entity.CouponTemplate;
 import com.destiny.couponservice.domain.enums.DiscountType;
 import com.destiny.couponservice.domain.repository.CouponTemplateRepository;
@@ -33,24 +33,24 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
 
         // 중복 코드 검증
         if (couponTemplateRepository.existsByCode(req.getCode())) {
-            throw new BizException(CouponErrorCode.DUPLICATE_TEMPLATE_CODE);
+            throw new BizException(CouponTemplateErrorCode.DUPLICATE_TEMPLATE_CODE);
         }
 
         //  날짜 범위 검증
         if (req.getAvailableTo().isBefore(req.getAvailableFrom())) {
-            throw new BizException(CouponErrorCode.INVALID_DATE_RANGE);
+            throw new BizException(CouponTemplateErrorCode.INVALID_DATE_RANGE);
         }
 
         // 할인 값 검증
         if (req.getDiscountType() == DiscountType.RATE) {
             // 정률 할인: 1~100%
             if (req.getDiscountValue() < 1 || req.getDiscountValue() > 100) {
-                throw new BizException(CouponErrorCode.INVALID_DISCOUNT_VALUE);
+                throw new BizException(CouponTemplateErrorCode.INVALID_DISCOUNT_VALUE);
             }
 
             // 정률 할인일 때 최대 할인 금액 필수
             if (req.getMaxDiscountAmount() == null) {
-                throw new BizException(CouponErrorCode.MISSING_MAX_DISCOUNT);
+                throw new BizException(CouponTemplateErrorCode.MISSING_MAX_DISCOUNT);
             }
         }
 
@@ -96,7 +96,7 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
     public CouponTemplateGetResponse getTemplate(UUID templateId) {
 
         CouponTemplate template = couponTemplateRepository.findById(templateId)
-            .orElseThrow(() -> new BizException(CouponErrorCode.TEMPLATE_NOT_FOUND));
+            .orElseThrow(() -> new BizException(CouponTemplateErrorCode.TEMPLATE_NOT_FOUND));
 
         return CouponTemplateGetResponse.builder()
             .id(template.getId())
@@ -133,7 +133,7 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
     public CouponTemplateGetResponse update(UUID templateId, CouponTemplateUpdateRequest req) {
 
         CouponTemplate template = couponTemplateRepository.findById(templateId)
-            .orElseThrow(() -> new BizException(CouponErrorCode.TEMPLATE_NOT_FOUND));
+            .orElseThrow(() -> new BizException(CouponTemplateErrorCode.TEMPLATE_NOT_FOUND));
 
         //  패치 후 기준 값 계산 (null 은 기존 값 유지)
         DiscountType newType =
@@ -152,17 +152,17 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
                 : template.getMaxDiscountAmount();
 
         if (newTo.isBefore(newFrom)) {
-            throw new BizException(CouponErrorCode.INVALID_DATE_RANGE);
+            throw new BizException(CouponTemplateErrorCode.INVALID_DATE_RANGE);
         }
 
         if (newType == DiscountType.RATE) {
             if (newDiscountValue == null
                 || newDiscountValue < 1
                 || newDiscountValue > 100) {
-                throw new BizException(CouponErrorCode.INVALID_DISCOUNT_VALUE);
+                throw new BizException(CouponTemplateErrorCode.INVALID_DISCOUNT_VALUE);
             }
             if (newMaxDiscountAmount == null) {
-                throw new BizException(CouponErrorCode.MISSING_MAX_DISCOUNT);
+                throw new BizException(CouponTemplateErrorCode.MISSING_MAX_DISCOUNT);
             }
         }
 
@@ -187,7 +187,7 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
     public void delete(UUID templateId) {
 
         CouponTemplate template = couponTemplateRepository.findById(templateId)
-            .orElseThrow(() -> new BizException(CouponErrorCode.TEMPLATE_NOT_FOUND));
+            .orElseThrow(() -> new BizException(CouponTemplateErrorCode.TEMPLATE_NOT_FOUND));
 
         couponTemplateRepository.delete(template);
     }
