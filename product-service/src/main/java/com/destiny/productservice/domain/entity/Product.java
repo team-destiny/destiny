@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "p_product")
-public class Product {
+public class Product extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,21 +33,18 @@ public class Product {
 
     private String size;
 
-    public static Product create(String name, Long price, String brand, String color, String size) {
+    public static Product of(String name, Long price, String brand, String color, String size) {
         return new Product(
             null, name, price, brand, ProductStatus.AVAILABLE, color, size
         );
     }
 
-    public static ProductView createView(Product product) {
-        return new ProductView(
-            product.id,
-            product.name,
-            product.price,
-            product.brand,
-            product.status,
-            product.color,
-            product.size
-        );
+    public void update(String name, Long price, String brand, ProductStatus status, String color, String size) {
+        this.name = name;
+        this.price = price;
+        this.brand = brand;
+        this.status = status;
+        this.color = color;
+        this.size = size;
     }
 }

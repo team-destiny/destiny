@@ -2,6 +2,7 @@ package com.destiny.productservice.presentation.dto.response;
 
 import com.destiny.productservice.domain.entity.Product;
 import com.destiny.productservice.domain.entity.ProductStatus;
+import com.destiny.productservice.domain.entity.ProductView;
 import java.util.UUID;
 
 public record ProductResponse(
@@ -22,6 +23,18 @@ public record ProductResponse(
             product.getStatus(),
             product.getColor(),
             product.getSize()
+        );
+    }
+
+    public static ProductResponse of(ProductView productView) {
+        return new ProductResponse(
+            productView.getId(),
+            productView.getName(),
+            productView.getPrice(),
+            productView.getBrand(),
+            productView.getStatus(),
+            productView.getColor(),
+            productView.getSize()
         );
     }
 }

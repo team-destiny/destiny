@@ -2,7 +2,6 @@ package com.destiny.productservice.infrastructure.repository.command;
 
 import com.destiny.productservice.domain.entity.Product;
 import com.destiny.productservice.domain.repository.ProductCommandRepository;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -27,5 +26,10 @@ public class ProductCommandRepositoryImpl implements ProductCommandRepository {
     @Override
     public void deleteById(UUID id) {
         productCommandJpaRepository.deleteById(id);
+    }
+
+    @Override
+    public boolean existsByNameAndBrand(String name, String brand) {
+        return productCommandJpaRepository.existsByNameAndBrand(name , brand);
     }
 }
