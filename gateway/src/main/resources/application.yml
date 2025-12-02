@@ -2,8 +2,6 @@ server:
   port: 8080
 
 spring:
-  main:
-    web-application-type: reactive
   application:
     name: gateway
   cloud:
@@ -12,45 +10,45 @@ spring:
         webflux:
           routes:
             - id: user-service
-              uri: lb://user-service
+              uri: lb://USER-SERVICE
               predicates:
-                - Path=/users/**
+                - Path=/v*/users/**, /v*/auths/**
             - id: product-service
-              uri: lb://product-service
+              uri: lb://PRODUCT-SERVICE
               predicates:
-                - Path=/products/**
+                - Path=/v*/products/**
             - id: stock-service
-              uri: lb://stock-service
+              uri: lb://STOCK-SERVICE
               predicates:
-                - Path=/stocks/**
+                - Path=/v*/stocks/**
             - id: order-service
-              uri: lb://order-service
+              uri: lb://ORDER-SERVICE
               predicates:
-                - Path=/orders/**
+                - Path=/v*/orders/**
             - id: brand-service
-              uri: lb://brand-service
+              uri: lb://BRAND-SERVICE
               predicates:
-                - Path=/brands/**
+                - Path=/v*/brands/**
             - id: payment-service
-              uri: lb://payment-service
+              uri: lb://PAYMENT-SERVICE
               predicates:
-                - Path=/payments/**
+                - Path=/v*/payments/**
             - id: notification-service
-              uri: lb://notification-service
+              uri: lb://NOTIFICATION-SERVICE
               predicates:
-                - Path=/notifications/**
+                - Path=/v*/notifications/**
             - id: coupon-service
-              uri: lb://coupon-service
+              uri: lb://COUPON-SERVICE
               predicates:
-                - Path=/coupons/**
+                - Path=/v*/coupons/**
             - id: review-service
-              uri: lb://review-service
+              uri: lb://REVIEW-SERVICE
               predicates:
-                - Path=/reviews/**
+                - Path=/v*/reviews/**
             - id: cart-service
-              uri: lb://cart-service
+              uri: lb://CART-SERVICE
               predicates:
-                - Path=/carts/**
+                - Path=/v*/carts/**
 eureka:
   client:
     service-url:
