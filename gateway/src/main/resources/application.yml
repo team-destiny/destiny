@@ -1,3 +1,57 @@
+server:
+  port: 8080
+
 spring:
+  main:
+    web-application-type: reactive
   application:
     name: gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: user-service
+              uri: lb://user-service
+              predicates:
+                - Path=/users/**
+            - id: product-service
+              uri: lb://product-service
+              predicates:
+                - Path=/products/**
+            - id: stock-service
+              uri: lb://stock-service
+              predicates:
+                - Path=/stocks/**
+            - id: order-service
+              uri: lb://order-service
+              predicates:
+                - Path=/orders/**
+            - id: brand-service
+              uri: lb://brand-service
+              predicates:
+                - Path=/brands/**
+            - id: payment-service
+              uri: lb://payment-service
+              predicates:
+                - Path=/payments/**
+            - id: notification-service
+              uri: lb://notification-service
+              predicates:
+                - Path=/notifications/**
+            - id: coupon-service
+              uri: lb://coupon-service
+              predicates:
+                - Path=/coupons/**
+            - id: review-service
+              uri: lb://review-service
+              predicates:
+                - Path=/reviews/**
+            - id: cart-service
+              uri: lb://cart-service
+              predicates:
+                - Path=/carts/**
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/  # Eureka 서버의 URL을 지정
