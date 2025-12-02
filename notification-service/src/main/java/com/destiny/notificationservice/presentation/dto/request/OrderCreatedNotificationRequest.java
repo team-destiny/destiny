@@ -5,42 +5,20 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class OrderCreatedNotificationRequest {
 
-    @NotNull
-    private UUID orderId;
+public record OrderCreatedNotificationRequest(
 
-    @NotNull
-    private UUID brandId;
+    @NotNull UUID orderId,
+    @NotNull UUID brandId,
+    @NotBlank String orderNumber,
+    @NotBlank String buyerName,
+    @Email @NotBlank String buyerEmail,
+    @NotBlank String productName,
+    @NotBlank String option,
+    @Min(1) int quantity,
+    @Min(0) int totalPrice,
+    @NotBlank String message
+) {
 
-    @NotBlank
-    private String orderNumber;
-
-    @NotBlank
-    private String buyerName;
-
-    @Email
-    @NotBlank
-    private String buyerEmail;
-
-    @NotBlank
-    private String productName;
-
-    @NotBlank
-    private String option;
-
-    @Min(1)
-    private int quantity;
-
-    @Min(0)
-    private int totalPrice;
-
-    @NotBlank
-    private String message;
 }

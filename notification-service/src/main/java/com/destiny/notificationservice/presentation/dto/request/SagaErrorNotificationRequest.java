@@ -3,30 +3,16 @@ package com.destiny.notificationservice.presentation.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SagaErrorNotificationRequest {
+public record SagaErrorNotificationRequest(
 
-    @NotNull
-    private UUID orderId;
+    @NotNull UUID orderId,
+    @NotNull UUID brandId,
+    @NotBlank String stage, // 어떤 단계에서 실패?
+    @NotBlank String errorCode, // 사가 에러 코드
+    @NotBlank String errorMessage,
+    @NotBlank String message
 
-    @NotNull
-    private UUID brandId;
-
-    @NotBlank
-    private String stage; // 어떤 단계에서 실패?
-
-    @NotBlank
-    private String errorCode; // 사가 에러 코드
-
-    @NotBlank
-    private String errorMessage;
-
-    @NotBlank
-    private String message;
+) {
 
 }
