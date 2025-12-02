@@ -12,5 +12,15 @@ public record PgResponseDto(
     String failMessage      // 실패 시 에러 메시지
 
 ) {
-
+    public static PgResponseDto failResponse(String orderId, String failCode, String failMessage) {
+        return new PgResponseDto(
+            false,
+            null, // pgTxId
+            orderId,
+            null, // finalAmount (금액 없음)
+            null, // pgType (특정 PG사로 가기 전에 실패했을 수 있음)
+            failCode,
+            failMessage
+        );
+    }
 }
