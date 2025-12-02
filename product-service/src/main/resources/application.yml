@@ -1,3 +1,47 @@
 spring:
   application:
     name: product-service
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:5433/product-command-db
+    username: root
+    password: 1234
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: product
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: "com.destiny.productservice.infrastructure.repository.query"
+
+  data:
+    elasticsearch:
+      host: localhost:9200
+      username: elastic
+      password: password
+      repositories:
+        enabled: true
+
+server:
+  port: 18090
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
