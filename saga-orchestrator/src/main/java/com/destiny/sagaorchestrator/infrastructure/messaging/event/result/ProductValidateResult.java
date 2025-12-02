@@ -5,6 +5,7 @@ import java.util.UUID;
 public record ProductValidateResult(
     UUID productId,
     UUID itemPromotionId,
+    UUID brandId,
     Integer unitPrice,
     Integer finalPrice,
     Integer stock,

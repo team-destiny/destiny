@@ -37,10 +37,11 @@ public class SagaService {
                 new  ProductValidateResult(
                     item.productId(),
                     null,
-                    10000,
-                    10000,
-                    5,
-                    0
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
                 )
             );
         });
