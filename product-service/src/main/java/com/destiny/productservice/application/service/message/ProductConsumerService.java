@@ -24,18 +24,18 @@ public class ProductConsumerService {
     @KafkaListener(groupId = "product", topics = "product.after.create")
     @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
-    public void consumeCreateProductMessage(ProductMessage productMessage) {
+    public void consumeCreateProductMessage(ProductMessage message) {
 
-        log.info("productId : {} product create message consumed", productMessage.id());
+        log.info("productId : {} product create message consumed", message.id());
 
-        Product product = productCommandRepository.findById(productMessage.id()).orElseThrow();
+        Product product = productCommandRepository.findById(message.id()).orElseThrow();
 
         try {
             productQueryRepository.save(ProductView.from(product));
         } catch (Exception e) {
             log.error("{} product creation rollback. {}", product.getId(), e.getMessage());
 
-            productQueryRepository.delete(ProductView.from(product));
+            productCommandRepository.deleteById(message.id());
         }
     }
 
