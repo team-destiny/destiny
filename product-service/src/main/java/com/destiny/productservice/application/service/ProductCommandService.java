@@ -44,7 +44,7 @@ public class ProductCommandService {
                 @Override
                 public void afterCommit() {
                     productProducerService.sendProductCreateAfterEvent(
-                        product.getId(),
+                        product.getId().toString(),
                         ProductMessage.from(product)
                     );
                 }
@@ -55,9 +55,9 @@ public class ProductCommandService {
     }
 
     @Transactional
-    public void updateProduct(UpdateProductRequest request) {
+    public void updateProduct(UUID productId, UpdateProductRequest request) {
 
-        Product product = productCommandRepository.findById(request.id()).orElseThrow();
+        Product product = productCommandRepository.findById(productId).orElseThrow();
 
         product.update(
             request.name(),
@@ -73,7 +73,7 @@ public class ProductCommandService {
                 @Override
                 public void afterCommit() {
                     productProducerService.sendProductUpdateAfterEvent(
-                        product.getId(),
+                        product.getId().toString(),
                         ProductMessage.from(product)
                     );
                 }
@@ -93,7 +93,7 @@ public class ProductCommandService {
                 @Override
                 public void afterCommit() {
                     productProducerService.sendProductDeleteAfterEvent(
-                        product.getId(),
+                        product.getId().toString(),
                         ProductMessage.from(product)
                     );
                 }
