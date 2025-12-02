@@ -19,4 +19,8 @@ public class ProductProducerService {
     public void sendProductUpdateAfterEvent(UUID key, ProductMessage productMessage) {
         kafkaTemplate.send("product_after_update", key, productMessage);
     }
+
+    public void sendProductDeleteAfterEvent(UUID key, ProductMessage productMessage) {
+        kafkaTemplate.send("product_after_delete", key, productMessage);
+    }
 }
