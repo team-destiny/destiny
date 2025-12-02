@@ -21,7 +21,7 @@ public class TokenHeaderWriter {
     public void refreshTokenWrite(HttpServletResponse servletResponse, String refreshToken) {
         Cookie cookie = new Cookie(jwtProperties.getRefreshCookieName(), refreshToken);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);      // HTTPS 환경이면 true
+        cookie.setSecure(jwtProperties.isRefreshCookieSecure());
         cookie.setPath("/");
         cookie.setMaxAge((int) (jwtProperties.getRefreshExpirationMillis() / 1000));
 

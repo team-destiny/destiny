@@ -36,3 +36,4 @@ jwt:
   header-prefix: Bearer
   access-subject: AccessToken
   refresh-subject: RefreshToken
+  is-refresh-cookie-secure: false
