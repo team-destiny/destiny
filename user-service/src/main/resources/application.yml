@@ -18,10 +18,16 @@ spring:
         format_sql: true
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
 eureka:
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true  # Eureka 서버에 등록
+    fetch-registry: true  # Eureka 서버로부터 레지스트리 정보 가져오기
 
 user:
   admin:
