@@ -3,13 +3,11 @@ package com.destiny.productservice.domain.entity;
 import static org.springframework.data.elasticsearch.annotations.FieldType.Text;
 
 import com.destiny.productservice.application.dto.ProductMessage;
-import com.destiny.productservice.presentation.dto.response.ProductResponse;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -46,18 +44,6 @@ public class ProductView {
             product.getStatus(),
             product.getColor(),
             product.getSize()
-        );
-    }
-
-    public static ProductResponse toProductResponse(ProductView productView) {
-        return new ProductResponse(
-            productView.id,
-            productView.name,
-            productView.price,
-            productView.getBrand(),
-            productView.status,
-            productView.color,
-            productView.size
         );
     }
 
