@@ -10,6 +10,7 @@ import com.destiny.productservice.presentation.dto.response.ProductResponse;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -21,6 +22,7 @@ public class ProductCommandService {
 
     private final ProductProducerService productProducerService;
 
+    @Transactional
     public ProductResponse createProduct(CreateProductRequest request) {
 
         if (productCommandRepository.existsByNameAndBrand(request.name(), request.brand())) {
@@ -52,6 +54,7 @@ public class ProductCommandService {
         return ProductResponse.of(product);
     }
 
+    @Transactional
     public void updateProduct(UpdateProductRequest request) {
 
         Product product = productCommandRepository.findById(request.id()).orElseThrow();
@@ -78,6 +81,7 @@ public class ProductCommandService {
         );
     }
 
+    @Transactional
     public void deleteProduct(UUID productId) {
 
         Product product = productCommandRepository.findById(productId).orElseThrow();
