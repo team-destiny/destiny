@@ -1,0 +1,25 @@
+@baseUrl = http://localhost:8080
+
+### 로그인 성공 - gw
+POST {{baseUrl}}/v1/auths/login
+Content-Type: application/json
+
+{
+  "username": "user001",
+  "password": "Test1234!"
+}
+
+> {%
+  // 응답 헤더 값 가져오기
+  const authorization = response.headers.valueOf("Authorization");
+  const refreshCookie = response.headers.valueOf("Set-Cookie").split(";")[0].split("=")[1];
+
+  // 전역 변수 저장
+  client.global.set("ACCESS_TOKEN", authorization);
+  client.global.set("REFRESH_TOKEN", refreshCookie);
+%}
+
+### 회원 개별 조회 - gw
+GET {{baseUrl}}/v1/users/550e8400-e29b-41d4-a716-111111110000
+Content-Type: application/json
+Authorization: {{ACCESS_TOKEN}}
