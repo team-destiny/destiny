@@ -29,6 +29,7 @@ public class OrderItem extends BaseEntity {
     private UUID orderItemId;
     private UUID productId;
     private UUID itemPromotionId;
+    private UUID brandId;
     private Integer stock;
     private Integer unitPrice;
     private Integer finalPrice;
@@ -48,6 +49,7 @@ public class OrderItem extends BaseEntity {
         orderItem.productId = productId;
         orderItem.itemPromotionId = itemPromotionId;
         orderItem.stock = stock;
+        orderItem.brandId = null;
         orderItem.unitPrice = null;
         orderItem.finalPrice = null;
         orderItem.itemDiscountAmount = null;
