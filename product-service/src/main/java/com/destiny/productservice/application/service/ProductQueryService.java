@@ -40,14 +40,14 @@ public class ProductQueryService {
 
     public Page<ProductResponse> getProducts(ProductSearch search, Pageable pageable) {
 
-        NativeQuery query = buildQuery(search, pageable);
+        NativeQuery query = buildSearchQuery(search, pageable);
 
         SearchHits<ProductView> hits = elasticsearchOperations.search(query, ProductView.class);
 
         return toPage(hits, pageable).map(ProductResponse::of);
     }
 
-    private NativeQuery buildQuery(ProductSearch search, Pageable pageable) {
+    private NativeQuery buildSearchQuery(ProductSearch search, Pageable pageable) {
 
         BoolQuery.Builder bool = QueryBuilders.bool();
 
@@ -75,7 +75,7 @@ public class ProductQueryService {
         return new PageImpl<>(content, pageable, total);
     }
 
-    private static void addColorFilter(String color, BoolQuery.Builder boolQuery) {
+    private void addColorFilter(String color, BoolQuery.Builder boolQuery) {
         if (color != null && !color.isBlank()) {
             boolQuery.filter(
                 QueryBuilders.term()
@@ -87,7 +87,7 @@ public class ProductQueryService {
         }
     }
 
-    private static void addSizeFilter(String size, BoolQuery.Builder boolQuery) {
+    private void addSizeFilter(String size, BoolQuery.Builder boolQuery) {
         if (size != null && !size.isBlank()) {
             boolQuery.filter(
                 QueryBuilders.term()
@@ -99,7 +99,7 @@ public class ProductQueryService {
         }
     }
 
-    private static void addBrandFilter(String brand, BoolQuery.Builder boolQuery) {
+    private void addBrandFilter(String brand, BoolQuery.Builder boolQuery) {
         if (brand != null && !brand.isBlank()) {
             boolQuery.filter(
                 QueryBuilders.term()
@@ -111,7 +111,7 @@ public class ProductQueryService {
         }
     }
 
-    private static void addNameContainsCondition(String nameContains, BoolQuery.Builder boolQuery) {
+    private void addNameContainsCondition(String nameContains, BoolQuery.Builder boolQuery) {
         if (nameContains != null && !nameContains.isBlank()) {
 
             String keyword = "*%s*".formatted(nameContains);
@@ -126,7 +126,7 @@ public class ProductQueryService {
         }
     }
 
-    private static void addPriceFilter(Long minPrice, Long maxPrice, BoolQuery.Builder boolQuery) {
+    private void addPriceFilter(Long minPrice, Long maxPrice, BoolQuery.Builder boolQuery) {
         if (minPrice != null || maxPrice != null) {
 
             RangeQuery rangeQuery = new RangeQuery.Builder()
