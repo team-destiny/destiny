@@ -13,11 +13,9 @@ public interface IssuedCouponService {
 
     IssuedCouponResponseDto getIssuedCoupon(UUID userId, UUID issuedCouponId);
 
-    IssuedCouponSearchResponse getIssuedCoupons(UUID userId, IssuedCouponStatus status,
-        Pageable pageable);
+    IssuedCouponSearchResponse getIssuedCoupons(UUID userId, IssuedCouponStatus status, Pageable pageable);
 
-    CouponUseResponse useCoupon(UUID userId,
-        UUID issuedCouponId,
-        UUID orderId,
-        int orderAmount);
+    CouponUseResponse useCoupon(UUID userId, UUID issuedCouponId, UUID orderId, int orderAmount);
+
+    void cancelCouponUse(UUID userId, UUID issuedCouponId, UUID orderId);
 }
