@@ -22,3 +22,8 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  access-header-name: Authorization
+  header-prefix: Bearer
+  access-subject: AccessToken
