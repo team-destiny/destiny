@@ -40,6 +40,10 @@ public class OrderItem extends BaseEntity {
     @JoinColumn(name = "order_id")
     private Order order;
 
+    public void updateStatus(OrderItemStatus status) {
+        this.status = status;
+    }
+
     public static OrderItem of(
         UUID productId,
         UUID itemPromotionId,
