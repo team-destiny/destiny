@@ -105,6 +105,14 @@ public class OrderService {
         return OrderDetailResponse.fromEntity(order);
     }
 
+    public void deleteOrder(UUID orderId) {
+        Order order = getOrder(orderId);
+
+        if (order.getDeletedAt() != null || order.getDeletedBy() != null) {
+            order.markDeleted(1L);
+        }
+    }
+
     private Order getOrder(UUID orderId) {
 
         return orderRepository.findOrderWithItems(orderId).orElseThrow(

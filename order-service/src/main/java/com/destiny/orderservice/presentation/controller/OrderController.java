@@ -55,6 +55,10 @@ public class OrderController {
     public ResponseEntity<String> deleteOrder(
         @PathVariable("orderId")  UUID orderId
     ) {
-        return null;
+        orderService.deleteOrder(orderId);
+
+        return ResponseEntity
+            .status(HttpStatus.NO_CONTENT)
+            .body("해당 주문정보가 삭제되었습니다.");
     }
 }
