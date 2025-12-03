@@ -32,12 +32,12 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<Page<ProductResponse>> getProduct(
-        @RequestParam("minPrice") Long minPrice,
-        @RequestParam("maxPrice") Long maxPrice,
-        @RequestParam("nameContains") String nameContains,
-        @RequestParam("brand") UUID brandId,
-        @RequestParam("size") String size,
-        @RequestParam("color") String color,
+        @RequestParam(value = "minPrice", required = false) Long minPrice,
+        @RequestParam(value = "maxPrice", required = false) Long maxPrice,
+        @RequestParam(value = "nameContains", required = false) String nameContains,
+        @RequestParam(value = "brand", required = false) UUID brandId,
+        @RequestParam(value = "size", required = false) String size,
+        @RequestParam(value = "color", required = false) String color,
         Pageable pageable) {
 
         Page<ProductResponse> pages = productQueryService.getProducts(
