@@ -78,9 +78,9 @@ public class OrderService {
         Order order = getOrder(orderId);
 
         boolean isAllPending = order.getItems().stream()
-            .allMatch(item -> item.getStatus().equals(OrderItemStatus.PENDING));
+            .allMatch(item -> item.getStatus() == OrderItemStatus.PENDING);
 
-        if (isAllPending) {
+        if (!isAllPending) {
             throw new BizException(OrderError.ORDER_CANCEL_NOT_ALLOWED);
         }
 
