@@ -203,6 +203,10 @@ public class NotificationServiceImpl implements NotificationService {
         );
     }
 
+    private String nvl(Object value) {
+        return value == null ? "없음" : value.toString();
+    }
+
 
     private String formatOrderMessage(OrderCreatedNotificationRequest req) {
         return String.format(
@@ -216,12 +220,12 @@ public class NotificationServiceImpl implements NotificationService {
             req.orderNumber(),
             req.brandId(),
             req.productName(),
-            req.option(),
+            nvl(req.option()),
             req.quantity(),
             req.totalPrice(),
             req.buyerName(),
             req.buyerEmail(),
-            req.message()
+            nvl(req.message())
         );
     }
 
@@ -237,9 +241,9 @@ public class NotificationServiceImpl implements NotificationService {
             req.orderId(),
             req.brandId(),
             req.stage(),
-            req.errorCode(),
-            req.errorMessage(),
-            req.message()
+            nvl(req.errorCode()),
+            nvl(req.errorMessage()),
+            nvl(req.message())
         );
     }
 }
