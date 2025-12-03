@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:8080
 
-### 로그인 성공 - gw
+### 로그인 성공 - 일반사용자
 POST {{baseUrl}}/v1/auths/login
 Content-Type: application/json
 
@@ -13,11 +13,52 @@ Content-Type: application/json
   // 응답 헤더 값 가져오기
   const authorization = response.headers.valueOf("Authorization");
   const refreshCookie = response.headers.valueOf("Set-Cookie").split(";")[0].split("=")[1];
+  const userId = response.body.data.userId;
+  console.log(userId)
+
 
   // 전역 변수 저장
   client.global.set("ACCESS_TOKEN", authorization);
   client.global.set("REFRESH_TOKEN", refreshCookie);
+  client.global.set("CUSTOMER_USER_ID", userId);
 %}
+
+### 로그인 성공 - 관리자
+POST {{baseUrl}}/v1/auths/login
+Content-Type: application/json
+
+{
+  "username": "admin001",
+  "password": "Admin1234!"
+}
+
+> {%
+  // 응답 헤더 값 가져오기
+  const authorization = response.headers.valueOf("Authorization");
+  const refreshCookie = response.headers.valueOf("Set-Cookie").split(";")[0].split("=")[1];
+  const userId = response.body.data.userId;
+
+  // 전역 변수 저장
+  client.global.set("ADMIN_ACCESS_TOKEN", authorization);
+  client.global.set("ADMIN_REFRESH_TOKEN", refreshCookie);
+  client.global.set("ADMIN_USER_ID", userId);
+%}
+
+### 로그아웃 - 본인
+POST {{baseUrl}}/v1/auths/logout
+Content-Type: application/json
+Authorization: {{ACCESS_TOKEN}}
+
+### 로그아웃 - 다른 사용자 (실패)
+POST {{baseUrl}}/v1/auths/logout?userId={{CUSTOMER_USER_ID}}
+Content-Type: application/json
+Authorization: {{ACCESS_TOKEN}}
+
+### 로그아웃 - 다른 사용자 (성공)
+POST {{baseUrl}}/v1/auths/logout?userId={{CUSTOMER_USER_ID}}
+Content-Type: application/json
+Authorization: {{ADMIN_ACCESS_TOKEN}}
+
 
 ### 회원 개별 조회 - gw
 GET {{baseUrl}}/v1/users/550e8400-e29b-41d4-a716-111111110000
