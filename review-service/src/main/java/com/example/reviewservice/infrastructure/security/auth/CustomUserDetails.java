@@ -31,8 +31,8 @@ public class CustomUserDetails implements UserDetails {
         customUserDetails.userId = UUID.fromString(userIdStr);
         customUserDetails.username = decodedJwt.getClaim("username").asString();
         customUserDetails.email = decodedJwt.getClaim("email").asString();
-        customUserDetails.accessJwt = decodedJwt.getClaim("accessJwt").asString();
-        customUserDetails.userRole = decodedJwt.getClaim("role").asString();
+        customUserDetails.accessJwt = decodedJwt.getToken();
+        customUserDetails.userRole = decodedJwt.getClaim("userRole").asString();
         return customUserDetails;
     }
 
