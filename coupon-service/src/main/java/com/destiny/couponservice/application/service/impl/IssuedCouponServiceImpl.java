@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -65,9 +66,13 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
             .expiredAt(expiredAt)
             .build();
 
-        IssuedCoupon saved = issuedCouponRepository.save(issuedCoupon);
+        try {
+            IssuedCoupon saved = issuedCouponRepository.save(issuedCoupon);
+            return IssuedCouponResponseDto.from(saved, template);
+        } catch (DataIntegrityViolationException e) {
+            throw new BizException(IssuedCouponErrorCode.ALREADY_ISSUED);
+        }
 
-        return IssuedCouponResponseDto.from(saved, template);
     }
 
     // 내가 발급받은 쿠폰 단건 조회
