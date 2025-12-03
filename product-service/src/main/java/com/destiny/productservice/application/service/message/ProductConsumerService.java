@@ -21,7 +21,7 @@ public class ProductConsumerService {
     private final ProductCommandRepository productCommandRepository;
     private final ProductQueryRepository productQueryRepository;
 
-    @KafkaListener(groupId = "product", topics = "product.after.create")
+    @KafkaListener(groupId = "product-group", topics = "product.after.create")
     @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeCreateProductMessage(ProductMessage message) {
@@ -39,7 +39,7 @@ public class ProductConsumerService {
         }
     }
 
-    @KafkaListener(groupId = "product", topics = "product.after.update")
+    @KafkaListener(groupId = "product-group", topics = "product.after.update")
     @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeUpdateProductMessage(ProductMessage message) {
@@ -56,7 +56,7 @@ public class ProductConsumerService {
         }
     }
 
-    @KafkaListener(groupId = "product", topics = "product.after.delete")
+    @KafkaListener(groupId = "product-group", topics = "product.after.delete")
     @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeDeleteProductMessage(ProductMessage message) {
