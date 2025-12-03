@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 import com.destiny.global.exception.BizException;
 import com.destiny.userservice.domain.entity.User;
 import com.destiny.userservice.domain.entity.UserRole;
-import com.destiny.userservice.domain.exception.UserErrorCode;
+import com.destiny.userservice.presentation.advice.UserErrorCode;
 import com.destiny.userservice.domain.repository.UserRepository;
 import com.destiny.userservice.presentation.dto.request.UserSignUpRequest;
 import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
