@@ -2,6 +2,7 @@ package com.destiny.couponservice.presentation.controller;
 
 import com.destiny.couponservice.application.service.IssuedCouponService;
 import com.destiny.couponservice.domain.enums.IssuedCouponStatus;
+import com.destiny.couponservice.presentation.dto.request.CouponCancelRequest;
 import com.destiny.couponservice.presentation.dto.request.CouponUseRequest;
 import com.destiny.couponservice.presentation.dto.response.CouponUseResponse;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponResponseDto;
@@ -83,5 +84,15 @@ public class IssuedCouponController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/issued-coupons/{issuedCouponId}/cancel")
+    public ResponseEntity<Void> cancelCouponUse(
+        @PathVariable UUID issuedCouponId,
+        @RequestHeader("X-USER-ID") UUID userId,
+        @Valid @RequestBody CouponCancelRequest request
+    ) {
+        issuedCouponService.cancelCouponUse(userId, issuedCouponId, request.getOrderId());
+        return ResponseEntity.noContent().build();
     }
 }

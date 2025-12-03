@@ -68,4 +68,11 @@ public class IssuedCoupon extends BaseEntity {
         return this.status == IssuedCouponStatus.AVAILABLE
             && now.isBefore(this.expiredAt);
     }
+
+    public void cancelUse() {
+        this.status = IssuedCouponStatus.AVAILABLE;
+        this.orderId = null;
+        this.usedAt = null;
+    }
+
 }

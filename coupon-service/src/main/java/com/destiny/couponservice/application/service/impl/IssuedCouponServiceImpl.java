@@ -188,4 +188,27 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
         return rawDiscount;
 
     }
+
+    @Override
+    @Transactional
+    public void cancelCouponUse(UUID userId, UUID issuedCouponId, UUID orderId) {
+
+        IssuedCoupon issuedCoupon = issuedCouponRepository.findById(issuedCouponId)
+            .orElseThrow(() -> new BizException(IssuedCouponErrorCode.ISSUED_COUPON_NOT_FOUND));
+
+        if (!issuedCoupon.getUserId().equals(userId)) {
+            throw new BizException(IssuedCouponErrorCode.INVALID_OWNER);
+        }
+
+        if (issuedCoupon.getStatus() != IssuedCouponStatus.USED) {
+            throw new BizException(IssuedCouponErrorCode.INVALID_CANCEL_TARGET);
+        }
+
+        if (!orderId.equals(issuedCoupon.getOrderId())) {
+            throw new BizException(IssuedCouponErrorCode.INVALID_CANCEL_TARGET);
+        }
+
+        issuedCoupon.cancelUse();
+    }
+
 }
