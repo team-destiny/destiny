@@ -4,6 +4,7 @@ import com.destiny.brandservice.application.service.BrandService;
 import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
 import com.destiny.brandservice.presentation.dto.request.BrandUpdateRequest;
 import com.destiny.brandservice.presentation.dto.response.BrandResponse;
+import com.destiny.brandservice.presentation.dto.response.OrderItemForBrandResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -77,6 +78,18 @@ public class BrandController {
         return ResponseEntity
             .status(HttpStatus.OK)
             .body("브랜드 삭제가 완료되었습니다.");
+    }
+
+    @GetMapping("/{brandId}/orders")
+    public ResponseEntity<List<OrderItemForBrandResponse>> getMyOrders(
+        @PathVariable UUID brandId
+    ) {
+        // TODO : 헤더로 유저 넘어오면 스프링 시큐리티 설정 이후 유저 검증 진행 해야함 !
+        List<OrderItemForBrandResponse> orders = brandService.getMyOrders(brandId);
+
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(orders);
     }
 
 }
