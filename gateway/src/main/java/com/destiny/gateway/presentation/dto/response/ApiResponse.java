@@ -8,8 +8,6 @@ import lombok.Getter;
 public class ApiResponse<T> {
 
     @Builder.Default
-    private final boolean success = true;
-    @Builder.Default
     private final String message = "success";
     private T data;
 
