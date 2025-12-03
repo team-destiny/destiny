@@ -8,7 +8,7 @@ public record ProductMessage (
     UUID id,
     String name,
     Long price,
-    String brand,
+    UUID brandId,
     ProductStatus status,
     String color,
     String size
@@ -18,7 +18,7 @@ public record ProductMessage (
             product.getId(),
             product.getName(),
             product.getPrice(),
-            product.getBrand(),
+            product.getBrandId(),
             product.getStatus(),
             product.getColor(),
             product.getSize()

@@ -53,7 +53,7 @@ public class ProductQueryService {
 
         addPriceFilter(search.minPrice(), search.maxPrice(), bool);
         addNameContainsCondition(search.nameContains(), bool);
-        addBrandFilter(search.brand(), bool);
+        addBrandFilter(search.brandId().toString(), bool);
         addSizeFilter(search.size(), bool);
         addColorFilter(search.color(), bool);
 

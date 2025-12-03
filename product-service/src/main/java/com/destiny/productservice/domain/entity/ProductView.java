@@ -26,7 +26,8 @@ public class ProductView {
 
     private Long price;
 
-    private String brand;
+    @Field(type = Text)
+    private UUID brandId;
 
     @Field(type = FieldType.Keyword)
     private ProductStatus status;
@@ -40,7 +41,7 @@ public class ProductView {
             product.getId(),
             product.getName(),
             product.getPrice(),
-            product.getBrand(),
+            product.getBrandId(),
             product.getStatus(),
             product.getColor(),
             product.getSize()
@@ -50,7 +51,7 @@ public class ProductView {
     public void updateFrom(ProductMessage message) {
         this.name = message.name();
         this.price = message.price();
-        this.brand = message.brand();
+        this.brandId = message.brandId();
         this.status = message.status();
         this.color = message.color();
         this.size = message.size();
