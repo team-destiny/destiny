@@ -2,10 +2,12 @@ package com.destiny.brandservice.application.service;
 
 import com.destiny.brandservice.domain.entity.Brand;
 import com.destiny.brandservice.domain.repository.BrandRepository;
+import com.destiny.brandservice.infrastructure.client.OrderClient;
 import com.destiny.brandservice.infrastructure.exception.BrandError;
 import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
 import com.destiny.brandservice.presentation.dto.request.BrandUpdateRequest;
 import com.destiny.brandservice.presentation.dto.response.BrandResponse;
+import com.destiny.brandservice.presentation.dto.response.OrderItemForBrandResponse;
 import com.destiny.global.exception.BizException;
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BrandService {
 
     private final BrandRepository brandRepository;
+    private final OrderClient orderClient;
 
     @Transactional
     public UUID createBrand(BrandCreateRequest req) {
@@ -91,5 +94,10 @@ public class BrandService {
             // TODO : 공통 모듈 상속 받은 이후 따로 예외 코드 정리 해야함.
             () -> new BizException(BrandError.BRAND_NOT_FOUND)
         );
+    }
+
+    public List<OrderItemForBrandResponse> getMyOrders(UUID brandId) {
+
+        return orderClient.getItemsForBrand(brandId);
     }
 }
