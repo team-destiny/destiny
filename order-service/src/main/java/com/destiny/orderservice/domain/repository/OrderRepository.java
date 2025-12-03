@@ -9,4 +9,6 @@ public interface OrderRepository {
     Order createOrder(Order order);
 
     Optional<Order> findOrderWithItems(UUID orderId);
+
+    Order updateOrder(Order order);
 }
