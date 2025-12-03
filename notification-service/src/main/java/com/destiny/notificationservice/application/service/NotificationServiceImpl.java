@@ -72,12 +72,15 @@ public class NotificationServiceImpl implements NotificationService {
         String errorCode,
         String errorMessage
     ) {
-        BrandNotificationChannel channel = notificationChannelRepository.findByBrandId(brandId).orElse(null);
+        BrandNotificationChannel channel = notificationChannelRepository.findByBrandId(brandId)
+            .orElse(null);
+
+        String logMessage = sanitizeForLog(message);
 
         if (channel == null || !channel.isActive()) {
             saveLog(
                 brandId,
-                message,
+                logMessage,
                 STATUS_FAIL,
                 404,
                 "Channel not found or inactive",
@@ -91,7 +94,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         try {
-            Map<String, String> payload = Collections.singletonMap("text", message);
+            Map<String, String> payload = Collections.singletonMap("text",logMessage);
 
             ResponseEntity<String> response = restTemplate.postForEntity(
                 channel.getSlackUrl(),
@@ -105,7 +108,7 @@ public class NotificationServiceImpl implements NotificationService {
 
             saveLog(
                 brandId,
-                message,
+                logMessage,
                 success ? STATUS_SUCCESS : STATUS_FAIL,
                 statusCode,
                 responseBody,
@@ -129,7 +132,7 @@ public class NotificationServiceImpl implements NotificationService {
 
             saveLog(
                 brandId,
-                message,
+                logMessage,
                 STATUS_FAIL,
                 500,
                 "Slack request failed",
@@ -142,6 +145,17 @@ public class NotificationServiceImpl implements NotificationService {
                 "Slack request failed."
             );
         }
+    }
+
+    private String sanitizeForLog(String message) {
+        if (message == null) {
+            return null;
+        }
+
+        return message.replaceAll(
+            "([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})", "***@$2"
+        );
+
     }
 
     private void saveLog(
@@ -165,7 +179,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         notificationLogRepository.save(logEntity);
     }
-
 
 
     @Override
