@@ -99,7 +99,7 @@ public class NotificationServiceImpl implements NotificationService {
                 String.class
             );
 
-            int statusCode = response.getStatusCodeValue();
+            int statusCode = response.getStatusCode().value();
             boolean success = response.getStatusCode().is2xxSuccessful();
             String responseBody = response.getBody();
 
