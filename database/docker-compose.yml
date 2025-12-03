@@ -134,3 +134,15 @@ services:
       - "5442:5432"
     networks:
       - ecommerce
+
+  redis-stack:
+    image: redis/redis-stack
+    container_name: redis-stack-compose
+    restart: always
+    environment:
+      REDIS_ARGS: "--requirepass systempass"
+    ports:
+      - 5443:6379
+      - 8001:8001
+    networks:
+      - ecommerce

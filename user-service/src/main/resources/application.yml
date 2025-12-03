@@ -19,6 +19,13 @@ spring:
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
+  data:
+    redis:
+      host: localhost
+      password: systempass
+      port: 5443
+      timeout: 2000
+
 eureka:
   instance:
     prefer-ip-address: true
