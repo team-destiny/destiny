@@ -41,7 +41,7 @@ public class ProductController {
         Pageable pageable) {
 
         Page<ProductResponse> pages = productQueryService.getProducts(
-                new ProductSearch(minPrice, maxPrice, nameContains, brandId, size, color),
+                ProductSearch.of(minPrice, maxPrice, nameContains, brandId, size, color),
                 pageable
         );
 
