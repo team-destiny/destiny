@@ -25,10 +25,6 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation 'com.github.team-destiny:destiny-global:0.0.1'
     implementation 'org.springframework.boot:spring-boot-starter-web'
