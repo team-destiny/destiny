@@ -6,6 +6,7 @@ import java.util.Map;
 public class OrderStatusMessage {
 
     private static final Map<OrderStatus, String> messages = Map.of(
+        OrderStatus.PENDING, "주문이 생성되었습니다. 잠시만 기다려주세요.",
         OrderStatus.CREATED, "주문을 처리하고 있습니다. 잠시만 기다려주세요.",
         OrderStatus.WAITING_PAYMENT, "결제를 대기하고 있습니다."
     );
