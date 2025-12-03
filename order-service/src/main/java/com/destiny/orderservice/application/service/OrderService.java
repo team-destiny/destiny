@@ -97,6 +97,10 @@ public class OrderService {
 
         Order order = getOrder(orderId);
 
+        if (order.getDeletedAt() == null || order.getDeletedBy() == null) {
+            throw new BizException(OrderError.ORDER_NOT_FOUND);
+        }
+
         // 사가 처리 전 상태 : PENDING
         if (order.getOrderStatus().equals(OrderStatus.PENDING)) {
             return OrderProcessingResponse.of(order.getOrderId(), order.getOrderStatus());
@@ -105,6 +109,7 @@ public class OrderService {
         return OrderDetailResponse.fromEntity(order);
     }
 
+    @Transactional
     public void deleteOrder(UUID orderId) {
         Order order = getOrder(orderId);
 
