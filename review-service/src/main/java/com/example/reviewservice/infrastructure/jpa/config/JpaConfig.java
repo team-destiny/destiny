@@ -1,4 +1,4 @@
-package com.example.reviewservice.infrastructure.config.jpa;
+package com.example.reviewservice.infrastructure.jpa.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
