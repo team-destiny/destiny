@@ -47,6 +47,10 @@ public class Order extends BaseEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<OrderItem> items = new ArrayList<>();
 
+    public void updateStatus(OrderStatus status) {
+        this.orderStatus = status;
+    }
+
     public static Order of(
         UUID userId,
         UUID couponId,
