@@ -4,9 +4,11 @@ import com.destiny.couponservice.application.service.IssuedCouponService;
 import com.destiny.couponservice.application.service.exception.IssuedCouponErrorCode;
 import com.destiny.couponservice.domain.entity.CouponTemplate;
 import com.destiny.couponservice.domain.entity.IssuedCoupon;
+import com.destiny.couponservice.domain.enums.DiscountType;
 import com.destiny.couponservice.domain.enums.IssuedCouponStatus;
 import com.destiny.couponservice.domain.repository.CouponTemplateRepository;
 import com.destiny.couponservice.domain.repository.IssuedCouponRepository;
+import com.destiny.couponservice.presentation.dto.response.CouponUseResponse;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponResponseDto;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponSearchResponse;
 import com.destiny.global.exception.BizException;
@@ -58,13 +60,9 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
         // TODO  "발급 후 N일" 등의 정책 추가 후 수정예정
         LocalDateTime expiredAt = template.getAvailableTo();
 
-        IssuedCoupon issuedCoupon = IssuedCoupon.builder()
-            .userId(userId)
-            .couponTemplateId(template.getId())
-            .status(IssuedCouponStatus.AVAILABLE)
-            .issuedAt(now)
-            .expiredAt(expiredAt)
-            .build();
+        IssuedCoupon issuedCoupon = IssuedCoupon.builder().userId(userId)
+            .couponTemplateId(template.getId()).status(IssuedCouponStatus.AVAILABLE).issuedAt(now)
+            .expiredAt(expiredAt).build();
 
         try {
             IssuedCoupon saved = issuedCouponRepository.save(issuedCoupon);
@@ -95,17 +93,14 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
 
     //내가 발급받은 쿠폰 목록 조회
     @Override
-    public IssuedCouponSearchResponse getIssuedCoupons(UUID userId,
-        IssuedCouponStatus status,
+    public IssuedCouponSearchResponse getIssuedCoupons(UUID userId, IssuedCouponStatus status,
         Pageable pageable) {
 
         Page<IssuedCoupon> page = issuedCouponRepository.findByUserIdAndStatus(userId, status,
             pageable);
 
-        List<UUID> templateIds = page.getContent().stream()
-            .map(IssuedCoupon::getCouponTemplateId)
-            .distinct()
-            .toList();
+        List<UUID> templateIds = page.getContent().stream().map(IssuedCoupon::getCouponTemplateId)
+            .distinct().toList();
 
         List<CouponTemplate> templates = couponTemplateRepository.findByIdIn(templateIds);
 
@@ -121,5 +116,76 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
         });
 
         return IssuedCouponSearchResponse.from(dtoPage);
+    }
+
+
+    @Override
+    @Transactional
+    public CouponUseResponse useCoupon(UUID userId, UUID issuedCouponId, UUID orderId,
+        int orderAmount) {
+        // 1. 발급 쿠폰 조회
+        IssuedCoupon issuedCoupon = issuedCouponRepository.findById(issuedCouponId)
+            .orElseThrow(() -> new BizException(IssuedCouponErrorCode.ISSUED_COUPON_NOT_FOUND));
+
+        // 2. 소유자 검증
+        if (!issuedCoupon.getUserId().equals(userId)) {
+            throw new BizException(IssuedCouponErrorCode.INVALID_OWNER);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // 3. 상태/만료 검증
+        if (!issuedCoupon.isUsable(now)) {
+            if (now.isAfter(issuedCoupon.getExpiredAt())) {
+                issuedCoupon.expire(now); // 상태 EXPIRED로 변경
+                throw new BizException(IssuedCouponErrorCode.COUPON_EXPIRED);
+            }
+            throw new BizException(IssuedCouponErrorCode.INVALID_COUPON_STATUS);
+        }
+
+        // 4. 쿠폰 템플릿 조회
+        CouponTemplate template = couponTemplateRepository.findById(
+                issuedCoupon.getCouponTemplateId())
+            .orElseThrow(() -> new BizException(IssuedCouponErrorCode.TEMPLATE_NOT_FOUND));
+
+        // 5. 최소 주문 금액 검증
+        if (orderAmount < template.getMinOrderAmount()) {
+            throw new BizException(IssuedCouponErrorCode.MIN_ORDER_AMOUNT_NOT_MET);
+        }
+
+        // 6. 할인 금액 계산
+        int discountAmount = calculateDiscountAmount(orderAmount, template);
+        int finalAmount = Math.max(0, orderAmount - discountAmount);
+
+        // 7. 쿠폰 사용 처리
+        issuedCoupon.use(orderId, now);
+
+        // 8. 응답 DTO 생성
+        return CouponUseResponse.builder().issuedCouponId(issuedCoupon.getId()).orderId(orderId)
+            .orderAmount(orderAmount).discountAmount(discountAmount).finalAmount(finalAmount)
+            .couponName(template.getName()).discountType(template.getDiscountType())
+            .discountValue(template.getDiscountValue())
+            .maxDiscountAmount(template.getMaxDiscountAmount())
+            .minOrderAmount(template.getMinOrderAmount()).usedAt(now).build();
+    }
+
+    private int calculateDiscountAmount(int orderAmount, CouponTemplate template) {
+        DiscountType type = template.getDiscountType();
+
+        if (type == DiscountType.FIXED) {
+            // 정액 할인
+            return Math.min(orderAmount, template.getDiscountValue());
+        }
+
+        // 정률 할인
+        int rawDiscount = (int) Math.floor(orderAmount * (template.getDiscountValue() / 100.0));
+
+        Integer maxDiscount = template.getMaxDiscountAmount();
+        if (maxDiscount != null && maxDiscount > 0) {
+            return Math.min(rawDiscount, maxDiscount);
+        }
+
+        return rawDiscount;
+
     }
 }

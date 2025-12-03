@@ -1,6 +1,7 @@
 package com.destiny.couponservice.application.service;
 
 import com.destiny.couponservice.domain.enums.IssuedCouponStatus;
+import com.destiny.couponservice.presentation.dto.response.CouponUseResponse;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponResponseDto;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponSearchResponse;
 import java.util.UUID;
@@ -14,4 +15,9 @@ public interface IssuedCouponService {
 
     IssuedCouponSearchResponse getIssuedCoupons(UUID userId, IssuedCouponStatus status,
         Pageable pageable);
+
+    CouponUseResponse useCoupon(UUID userId,
+        UUID issuedCouponId,
+        UUID orderId,
+        int orderAmount);
 }
