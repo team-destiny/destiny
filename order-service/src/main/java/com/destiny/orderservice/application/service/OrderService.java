@@ -1,10 +1,13 @@
 package com.destiny.orderservice.application.service;
 
+import com.destiny.global.exception.BizException;
 import com.destiny.orderservice.domain.entity.Order;
 import com.destiny.orderservice.domain.entity.OrderItem;
+import com.destiny.orderservice.domain.entity.OrderItemStatus;
 import com.destiny.orderservice.domain.entity.OrderStatus;
 import com.destiny.orderservice.domain.repository.OrderItemRepository;
 import com.destiny.orderservice.domain.repository.OrderRepository;
+import com.destiny.orderservice.infrastructure.exception.OrderError;
 import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCreateRequestEvent;
 import com.destiny.orderservice.infrastructure.messaging.producer.OrderEventProducer;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
@@ -69,12 +72,30 @@ public class OrderService {
             .toList();
     }
 
+    @Transactional
+    public UUID cancelOrder(UUID orderId) {
+
+        Order order = getOrder(orderId);
+
+        boolean isAllPending = order.getItems().stream()
+            .allMatch(item -> item.getStatus().equals(OrderItemStatus.PENDING));
+
+        if (isAllPending) {
+            throw new BizException(OrderError.ORDER_CANCEL_NOT_ALLOWED);
+        }
+
+        order.getItems().forEach(item -> item.updateStatus(OrderItemStatus.CANCELED));
+        order.updateStatus(OrderStatus.CANCELED);
+
+        Order updateOrder = orderRepository.updateOrder(order);
+
+        return updateOrder.getOrderId();
+    }
+
     @Transactional(readOnly = true)
     public Object getOrderDetail(UUID orderId) {
 
-        Order order = orderRepository.findOrderWithItems(orderId).orElseThrow(
-            () -> new RuntimeException("주문을 찾을 수 없습니다.")
-        );
+        Order order = getOrder(orderId);
 
         // 사가 처리 전 상태 : PENDING
         if (order.getOrderStatus().equals(OrderStatus.PENDING)) {
@@ -82,5 +103,12 @@ public class OrderService {
         }
 
         return OrderDetailResponse.fromEntity(order);
+    }
+
+    private Order getOrder(UUID orderId) {
+
+        return orderRepository.findOrderWithItems(orderId).orElseThrow(
+            () -> new BizException(OrderError.ORDER_NOT_FOUND)
+        );
     }
 }
