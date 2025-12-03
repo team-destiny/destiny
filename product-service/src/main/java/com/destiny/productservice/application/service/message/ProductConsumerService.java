@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.retrytopic.RetryTopicHeaders;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.retry.annotation.Backoff;
@@ -28,7 +29,7 @@ public class ProductConsumerService {
     @Transactional
     public void consumeCreateProductMessage(ProductMessage message,
         @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-        @Header(name = "kafka_retry_topic-attempt", required = false) Integer attempt
+        @Header(name = RetryTopicHeaders.DEFAULT_HEADER_ATTEMPTS, required = false) Integer attempt
     ) {
 
         log.info("상품 생성 메세지를 소비했습니다. productId={} topic={}, attempt={}",
@@ -59,10 +60,10 @@ public class ProductConsumerService {
     @Transactional
     public void consumeUpdateProductMessage(ProductMessage message,
         @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-        @Header(name = "kafka_retry_topic-attempt", required = false) Integer attempt
+        @Header(name = RetryTopicHeaders.DEFAULT_HEADER_ATTEMPTS, required = false) Integer attempt
     ) {
 
-        log.info("상품 수정 메세지를 소비했습니다. productId={} topic={}, attempt={}",
+        log.info("상품 수정 메세지를 소비했습니다. productId = {} topic = {}, attempt = {}",
             message.id(),
             topic,
             attempt
@@ -77,7 +78,7 @@ public class ProductConsumerService {
             productView.updateFrom(message);
             productQueryRepository.save(productView);
         } catch (Exception e) {
-            log.error("읽기 모델 상품 수정에 실패했습니다. attempt={}, productViewId={}, error={}",
+            log.error("읽기 모델 상품 수정에 실패했습니다. attempt = {}, productViewId = {}, error = {}",
                 attempt,
                 productView.getId(),
                 e.getMessage()
