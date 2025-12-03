@@ -1,6 +1,8 @@
 package com.example.reviewservice.infrastructure.security.auth;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.destiny.global.code.CommonErrorCode;
+import com.destiny.global.exception.BizException;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -22,7 +24,11 @@ public class CustomUserDetails implements UserDetails {
 
     public static CustomUserDetails of(DecodedJWT decodedJwt) {
         CustomUserDetails customUserDetails = new CustomUserDetails();
-        customUserDetails.userId = UUID.fromString(decodedJwt.getClaim("userId").asString());
+        String userIdStr = decodedJwt.getClaim("userId").asString();
+        if (userIdStr == null) {
+            throw new BizException(CommonErrorCode.MISSING_PARAMETER);
+        }
+        customUserDetails.userId = UUID.fromString(userIdStr);
         customUserDetails.username = decodedJwt.getClaim("username").asString();
         customUserDetails.email = decodedJwt.getClaim("email").asString();
         customUserDetails.accessJwt = decodedJwt.getClaim("accessJwt").asString();

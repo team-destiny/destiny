@@ -13,9 +13,9 @@ public class JwtProperties {
     private final String accessSubject;
 
     public JwtProperties(
-        @Value("${shop.security.jwt.access-header-name}") String accessHeaderName,
-        @Value("${shop.security.jwt.header-prefix}") String headerPrefix,
-        @Value("${shop.security.jwt.access-subject}") String accessSubject
+        @Value("${jwt.access-header-name}") String accessHeaderName,
+        @Value("${jwt.header-prefix}") String headerPrefix,
+        @Value("${jwt.access-subject}") String accessSubject
     ) {
         this.accessHeaderName = accessHeaderName;
         this.headerPrefix = headerPrefix;
