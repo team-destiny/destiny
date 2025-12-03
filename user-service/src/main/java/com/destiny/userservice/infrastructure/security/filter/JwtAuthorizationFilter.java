@@ -34,7 +34,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String accessJwt = authorizationHeader.substring(jwtProperties.getHeaderPrefix().length());
+        String accessJwt = authorizationHeader.substring(jwtProperties.getHeaderPrefix().length()).trim();
         DecodedJWT decodedAccessJwt = JWT.decode(accessJwt);
 
         CustomUserDetails userDetails;

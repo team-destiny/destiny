@@ -8,4 +8,5 @@ public interface UserRepository {
     User findById(UUID userId);
     boolean existsByUsernameAndDeletedAtIsNull(String username);
     User findByUsername(String username);
+    boolean existsByUserIdAndDeletedAtIsNull(UUID userId);
 }
