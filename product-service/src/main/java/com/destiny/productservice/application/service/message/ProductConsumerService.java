@@ -28,14 +28,19 @@ public class ProductConsumerService {
 
         log.info("productId : {} product create message consumed", message.id());
 
-        Product product = productCommandRepository.findById(message.id()).orElseThrow();
+        Product product = productCommandRepository.findById(message.id())
+            .orElseThrow(() -> new IllegalStateException(
+                "쓰기 모델에 생성한 상품 " + message.id() + " 이 없습니다.")
+            );
 
         try {
             productQueryRepository.save(ProductView.from(product));
         } catch (Exception e) {
-            log.error("{} product creation rollback. {}", product.getId(), e.getMessage());
-
-            productCommandRepository.deleteById(message.id());
+            log.error("읽기 모델 상품 저장 실패 productId={} error={}",
+                product.getId(),
+                e.getMessage()
+            );
+            throw e;
         }
     }
 
@@ -46,13 +51,20 @@ public class ProductConsumerService {
 
         log.info("productId : {} product update message consumed", message.id());
 
-        ProductView productView = productQueryRepository.findById(message.id()).orElseThrow();
+        ProductView productView = productQueryRepository.findById(message.id())
+            .orElseThrow(() -> new IllegalStateException(
+                "읽기 데이터베이스에 수정할 상품 " + message.id() + " 이 없습니다.")
+            );
 
         try {
             productView.updateFrom(message);
             productQueryRepository.save(productView);
         } catch (Exception e) {
-            log.error("{} product update failed. {}", productView.getId(), e.getMessage());
+            log.error("읽기 모델 상품 수정 실패 productView.productId={}, error={}",
+                productView.getId(),
+                e.getMessage()
+            );
+            throw e;
         }
     }
 
