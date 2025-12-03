@@ -9,7 +9,7 @@ public record ProductResponse(
     UUID id,
     String name,
     Long price,
-    String brand,
+    UUID brandId,
     ProductStatus status,
     String color,
     String size
@@ -19,7 +19,7 @@ public record ProductResponse(
             product.getId(),
             product.getName(),
             product.getPrice(),
-            product.getBrand(),
+            product.getBrandId(),
             product.getStatus(),
             product.getColor(),
             product.getSize()
@@ -31,7 +31,7 @@ public record ProductResponse(
             productView.getId(),
             productView.getName(),
             productView.getPrice(),
-            productView.getBrand(),
+            productView.getBrandId(),
             productView.getStatus(),
             productView.getColor(),
             productView.getSize()

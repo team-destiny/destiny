@@ -1,5 +1,6 @@
 package com.destiny.productservice.domain.entity;
 
+import com.destiny.global.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -27,7 +28,7 @@ public class Product extends BaseEntity {
 
     private Long price;
 
-    private String brand;
+    private UUID brandId;
 
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
@@ -36,16 +37,16 @@ public class Product extends BaseEntity {
 
     private String size;
 
-    public static Product of(String name, Long price, String brand, String color, String size) {
+    public static Product of(String name, Long price, UUID brandId, String color, String size) {
         return new Product(
-            null, name, price, brand, ProductStatus.AVAILABLE, color, size
+            null, name, price, brandId, ProductStatus.AVAILABLE, color, size
         );
     }
 
-    public void update(String name, Long price, String brand, ProductStatus status, String color, String size) {
+    public void update(String name, Long price, UUID brandId, ProductStatus status, String color, String size) {
         this.name = name;
         this.price = price;
-        this.brand = brand;
+        this.brandId = brandId;
         this.status = status;
         this.color = color;
         this.size = size;

@@ -29,7 +29,7 @@ public class ProductCommandRepositoryImpl implements ProductCommandRepository {
     }
 
     @Override
-    public boolean existsByNameAndBrand(String name, String brand) {
-        return productCommandJpaRepository.existsByNameAndBrand(name , brand);
+    public boolean existsByNameAndBrandId(String name, UUID brandId) {
+        return productCommandJpaRepository.existsByNameAndBrandId(name , brandId);
     }
 }

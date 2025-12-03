@@ -35,13 +35,13 @@ public class ProductController {
         @RequestParam("minPrice") Long minPrice,
         @RequestParam("maxPrice") Long maxPrice,
         @RequestParam("nameContains") String nameContains,
-        @RequestParam("brand") String brand,
+        @RequestParam("brand") UUID brandId,
         @RequestParam("size") String size,
         @RequestParam("color") String color,
         Pageable pageable) {
 
         Page<ProductResponse> pages = productQueryService.getProducts(
-                new ProductSearch(minPrice, maxPrice, nameContains, brand, size, color),
+                new ProductSearch(minPrice, maxPrice, nameContains, brandId, size, color),
                 pageable
         );
 

@@ -25,14 +25,14 @@ public class ProductCommandService {
     @Transactional
     public ProductResponse createProduct(CreateProductRequest request) {
 
-        if (productCommandRepository.existsByNameAndBrand(request.name(), request.brand())) {
+        if (productCommandRepository.existsByNameAndBrandId(request.name(), request.brandId())) {
             throw new IllegalArgumentException();
         }
 
         Product product = Product.of(
             request.name(),
             request.price(),
-            request.brand(),
+            request.brandId(),
             request.color(),
             request.size()
         );
@@ -62,7 +62,7 @@ public class ProductCommandService {
         product.update(
             request.name(),
             request.price(),
-            request.brand(),
+            request.brandId(),
             request.status(),
             request.color(),
             request.size()
