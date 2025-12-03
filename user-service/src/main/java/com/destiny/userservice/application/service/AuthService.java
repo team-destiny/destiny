@@ -1,16 +1,22 @@
 package com.destiny.userservice.application.service;
 
+import com.destiny.global.code.CommonErrorCode;
 import com.destiny.global.exception.BizException;
 import com.destiny.userservice.domain.dto.LoginTokens;
 import com.destiny.userservice.domain.entity.User;
 import com.destiny.userservice.domain.entity.UserRole;
-import com.destiny.userservice.domain.exception.UserErrorCode;
 import com.destiny.userservice.domain.repository.UserRepository;
+import com.destiny.userservice.infrastructure.redis.cache.TokenBlacklistCache;
+import com.destiny.userservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.userservice.infrastructure.security.jwt.JwtTokenGenerator;
+import com.destiny.userservice.presentation.advice.UserErrorCode;
 import com.destiny.userservice.presentation.aop.TokenContextHolder;
 import com.destiny.userservice.presentation.dto.request.UserLoginRequest;
 import com.destiny.userservice.presentation.dto.request.UserSignUpRequest;
+import com.destiny.userservice.presentation.dto.response.UserLoginResponse;
 import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +33,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenGenerator jwtTokenGenerator;
+    private final TokenBlacklistCache tokenBlacklistCache;
 
     @Value("${user.admin.token}")
     private String masterAdminToken;   // 설정에서 주입
@@ -70,7 +77,7 @@ public class AuthService {
         }
     }
 
-    public void login(UserLoginRequest userLoginRequest) {
+    public UserLoginResponse login(UserLoginRequest userLoginRequest) {
         User user = userRepository.findByUsername(userLoginRequest.username());
 
         if(!passwordEncoder.matches(userLoginRequest.password(), user.getPassword())){
@@ -83,5 +90,38 @@ public class AuthService {
         TokenContextHolder.setToken(new LoginTokens(accessToken, refreshToken));
 
         log.info("로그인 성공 - userId={}, username={}", user.getUserId(), user.getUsername());
+
+        return UserLoginResponse.of(user);
     }
+
+    public void logout(CustomUserDetails customUserDetails, UUID targetUserId) {
+        UUID authUserId = customUserDetails.getUserId();
+        UserRole authUserRole = UserRole.valueOf(customUserDetails.getUserRole());
+        long logoutMillis = Instant.now().toEpochMilli();
+
+        verifyAuthUserOrThrow(authUserId);
+        UUID logoutUserId = (targetUserId != null) ? targetUserId : authUserId;
+        validateAccess(authUserId, authUserRole, logoutUserId);
+
+         User logoutUser = userRepository.findById(logoutUserId);
+
+        // 실제 로그아웃 처리
+        tokenBlacklistCache.saveLogoutTime(logoutUserId.toString(), logoutMillis);
+
+    }
+
+    /**
+     *  다른 사람이 로그아웃 시키는 경우 : 관리자만 허용
+     */
+    private void validateAccess(UUID authUserId, UserRole authUserRole, UUID logoutUserId) {
+        if (!logoutUserId.equals(authUserId) && authUserRole != UserRole.MASTER) {
+            throw new BizException(CommonErrorCode.ACCESS_DENIED);
+        }
+    }
+
+
+    private void verifyAuthUserOrThrow(UUID userId) {
+        userRepository.existsByUserIdAndDeletedAtIsNull(userId);
+    }
+
 }

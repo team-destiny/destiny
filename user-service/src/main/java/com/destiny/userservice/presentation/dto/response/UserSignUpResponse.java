@@ -8,13 +8,13 @@ public record UserSignUpResponse(
     UUID userId,
     UserRole userRole,
     String username,
-    UserInfoResponse userInfo
+    String email
 ) {
 
     public static UserSignUpResponse of(User user) {
             return new UserSignUpResponse(user.getUserId()
                 , user.getUserRole()
                 , user.getUsername()
-                , UserInfoResponse.from(user.getUserInfo()));
+                , user.getEmail());
         }
     }
