@@ -1,4 +1,4 @@
-package com.destiny.userservice.infrastructure.config.jpa;
+package com.destiny.userservice.infrastructure.jpa.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
