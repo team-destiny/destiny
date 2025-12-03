@@ -5,13 +5,13 @@ import com.destiny.productservice.domain.entity.Product;
 import com.destiny.productservice.domain.entity.ProductView;
 import com.destiny.productservice.domain.repository.ProductCommandRepository;
 import com.destiny.productservice.domain.repository.ProductQueryRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
