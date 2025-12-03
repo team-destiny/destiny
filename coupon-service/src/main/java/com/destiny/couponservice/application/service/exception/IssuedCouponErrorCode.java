@@ -14,7 +14,12 @@ public enum IssuedCouponErrorCode implements ResponseCode {
     INVALID_OWNER(HttpStatus.FORBIDDEN, "ISSUED-005", "쿠폰에 접근할 권한이 없습니다."),
 
     COUPON_EXPIRED(HttpStatus.BAD_REQUEST, "ISSUED-006", "만료된 쿠폰입니다."),
-    INVALID_COUPON_STATUS(HttpStatus.BAD_REQUEST, "ISSUED-007", "사용 가능한 쿠폰 상태가 아닙니다.");
+    INVALID_COUPON_STATUS(HttpStatus.BAD_REQUEST, "ISSUED-007", "사용 가능한 쿠폰 상태가 아닙니다."),
+
+    MIN_ORDER_AMOUNT_NOT_MET(HttpStatus.BAD_REQUEST, "ISSUED-008", "최소 주문 금액을 충족하지 않아 쿠폰을 사용할 수 없습니다."),
+    INVALID_CANCEL_TARGET(HttpStatus.BAD_REQUEST, "ISSUED-009", "취소할 수 없는 쿠폰 상태입니다.");
+
+
 
     private final HttpStatus status;
     private final String code;
