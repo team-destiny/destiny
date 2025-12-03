@@ -36,7 +36,9 @@ public class SagaState {
     private UUID orderId;
     private UUID userId;
     private UUID couponId;
+    private Integer originalAmount;
     private Integer discountAmount;
+    private Integer finalAmount;
 
     @Enumerated(EnumType.STRING)
     private SagaStatus status;
@@ -53,8 +55,6 @@ public class SagaState {
 
     private String paymentMethod;
     private boolean paymentValid;
-    private Integer originalAmount;
-    private Integer finalAmount;
 
     @CreatedDate
     @Column(updatable = false)

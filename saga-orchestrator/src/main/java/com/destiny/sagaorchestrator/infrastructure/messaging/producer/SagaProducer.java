@@ -1,6 +1,7 @@
 package com.destiny.sagaorchestrator.infrastructure.messaging.producer;
 
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,9 +16,20 @@ import org.springframework.stereotype.Service;
 public class SagaProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     // TODO : 상품 검증
+    public void sendProductValidate(ProductValidateCommand event) {
+        try {
+
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("product-validate-request", message);
+            log.info("send success -> product validate send success {}", message);
+        } catch (JsonProcessingException e) {
+
+            log.error("send failed -> product validate send failed {}" , e.getMessage());
+        }
+    }
 
 
 
@@ -29,7 +41,7 @@ public class SagaProducer {
 
         try {
             String message = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("coupon-validate-request", message);
+            kafkaTemplate.send("coupon-use-request", message);
             log.info("send success ->  coupon success {}", message);
 
         } catch (JsonProcessingException e) {
