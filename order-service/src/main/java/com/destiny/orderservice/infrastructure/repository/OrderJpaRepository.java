@@ -16,5 +16,11 @@ public interface OrderJpaRepository extends JpaRepository<Order, UUID> {
         """)
     Optional<Order> findOrderWithItems(UUID orderId);
 
+    @Query("""
+           select distinct o
+           from Order o
+           left join fetch o.items
+           where o.userId = :userId
+        """)
     List<Order> findAllByUserId(UUID userId);
 }
