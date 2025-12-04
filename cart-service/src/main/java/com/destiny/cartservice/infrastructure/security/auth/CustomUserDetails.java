@@ -47,6 +47,10 @@ public class CustomUserDetails implements UserDetails {
             throw new BizException(CommonErrorCode.MISSING_PARAMETER);
         }
         customUserDetails.accessJwt = decodedJwt.getToken();
+        if (customUserDetails.accessJwt == null || customUserDetails.accessJwt.isBlank()) {
+            throw new BizException(CommonErrorCode.MISSING_PARAMETER);
+        }
+
         customUserDetails.userRole = decodedJwt.getClaim("userRole").asString();
         if (customUserDetails.userRole == null) {
             throw new BizException(CommonErrorCode.MISSING_PARAMETER);
