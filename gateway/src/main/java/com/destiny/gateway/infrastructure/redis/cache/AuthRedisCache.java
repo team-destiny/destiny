@@ -24,7 +24,7 @@ public class AuthRedisCache implements AuthCache {
     public void storeToken(String userId, Long logoutAtMillis) {
         String key = buildCacheKey(userId);
         String value = String.valueOf(logoutAtMillis);
-        Duration ttl = Duration.ofMinutes(jwtProperties.getAccessExpirationMillis());
+        Duration ttl = Duration.ofMillis(jwtProperties.getAccessExpirationMillis());
 
         stringRedisTemplate.opsForValue().set(key, value, ttl);
     }
