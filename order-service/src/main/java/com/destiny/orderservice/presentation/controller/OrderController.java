@@ -3,6 +3,8 @@ package com.destiny.orderservice.presentation.controller;
 import com.destiny.orderservice.application.service.OrderService;
 import com.destiny.orderservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
+import com.destiny.orderservice.presentation.dto.response.OrderListResponse;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,6 +36,16 @@ public class OrderController {
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(order);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<OrderListResponse>> getOrderList(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(orderService.getOrderList(customUserDetails.getUserId()));
     }
 
     @GetMapping("/{orderId}")
