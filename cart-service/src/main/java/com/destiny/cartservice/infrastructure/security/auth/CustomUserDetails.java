@@ -31,7 +31,13 @@ public class CustomUserDetails implements UserDetails {
         if (userIdStr == null) {
             throw new BizException(CommonErrorCode.MISSING_PARAMETER);
         }
-        customUserDetails.userId = UUID.fromString(userIdStr);
+
+        try {
+            customUserDetails.userId = UUID.fromString(userIdStr);
+        } catch (IllegalArgumentException ex) {
+            throw new BizException(CommonErrorCode.MISSING_PARAMETER);
+        }
+
         customUserDetails.username = decodedJwt.getClaim("username").asString();
         if (customUserDetails.username == null) {
             throw new BizException(CommonErrorCode.MISSING_PARAMETER);
