@@ -3,8 +3,8 @@ package com.destiny.productservice.application.dto;
 import java.util.UUID;
 
 public record ProductSearch(
-    Long minPrice,
-    Long maxPrice,
+    Integer minPrice,
+    Integer maxPrice,
     String nameContains,
     UUID brandId,
     String size,
@@ -12,8 +12,8 @@ public record ProductSearch(
 ) {
 
     public static ProductSearch of(
-        Long minPrice,
-        Long maxPrice,
+        Integer minPrice,
+        Integer maxPrice,
         String nameContains,
         UUID brandId,
         String size,

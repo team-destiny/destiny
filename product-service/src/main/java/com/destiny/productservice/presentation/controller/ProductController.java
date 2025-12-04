@@ -32,8 +32,8 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<Page<ProductResponse>> getProduct(
-        @RequestParam(value = "minPrice", required = false) Long minPrice,
-        @RequestParam(value = "maxPrice", required = false) Long maxPrice,
+        @RequestParam(value = "minPrice", required = false) Integer minPrice,
+        @RequestParam(value = "maxPrice", required = false) Integer maxPrice,
         @RequestParam(value = "nameContains", required = false) String nameContains,
         @RequestParam(value = "brand", required = false) UUID brandId,
         @RequestParam(value = "size", required = false) String size,
