@@ -31,7 +31,7 @@ ext {
 
 dependencies {
     //common dependencies
-    implementation 'com.github.team-destiny:destiny-global:0.0.1'
+    implementation 'com.github.team-destiny:destiny-global:0.0.2'
 
     // data & jpa
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
