@@ -11,15 +11,15 @@ import java.util.UUID;
 
 public interface CartService {
 
-    CartFindAllResponse findAllCarts(Principal principal);
+    CartFindAllResponse findAllCarts(UUID userId);
 
-    CartSaveResponse saveCartItem(Principal principal, CartSaveRequest request);
+    CartSaveResponse saveCartItem(UUID userId, CartSaveRequest request);
 
     CartUpdateQuantityResponse updateCartItemQuantity(
-        Principal principal,
+        UUID userId,
         UUID cartId,
         CartUpdateQuantityRequest request
     );
 
-    void deleteCartItems(Principal principal, CartDeleteRequest request);
+    void deleteCartItems(UUID userId, CartDeleteRequest request);
 }
