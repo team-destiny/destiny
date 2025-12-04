@@ -2,6 +2,7 @@ package com.destiny.orderservice.infrastructure.repository;
 
 import com.destiny.orderservice.domain.entity.Order;
 import com.destiny.orderservice.domain.repository.OrderRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -29,5 +30,11 @@ public class OrderRepositoryImpl implements OrderRepository {
     public Order updateOrder(Order order) {
 
         return orderJpaRepository.save(order);
+    }
+
+    @Override
+    public List<Order> findAllByUserId(UUID customUserId) {
+
+        return orderJpaRepository.findAllByUserId(customUserId);
     }
 }

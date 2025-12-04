@@ -15,6 +15,7 @@ import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
 import com.destiny.orderservice.presentation.dto.response.OrderDetailResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderItemForBrandResponse;
+import com.destiny.orderservice.presentation.dto.response.OrderListResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderProcessingResponse;
 import java.util.List;
 import java.util.UUID;
@@ -61,6 +62,15 @@ public class OrderService {
         orderEventProducer.send(event);
 
         return orderId;
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderListResponse> getOrderList(UUID customUserId) {
+        List<Order> orders = orderRepository.findAllByUserId(customUserId);
+
+        return orders.stream()
+            .map(OrderListResponse::from)
+            .toList();
     }
 
     @Transactional(readOnly = true)
