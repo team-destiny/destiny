@@ -114,7 +114,7 @@ public class OrderService {
         Order order = getOrder(orderId);
 
         if (order.getDeletedAt() != null || order.getDeletedBy() != null) {
-            order.markDeleted(1L);
+            order.markDeleted(UUID.randomUUID());
         }
     }
 
