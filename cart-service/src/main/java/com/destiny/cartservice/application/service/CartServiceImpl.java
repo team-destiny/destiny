@@ -11,7 +11,6 @@ import com.destiny.cartservice.presentation.dto.response.CartFindItemResponse;
 import com.destiny.cartservice.presentation.dto.response.CartSaveResponse;
 import com.destiny.cartservice.presentation.dto.response.CartUpdateQuantityResponse;
 import com.destiny.global.exception.BizException;
-import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +29,7 @@ public class CartServiceImpl implements CartService {
     */
     @Override
     @Transactional(readOnly = true)
-    public CartFindAllResponse findAllCarts(Principal principal) {
-        UUID userId = getUserId(principal);
+    public CartFindAllResponse findAllCarts(UUID userId) {
 
         List<Cart> carts = cartRepository.findAllByUserId(userId);
 
@@ -41,11 +39,6 @@ public class CartServiceImpl implements CartService {
 
         return CartFindAllResponse.from(items);
     }
-
-    private UUID getUserId(Principal principal) {
-        return UUID.fromString(principal.getName());
-    }
-
 
     private CartFindItemResponse toItemResponse(Cart cart) {
         // TODO: 상품/옵션/가격 조회 붙이면 적용
@@ -65,8 +58,7 @@ public class CartServiceImpl implements CartService {
      * 없으면 새 장바구니 생성
      * */
     @Override
-    public CartSaveResponse saveCartItem(Principal principal, CartSaveRequest request) {
-        UUID userId = getUserId(principal);
+    public CartSaveResponse saveCartItem(UUID userId, CartSaveRequest request) {
 
         Cart cart = cartRepository.findExistingCart(userId, request.getProductId(),
                 request.getOptionId())
@@ -102,12 +94,10 @@ public class CartServiceImpl implements CartService {
     /* 장바구니 수량 변경 */
     @Override
     public CartUpdateQuantityResponse updateCartItemQuantity(
-        Principal principal,
+        UUID userId,
         UUID cartId,
         CartUpdateQuantityRequest request
     ) {
-        UUID userId = getUserId(principal);
-
         Cart cart = cartRepository.findById(cartId)
             .orElseThrow(() -> new BizException(CartErrorCode.CART_NOT_FOUND));
 
@@ -137,8 +127,7 @@ public class CartServiceImpl implements CartService {
 
     /* 장바구니 선택 삭제 */
     @Override
-    public void deleteCartItems(Principal principal, CartDeleteRequest request) {
-        UUID userId = getUserId(principal);
+    public void deleteCartItems(UUID userId, CartDeleteRequest request) {
         List<UUID> cartIds = request.getCartIds();
 
         List<Cart> ownedCarts = cartRepository.findAllByUserId(userId);
