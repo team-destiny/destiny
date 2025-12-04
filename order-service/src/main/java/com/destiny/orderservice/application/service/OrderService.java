@@ -7,6 +7,7 @@ import com.destiny.orderservice.domain.entity.OrderItemStatus;
 import com.destiny.orderservice.domain.entity.OrderStatus;
 import com.destiny.orderservice.domain.repository.OrderItemRepository;
 import com.destiny.orderservice.domain.repository.OrderRepository;
+import com.destiny.orderservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.orderservice.infrastructure.exception.OrderError;
 import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCreateRequestEvent;
 import com.destiny.orderservice.infrastructure.messaging.producer.OrderEventProducer;
@@ -30,10 +31,10 @@ public class OrderService {
     private final OrderEventProducer orderEventProducer;
 
     @Transactional
-    public UUID createOrder(OrderCreateRequest req) {
+    public UUID createOrder(CustomUserDetails customUserDetails, OrderCreateRequest req) {
 
         Order order = Order.of(
-            UUID.randomUUID(),
+            customUserDetails.getUserId(),
             req.couponId(),
             req.paymentMethod(),
             req.recipientName(),
@@ -73,9 +74,11 @@ public class OrderService {
     }
 
     @Transactional
-    public UUID cancelOrder(UUID orderId) {
+    public UUID cancelOrder(CustomUserDetails customUserDetails, UUID orderId) {
 
         Order order = getOrder(orderId);
+
+        validateOrderUser(order, customUserDetails.getUserId());
 
         boolean isAllPending = order.getItems().stream()
             .allMatch(item -> item.getStatus() == OrderItemStatus.PENDING);
@@ -93,13 +96,15 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Object getOrderDetail(UUID orderId) {
+    public Object getOrderDetail(CustomUserDetails customUserDetails, UUID orderId) {
 
         Order order = getOrder(orderId);
 
         if (order.getDeletedAt() == null || order.getDeletedBy() == null) {
             throw new BizException(OrderError.ORDER_NOT_FOUND);
         }
+
+        validateOrderUser(order, customUserDetails.getUserId());
 
         // 사가 처리 전 상태 : PENDING
         if (order.getOrderStatus().equals(OrderStatus.PENDING)) {
@@ -110,12 +115,16 @@ public class OrderService {
     }
 
     @Transactional
-    public void deleteOrder(UUID orderId) {
+    public void deleteOrder(CustomUserDetails customUserDetails, UUID orderId) {
         Order order = getOrder(orderId);
 
         if (order.getDeletedAt() != null || order.getDeletedBy() != null) {
-            order.markDeleted(UUID.randomUUID());
+            throw new BizException(OrderError.ORDER_NOT_FOUND);
         }
+
+        validateOrderUser(order, customUserDetails.getUserId());
+
+        order.markDeleted(customUserDetails.getUserId());
     }
 
     private Order getOrder(UUID orderId) {
@@ -123,5 +132,11 @@ public class OrderService {
         return orderRepository.findOrderWithItems(orderId).orElseThrow(
             () -> new BizException(OrderError.ORDER_NOT_FOUND)
         );
+    }
+
+    private void validateOrderUser(Order order, UUID userId) {
+        if (!order.getUserId().equals(userId)) {
+            throw new BizException(OrderError.ORDER_NOT_FOUND);
+        }
     }
 }
