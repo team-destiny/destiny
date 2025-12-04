@@ -45,7 +45,7 @@ public class OrderController {
 
         return ResponseEntity
             .status(HttpStatus.OK)
-            .body(orderService.getOrderList(customUserDetails.getUserId()));
+            .body(orderService.getOrderList(customUserDetails));
     }
 
     @GetMapping("/{orderId}")
