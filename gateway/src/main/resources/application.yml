@@ -62,7 +62,8 @@ eureka:
 
 jwt:
   secretKey: XVFkQby3tnqMa8MUDANspAtarbl1VZyT
-  access-expiration-millis: 1800000 # 30분
+  #  access-expiration-millis: 1800000 # 30분
+  access-expiration-millis: 1209600000 # 14일
   refresh-expiration-millis: 1209600000 # 14일
   access-header-name: Authorization
   refresh-cookie-name: X-Refresh-Token
