@@ -7,7 +7,7 @@ import java.util.UUID;
 public record ProductMessage (
     UUID id,
     String name,
-    Long price,
+    Integer price,
     UUID brandId,
     ProductStatus status,
     String color,
