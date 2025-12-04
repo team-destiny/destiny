@@ -230,6 +230,7 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
 
             LocalDateTime now = LocalDateTime.now();
 
+            // 1) 상태/만료 검증
             if (!coupon.isUsable(now)) {
                 if (now.isAfter(coupon.getExpiredAt())) {
                     coupon.expire(now);
@@ -238,19 +239,23 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
                 throw new BizException(IssuedCouponErrorCode.INVALID_COUPON_STATUS);
             }
 
-            CouponTemplate template = couponTemplateRepository.findById(
-                    coupon.getCouponTemplateId())
+            // 2) 템플릿 조회
+            CouponTemplate template = couponTemplateRepository.findById(coupon.getCouponTemplateId())
                 .orElseThrow(() -> new BizException(IssuedCouponErrorCode.TEMPLATE_NOT_FOUND));
 
+            // 3) 최소 주문 금액 검증
+            if (command.originalAmount() < template.getMinOrderAmount()) {
+                throw new BizException(IssuedCouponErrorCode.MIN_ORDER_AMOUNT_NOT_MET);
+            }
+
+            // 4) 할인 계산
             int discountAmount = calculateDiscountAmount(
                 command.originalAmount(),
                 template
             );
-
-            // finalAmount 음수 방지
             int finalAmount = Math.max(0, command.originalAmount() - discountAmount);
 
-            // 성공 이벤트 발행
+            // 5) 성공 이벤트 발행
             CouponValidateSuccessEvent event = CouponValidateSuccessEvent.builder()
                 .couponId(couponId)
                 .finalAmount(finalAmount)
@@ -259,24 +264,19 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
             couponValidateProducer.sendSuccess(event);
 
         } catch (BizException e) {
-
+            // 실패 이벤트 발행
             CouponValidateFailEvent failEvent = CouponValidateFailEvent.builder()
                 .couponId(couponId)
                 .errorCode(e.getResponseCode().getCode())
                 .errorMessage(e.getMessage())
                 .build();
 
-            couponValidateProducer.sendFail(failEvent);
-        } catch (Exception e) {
-            log.error("[handleCouponValidate] 예상치 못한 오류: couponId={}", couponId, e);
-
-            CouponValidateFailEvent failEvent = CouponValidateFailEvent.builder()
-                .couponId(couponId)
-                .errorCode("INTERNAL_ERROR")
-                .errorMessage("쿠폰 검증 중 내부 오류 발생")
-                .build();
-
-            couponValidateProducer.sendFail(failEvent);
+            try {
+                couponValidateProducer.sendFail(failEvent);
+            } catch (Exception sendEx) {
+                log.error("[handleCouponValidate] sendFail 실패 - 수동 개입 필요: couponId={}", couponId, sendEx);
+            }
         }
     }
+
 }
