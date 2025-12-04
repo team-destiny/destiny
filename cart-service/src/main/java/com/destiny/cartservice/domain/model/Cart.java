@@ -1,5 +1,6 @@
 package com.destiny.cartservice.domain.model;
 
+import com.destiny.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "p_cart")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Cart {
+public class Cart extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
