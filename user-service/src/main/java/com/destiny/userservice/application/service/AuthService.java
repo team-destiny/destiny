@@ -2,11 +2,11 @@ package com.destiny.userservice.application.service;
 
 import com.destiny.global.code.CommonErrorCode;
 import com.destiny.global.exception.BizException;
+import com.destiny.userservice.application.cache.AuthCache;
 import com.destiny.userservice.domain.dto.LoginTokens;
 import com.destiny.userservice.domain.entity.User;
 import com.destiny.userservice.domain.entity.UserRole;
 import com.destiny.userservice.domain.repository.UserRepository;
-import com.destiny.userservice.infrastructure.redis.cache.TokenBlacklistCache;
 import com.destiny.userservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.userservice.infrastructure.security.jwt.JwtTokenGenerator;
 import com.destiny.userservice.presentation.advice.UserErrorCode;
@@ -33,7 +33,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenGenerator jwtTokenGenerator;
-    private final TokenBlacklistCache tokenBlacklistCache;
+    private final AuthCache authCache;
 
     @Value("${user.admin.token}")
     private String masterAdminToken;   // 설정에서 주입
@@ -106,8 +106,7 @@ public class AuthService {
          User logoutUser = userRepository.findById(logoutUserId);
 
         // 실제 로그아웃 처리
-        tokenBlacklistCache.saveLogoutTime(logoutUserId.toString(), logoutMillis);
-
+        authCache.storeToken(logoutUserId.toString(), logoutMillis);
     }
 
     /**
