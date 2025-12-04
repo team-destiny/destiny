@@ -1,5 +1,6 @@
 package com.destiny.orderservice.application.service;
 
+import com.destiny.global.code.CommonErrorCode;
 import com.destiny.global.exception.BizException;
 import com.destiny.orderservice.domain.entity.Order;
 import com.destiny.orderservice.domain.entity.OrderItem;
@@ -13,6 +14,7 @@ import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCre
 import com.destiny.orderservice.infrastructure.messaging.producer.OrderEventProducer;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
+import com.destiny.orderservice.presentation.dto.request.OrderStatusRequest;
 import com.destiny.orderservice.presentation.dto.response.OrderDetailResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderItemForBrandResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderListResponse;
@@ -145,6 +147,21 @@ public class OrderService {
         validateOrderUser(order, customUserDetails.getUserId());
 
         order.markDeleted(customUserDetails.getUserId());
+    }
+
+    @Transactional
+    public UUID changeOrderStatus(CustomUserDetails customUserDetails, OrderStatusRequest req, UUID orderId) {
+
+        if (!customUserDetails.getUserRole().equalsIgnoreCase("MASTER")) {
+            throw new BizException(CommonErrorCode.ACCESS_DENIED);
+        }
+
+        Order order = getOrder(orderId);
+
+        order.updateStatus(req.orderStatus());
+        Order updateOrder = orderRepository.updateOrder(order);
+
+        return updateOrder.getOrderId();
     }
 
     private Order getOrder(UUID orderId) {
