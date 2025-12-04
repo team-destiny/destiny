@@ -14,4 +14,7 @@ public interface OrderRepository {
     Order updateOrder(Order order);
 
     List<Order> findAllByUserId(UUID customUserId);
+
+    List<Order> findAll();
+
 }
