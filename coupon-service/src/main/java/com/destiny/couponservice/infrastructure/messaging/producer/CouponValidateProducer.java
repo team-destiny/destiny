@@ -13,29 +13,39 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CouponValidateProducer {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
-    private final ObjectMapper objectMapper;
-
     private static final String SUCCESS_TOPIC = "coupon-use-success";
     private static final String FAIL_TOPIC = "coupon-use-fail";
+
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
     public void sendSuccess(CouponValidateSuccessEvent event) {
         try {
             String json = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send(SUCCESS_TOPIC, json);
-            log.info("[CouponValidateProducer] success: {}", json);
+            kafkaTemplate.send(SUCCESS_TOPIC, json).whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.error("Kafka 전송 실패 - topic: {}, event: {}", SUCCESS_TOPIC, json, ex);
+                } else {
+                    log.info("[CouponValidateProducer] success: {}", json);
+                }
+            });
         } catch (Exception e) {
-            log.error("Failed to send coupon-use-success: {}", e.getMessage());
+            log.error("Failed to send coupon-use-success: {}", e.getMessage(), e);
         }
     }
 
     public void sendFail(CouponValidateFailEvent event) {
         try {
             String json = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send(FAIL_TOPIC, json);
-            log.info("[CouponValidateProducer] fail: {}", json);
+            kafkaTemplate.send(FAIL_TOPIC, json).whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.error("Kafka 전송 실패 - topic: {}, event: {}", FAIL_TOPIC, json, ex);
+                } else {
+                    log.info("[CouponValidateProducer] fail: {}", json);
+                }
+            });
         } catch (Exception e) {
-            log.error("Failed to send coupon-use-fail: {}", e.getMessage());
+            log.error("Failed to send coupon-use-fail: {}", e.getMessage(), e);
         }
     }
 }
