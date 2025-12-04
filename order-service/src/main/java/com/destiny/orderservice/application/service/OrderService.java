@@ -118,11 +118,13 @@ public class OrderService {
 
         Order order = getOrder(orderId);
 
+        if (!customUserDetails.getUserRole().equalsIgnoreCase("MASTER")) {
+            validateOrderUser(order, customUserDetails.getUserId());
+        }
+
         if (order.getDeletedAt() == null || order.getDeletedBy() == null) {
             throw new BizException(OrderError.ORDER_NOT_FOUND);
         }
-
-        validateOrderUser(order, customUserDetails.getUserId());
 
         // 사가 처리 전 상태 : PENDING
         if (order.getOrderStatus().equals(OrderStatus.PENDING)) {
