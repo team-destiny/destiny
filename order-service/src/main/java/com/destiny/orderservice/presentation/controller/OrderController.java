@@ -1,11 +1,13 @@
 package com.destiny.orderservice.presentation.controller;
 
 import com.destiny.orderservice.application.service.OrderService;
+import com.destiny.orderservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -23,8 +25,11 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<UUID> createOrder(@RequestBody OrderCreateRequest req){
-        UUID order = orderService.createOrder(req);
+    public ResponseEntity<UUID> createOrder(
+        @RequestBody OrderCreateRequest req,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ){
+        UUID order = orderService.createOrder(customUserDetails, req);
 
         return ResponseEntity
             .status(HttpStatus.CREATED)
@@ -33,18 +38,20 @@ public class OrderController {
 
     @GetMapping("/{orderId}")
     public ResponseEntity<?> getOrderDetail(
-        @PathVariable("orderId") UUID orderId
+        @PathVariable("orderId") UUID orderId,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         return ResponseEntity
             .status(HttpStatus.OK)
-            .body(orderService.getOrderDetail(orderId));
+            .body(orderService.getOrderDetail(customUserDetails, orderId));
     }
 
     @PatchMapping("/{orderId}/cancel")
     public ResponseEntity<UUID> cancelOrder(
-        @PathVariable("orderId") UUID orderId
+        @PathVariable("orderId") UUID orderId,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
-        UUID order = orderService.cancelOrder(orderId);
+        UUID order = orderService.cancelOrder(customUserDetails, orderId);
 
         return ResponseEntity
             .status(HttpStatus.OK)
@@ -53,9 +60,10 @@ public class OrderController {
 
     @DeleteMapping("/{orderId}")
     public ResponseEntity<String> deleteOrder(
-        @PathVariable("orderId")  UUID orderId
+        @PathVariable("orderId")  UUID orderId,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
-        orderService.deleteOrder(orderId);
+        orderService.deleteOrder(customUserDetails, orderId);
 
         return ResponseEntity
             .status(HttpStatus.NO_CONTENT)
