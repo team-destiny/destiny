@@ -245,7 +245,8 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
                 template
             );
 
-            int finalAmount = command.originalAmount() - discountAmount;
+            // finalAmount 음수 방지
+            int finalAmount = Math.max(0, command.originalAmount() - discountAmount);
 
             // 성공 이벤트 발행
             CouponValidateSuccessEvent event = CouponValidateSuccessEvent.builder()
