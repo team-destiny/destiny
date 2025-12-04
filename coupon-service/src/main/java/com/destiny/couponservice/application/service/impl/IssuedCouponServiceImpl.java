@@ -8,6 +8,10 @@ import com.destiny.couponservice.domain.enums.DiscountType;
 import com.destiny.couponservice.domain.enums.IssuedCouponStatus;
 import com.destiny.couponservice.domain.repository.CouponTemplateRepository;
 import com.destiny.couponservice.domain.repository.IssuedCouponRepository;
+import com.destiny.couponservice.infrastructure.messaging.event.command.CouponValidateCommand;
+import com.destiny.couponservice.infrastructure.messaging.event.result.CouponValidateFailEvent;
+import com.destiny.couponservice.infrastructure.messaging.event.result.CouponValidateSuccessEvent;
+import com.destiny.couponservice.infrastructure.messaging.producer.CouponValidateProducer;
 import com.destiny.couponservice.presentation.dto.response.CouponUseResponse;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponResponseDto;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponSearchResponse;
@@ -32,6 +36,7 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
 
     private final IssuedCouponRepository issuedCouponRepository;
     private final CouponTemplateRepository couponTemplateRepository;
+    private final CouponValidateProducer couponValidateProducer;
 
     /**
      * 쿠폰 발급
@@ -210,5 +215,57 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
 
         issuedCoupon.cancelUse();
     }
+
+    @Override
+    @Transactional
+    public void handleCouponValidate(CouponValidateCommand command) {
+
+        UUID couponId = command.couponId();
+
+        try {
+            IssuedCoupon coupon = issuedCouponRepository.findById(couponId)
+                .orElseThrow(() -> new BizException(IssuedCouponErrorCode.ISSUED_COUPON_NOT_FOUND));
+
+            LocalDateTime now = LocalDateTime.now();
+
+            if (!coupon.isUsable(now)) {
+                if (now.isAfter(coupon.getExpiredAt())) {
+                    coupon.expire(now);
+                    throw new BizException(IssuedCouponErrorCode.COUPON_EXPIRED);
+                }
+                throw new BizException(IssuedCouponErrorCode.INVALID_COUPON_STATUS);
+            }
+
+            CouponTemplate template = couponTemplateRepository.findById(
+                    coupon.getCouponTemplateId())
+                .orElseThrow(() -> new BizException(IssuedCouponErrorCode.TEMPLATE_NOT_FOUND));
+
+            int discountAmount = calculateDiscountAmount(
+                command.originalAmount(),
+                template
+            );
+
+            int finalAmount = command.originalAmount() - discountAmount;
+
+            // 성공 이벤트 발행
+            CouponValidateSuccessEvent event = CouponValidateSuccessEvent.builder()
+                .couponId(couponId)
+                .finalAmount(finalAmount)
+                .build();
+
+            couponValidateProducer.sendSuccess(event);
+
+        } catch (BizException e) {
+
+            CouponValidateFailEvent failEvent = CouponValidateFailEvent.builder()
+                .couponId(couponId)
+                .errorCode(e.getResponseCode().getCode())
+                .errorMessage(e.getMessage())
+                .build();
+
+            couponValidateProducer.sendFail(failEvent);
+        }
+    }
+
 
 }

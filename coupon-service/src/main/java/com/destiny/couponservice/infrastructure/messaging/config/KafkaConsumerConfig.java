@@ -19,7 +19,7 @@ public class KafkaConsumerConfig {
     public ConsumerFactory<String, String> consumerFactory() throws Exception {
         Map<String, Object> properties = new HashMap<>();
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        properties.put(ConsumerConfig.GROUP_ID_CONFIG, "saga-orchestrator");
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, "coupon-service");
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         return new DefaultKafkaConsumerFactory<>(properties);

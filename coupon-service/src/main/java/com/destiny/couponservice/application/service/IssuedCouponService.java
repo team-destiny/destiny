@@ -1,6 +1,7 @@
 package com.destiny.couponservice.application.service;
 
 import com.destiny.couponservice.domain.enums.IssuedCouponStatus;
+import com.destiny.couponservice.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.destiny.couponservice.presentation.dto.response.CouponUseResponse;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponResponseDto;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponSearchResponse;
@@ -13,9 +14,13 @@ public interface IssuedCouponService {
 
     IssuedCouponResponseDto getIssuedCoupon(UUID userId, UUID issuedCouponId);
 
-    IssuedCouponSearchResponse getIssuedCoupons(UUID userId, IssuedCouponStatus status, Pageable pageable);
+    IssuedCouponSearchResponse getIssuedCoupons(UUID userId, IssuedCouponStatus status,
+        Pageable pageable);
 
     CouponUseResponse useCoupon(UUID userId, UUID issuedCouponId, UUID orderId, int orderAmount);
 
     void cancelCouponUse(UUID userId, UUID issuedCouponId, UUID orderId);
+
+    void handleCouponValidate(CouponValidateCommand command);
+
 }
