@@ -57,7 +57,6 @@ public class OrderService {
 
         UUID orderId = orderRepository.createOrder(order).getOrderId();
 
-        // TODO : 사가 오케스트레이션으로 카프카 메시지 발송
         OrderCreateRequestEvent event = OrderCreateRequestEvent.from(order);
         orderEventProducer.send(event);
 
@@ -65,8 +64,17 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrderListResponse> getOrderList(UUID customUserId) {
-        List<Order> orders = orderRepository.findAllByUserId(customUserId);
+    public List<OrderListResponse> getOrderList(CustomUserDetails customUserDetails) {
+
+        if (customUserDetails.getUserRole().equalsIgnoreCase("MASTER")) {
+            List<Order> orders = orderRepository.findAll();
+
+            return orders.stream()
+                .map(OrderListResponse::from)
+                .toList();
+        }
+
+        List<Order> orders = orderRepository.findAllByUserId(customUserDetails.getUserId());
 
         return orders.stream()
             .map(OrderListResponse::from)
