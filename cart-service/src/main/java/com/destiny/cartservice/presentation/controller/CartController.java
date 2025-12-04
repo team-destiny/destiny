@@ -1,6 +1,7 @@
 package com.destiny.cartservice.presentation.controller;
 
 import com.destiny.cartservice.application.service.CartService;
+import com.destiny.cartservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.cartservice.presentation.dto.request.CartDeleteRequest;
 import com.destiny.cartservice.presentation.dto.request.CartSaveRequest;
 import com.destiny.cartservice.presentation.dto.request.CartUpdateQuantityRequest;
@@ -8,11 +9,11 @@ import com.destiny.cartservice.presentation.dto.response.CartFindAllResponse;
 import com.destiny.cartservice.presentation.dto.response.CartSaveResponse;
 import com.destiny.cartservice.presentation.dto.response.CartUpdateQuantityResponse;
 import jakarta.validation.Valid;
-import java.security.Principal;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -31,35 +32,36 @@ public class CartController {
 
     // 장바구니 전체 조회
     @GetMapping
-    public ResponseEntity<CartFindAllResponse> cartFindAll(Principal principal) {
-        CartFindAllResponse response = cartService.findAllCarts(principal);
+    public ResponseEntity<CartFindAllResponse> cartFindAll(
+        @AuthenticationPrincipal CustomUserDetails user) {
+        CartFindAllResponse response = cartService.findAllCarts(user.getUserId());
         return ResponseEntity.ok(response);
 
     }
 
     // 장바구니 담기
     @PostMapping
-    public ResponseEntity<CartSaveResponse> saveCart(Principal principal,
+    public ResponseEntity<CartSaveResponse> saveCart(@AuthenticationPrincipal CustomUserDetails user,
         @RequestBody @Valid CartSaveRequest request) {
-        CartSaveResponse response = cartService.saveCartItem(principal, request);
+        CartSaveResponse response = cartService.saveCartItem(user.getUserId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     // 장바구니 수량 변경
     @PatchMapping("/{cartId}/quantity")
     public ResponseEntity<CartUpdateQuantityResponse> updateCartItemQuantity(
-        Principal principal, @PathVariable UUID cartId,
+        @AuthenticationPrincipal CustomUserDetails user, @PathVariable UUID cartId,
         @RequestBody @Valid CartUpdateQuantityRequest request) {
-        CartUpdateQuantityResponse response = cartService.updateCartItemQuantity(principal,
+        CartUpdateQuantityResponse response = cartService.updateCartItemQuantity(user.getUserId(),
             cartId, request);
         return ResponseEntity.ok(response);
     }
 
     // 장바구니 선택 삭제
     @DeleteMapping
-    public ResponseEntity<Void> deleteCartItems(Principal principal,
+    public ResponseEntity<Void> deleteCartItems( @AuthenticationPrincipal CustomUserDetails user,
         @RequestBody CartDeleteRequest request) {
-        cartService.deleteCartItems(principal, request);
+        cartService.deleteCartItems(user.getUserId(), request);
         return ResponseEntity.noContent().build();
     }
 }
