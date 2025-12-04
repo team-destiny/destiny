@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.destiny.gateway.application.cache.AuthCache;
 import com.destiny.gateway.infrastructure.security.jwt.JwtProperties;
 import com.destiny.gateway.presentation.advice.GatewayErrorCode;
 import com.destiny.gateway.presentation.advice.GatewayException;
@@ -25,6 +26,7 @@ import reactor.core.publisher.Mono;
 public class AccessTokenValidationFilter implements GlobalFilter, Ordered {
 
     private final JwtProperties jwtProperties;
+    private final AuthCache authCache;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -53,7 +55,13 @@ public class AccessTokenValidationFilter implements GlobalFilter, Ordered {
             throw new GatewayException(GatewayErrorCode.GATEWAY_TOKEN_INVALID);
         }
 
-        // TODO : 토큰 블랙리스트 검증 추가
+        // 토큰 블랙리스트 검증
+        Long blockedTokenMillis = authCache.getToken(userId);
+        Long tokenIssuedAtMillis = decodedAccessJwt.getIssuedAtAsInstant().toEpochMilli();
+        if (blockedTokenMillis != null && blockedTokenMillis > tokenIssuedAtMillis) {
+            throw new GatewayException(GatewayErrorCode.GATEWAY_TOKEN_INVALID);
+        }
+
 
         log.info("Access Token 검증 완료");
         return chain.filter(exchange);
