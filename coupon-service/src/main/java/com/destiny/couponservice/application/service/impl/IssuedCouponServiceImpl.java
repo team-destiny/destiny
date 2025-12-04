@@ -23,12 +23,14 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -265,8 +267,16 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
                 .build();
 
             couponValidateProducer.sendFail(failEvent);
+        } catch (Exception e) {
+            log.error("[handleCouponValidate] 예상치 못한 오류: couponId={}", couponId, e);
+
+            CouponValidateFailEvent failEvent = CouponValidateFailEvent.builder()
+                .couponId(couponId)
+                .errorCode("INTERNAL_ERROR")
+                .errorMessage("쿠폰 검증 중 내부 오류 발생")
+                .build();
+
+            couponValidateProducer.sendFail(failEvent);
         }
     }
-
-
 }
