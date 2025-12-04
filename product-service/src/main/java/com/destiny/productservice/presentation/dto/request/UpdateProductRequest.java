@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record UpdateProductRequest(
     String name,
-    Long price,
+    Integer price,
     UUID brandId,
     ProductStatus status,
     String color,

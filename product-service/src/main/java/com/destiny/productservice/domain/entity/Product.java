@@ -26,7 +26,7 @@ public class Product extends BaseEntity {
 
     private String name;
 
-    private Long price;
+    private Integer price;
 
     private UUID brandId;
 
@@ -37,13 +37,13 @@ public class Product extends BaseEntity {
 
     private String size;
 
-    public static Product of(String name, Long price, UUID brandId, String color, String size) {
+    public static Product of(String name, Integer price, UUID brandId, String color, String size) {
         return new Product(
             null, name, price, brandId, ProductStatus.AVAILABLE, color, size
         );
     }
 
-    public void update(String name, Long price, UUID brandId, ProductStatus status, String color, String size) {
+    public void update(String name, Integer price, UUID brandId, ProductStatus status, String color, String size) {
         this.name = name;
         this.price = price;
         this.brandId = brandId;

@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public record CreateProductRequest(
     String name,
-    Long price,
+    Integer price,
     UUID brandId,
     String color,
     String size
