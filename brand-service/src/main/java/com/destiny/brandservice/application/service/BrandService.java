@@ -2,14 +2,17 @@ package com.destiny.brandservice.application.service;
 
 import com.destiny.brandservice.domain.entity.Brand;
 import com.destiny.brandservice.domain.repository.BrandRepository;
+import com.destiny.brandservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.brandservice.infrastructure.client.OrderClient;
 import com.destiny.brandservice.infrastructure.exception.BrandError;
 import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
 import com.destiny.brandservice.presentation.dto.request.BrandUpdateRequest;
 import com.destiny.brandservice.presentation.dto.response.BrandResponse;
 import com.destiny.brandservice.presentation.dto.response.OrderItemForBrandResponse;
+import com.destiny.global.code.CommonErrorCode;
 import com.destiny.global.exception.BizException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,15 +26,26 @@ public class BrandService {
     private final OrderClient orderClient;
 
     @Transactional
-    public UUID createBrand(BrandCreateRequest req) {
+    public UUID createBrand(CustomUserDetails userDetails, BrandCreateRequest req) {
 
-        Brand brand = Brand.of(req.managerId(), req.brandName());
+        boolean isPartner = userDetails.getUserRole().equalsIgnoreCase("partner")
+            || userDetails.getUserRole().equalsIgnoreCase("master");
+
+        if (!isPartner) {
+            throw new BizException(CommonErrorCode.ACCESS_DENIED);
+        }
+
+        Brand brand = Brand.of(
+            userDetails.getUserId(),
+            req.brandName());
 
         return brandRepository.create(brand).getBrandId();
     }
 
     @Transactional(readOnly = true)
     public BrandResponse getBrand(UUID brandId) {
+
+        // TODO : 상품 feign client 통신 하여 상품 목록 가지고 와야함.
 
         Brand brand = findBrand(brandId);
 
@@ -58,16 +72,18 @@ public class BrandService {
     }
 
     @Transactional
-    public UUID updateBrand(UUID brandId, BrandUpdateRequest req) {
+    public UUID updateBrand(CustomUserDetails userDetails, UUID brandId, BrandUpdateRequest req) {
 
         Brand brand = findBrand(brandId);
 
-        if (req.managerId() != null) {
-            brand.updateManagerId(req.managerId());
-        }
+        validateManager(userDetails.getUserId(), brand);
 
         if (req.brandName() != null) {
             brand.updateBrandName(req.brandName());
+        }
+
+        if (req.managerId() != null) {
+            brand.updateManagerId(req.managerId());
         }
 
         Brand updateBrand = brandRepository.update(brand);
@@ -76,7 +92,7 @@ public class BrandService {
     }
 
     @Transactional
-    public void deleteBrand(UUID brandId) {
+    public void deleteBrand(CustomUserDetails userDetails, UUID brandId) {
 
         Brand brand = findBrand(brandId);
 
@@ -84,8 +100,28 @@ public class BrandService {
             throw new BizException(BrandError.BRAND_NOT_FOUND);
         }
 
-        // TODO : 베이스엔티티 유저 아이디 들어가는 부분 Long -> UUID 수정 필요
-        brand.markDeleted(1L);
+        validateManager(userDetails.getUserId(), brand);
+
+        brand.markDeleted(userDetails.getUserId());
+        brandRepository.update(brand);
+    }
+
+    public List<OrderItemForBrandResponse> getMyOrders(CustomUserDetails userDetails, UUID brandId) {
+
+        Brand brand = findBrand(brandId);
+
+        boolean isPartner = userDetails.getUserRole().equalsIgnoreCase("partner")
+            || userDetails.getUserRole().equalsIgnoreCase("master");
+
+        if (!isPartner) {
+            throw new BizException(CommonErrorCode.ACCESS_DENIED);
+        }
+
+        if (brand.getManagerId() != userDetails.getUserId()) {
+            throw new BizException(CommonErrorCode.ACCESS_DENIED);
+        }
+
+        return orderClient.getItemsForBrand(brandId);
     }
 
     private Brand findBrand(UUID brandId) {
@@ -96,8 +132,10 @@ public class BrandService {
         );
     }
 
-    public List<OrderItemForBrandResponse> getMyOrders(UUID brandId) {
+    private void validateManager(UUID userId, Brand brand) {
 
-        return orderClient.getItemsForBrand(brandId);
+        if (!userId.equals(brand.getManagerId())) {
+            throw new BizException(CommonErrorCode.ACCESS_DENIED);
+        }
     }
 }
