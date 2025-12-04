@@ -18,16 +18,15 @@ public class CouponValidateConsumer {
 
     @KafkaListener(topics = "coupon-use-request", groupId = "coupon-service")
     public void onCouponValidate(String message) {
+        CouponValidateCommand command;
         try {
             log.info("[CouponValidateConsumer] Received: {}", message);
-
-            CouponValidateCommand command =
-                objectMapper.readValue(message, CouponValidateCommand.class);
-
-            issuedCouponService.handleCouponValidate(command);
-
+            command = objectMapper.readValue(message, CouponValidateCommand.class);
         } catch (Exception e) {
-            log.error("[CouponValidateConsumer] parse error: {}", message, e);
+            log.error("[CouponValidateConsumer] JSON 파싱 오류 - 메시지 무시: {}", message, e);
+            return;
         }
+
+        issuedCouponService.handleCouponValidate(command);
     }
 }
