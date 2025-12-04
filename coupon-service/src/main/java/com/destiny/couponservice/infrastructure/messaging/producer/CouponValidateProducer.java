@@ -3,6 +3,7 @@ package com.destiny.couponservice.infrastructure.messaging.producer;
 import com.destiny.couponservice.infrastructure.messaging.event.result.CouponValidateFailEvent;
 import com.destiny.couponservice.infrastructure.messaging.event.result.CouponValidateSuccessEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -22,30 +23,26 @@ public class CouponValidateProducer {
     public void sendSuccess(CouponValidateSuccessEvent event) {
         try {
             String json = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send(SUCCESS_TOPIC, json).whenComplete((result, ex) -> {
-                if (ex != null) {
-                    log.error("Kafka 전송 실패 - topic: {}, event: {}", SUCCESS_TOPIC, json, ex);
-                } else {
-                    log.info("[CouponValidateProducer] success: {}", json);
-                }
-            });
+
+            kafkaTemplate.send(SUCCESS_TOPIC, json).get(5, TimeUnit.SECONDS);
+
+            log.info("[CouponValidateProducer] success: {}", json);
         } catch (Exception e) {
             log.error("Failed to send coupon-use-success: {}", e.getMessage(), e);
+            throw new RuntimeException("Kafka 전송 실패 - coupon-use-success", e);
         }
     }
 
     public void sendFail(CouponValidateFailEvent event) {
         try {
             String json = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send(FAIL_TOPIC, json).whenComplete((result, ex) -> {
-                if (ex != null) {
-                    log.error("Kafka 전송 실패 - topic: {}, event: {}", FAIL_TOPIC, json, ex);
-                } else {
-                    log.info("[CouponValidateProducer] fail: {}", json);
-                }
-            });
+
+            kafkaTemplate.send(FAIL_TOPIC, json).get(5, TimeUnit.SECONDS);
+
+            log.info("[CouponValidateProducer] fail: {}", json);
         } catch (Exception e) {
             log.error("Failed to send coupon-use-fail: {}", e.getMessage(), e);
+            throw new RuntimeException("Kafka 전송 실패 - coupon-use-fail", e);
         }
     }
 }
