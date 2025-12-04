@@ -1,6 +1,8 @@
 package com.destiny.cartservice.infrastructure.security.filter;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.destiny.cartservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.cartservice.infrastructure.security.jwt.JwtProperties;
@@ -24,18 +26,33 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private final JwtProperties jwtProperties;
 
+    private JWTVerifier getVerifier() {
+        Algorithm algorithm = Algorithm.HMAC256(jwtProperties.getSecretKey());
+        return JWT.require(algorithm).build();
+    }
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+        FilterChain filterChain)
         throws ServletException, IOException {
 
         String authorizationHeader = request.getHeader(jwtProperties.getAccessHeaderName());
-        if (!StringUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith(jwtProperties.getHeaderPrefix())) {
+        if (!StringUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith(
+            jwtProperties.getHeaderPrefix())) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String accessJwt = authorizationHeader.substring(jwtProperties.getHeaderPrefix().length()).trim();
-        DecodedJWT decodedAccessJwt = JWT.decode(accessJwt);
+        String accessJwt = authorizationHeader.substring(jwtProperties.getHeaderPrefix().length())
+            .trim();
+        DecodedJWT decodedAccessJwt;
+        try {
+            decodedAccessJwt = getVerifier().verify(accessJwt);
+        } catch (Exception e) {
+            log.warn("JWT 검증 실패: {}", e.getMessage());
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         CustomUserDetails userDetails;
         try {
@@ -46,7 +63,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         }
 
         UsernamePasswordAuthenticationToken authenticationToken =
-            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            new UsernamePasswordAuthenticationToken(userDetails, null,
+                userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         filterChain.doFilter(request, response);
     }

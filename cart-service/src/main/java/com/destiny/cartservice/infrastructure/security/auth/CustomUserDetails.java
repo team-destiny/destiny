@@ -20,7 +20,10 @@ public class CustomUserDetails implements UserDetails {
     private String accessJwt;
     private String userRole;
 
-    public CustomUserDetails() {};
+    public CustomUserDetails() {
+    }
+
+    ;
 
     public static CustomUserDetails of(DecodedJWT decodedJwt) {
         CustomUserDetails customUserDetails = new CustomUserDetails();
@@ -30,9 +33,18 @@ public class CustomUserDetails implements UserDetails {
         }
         customUserDetails.userId = UUID.fromString(userIdStr);
         customUserDetails.username = decodedJwt.getClaim("username").asString();
+        if (customUserDetails.username == null) {
+            throw new BizException(CommonErrorCode.MISSING_PARAMETER);
+        }
         customUserDetails.email = decodedJwt.getClaim("email").asString();
+        if (customUserDetails.email == null) {
+            throw new BizException(CommonErrorCode.MISSING_PARAMETER);
+        }
         customUserDetails.accessJwt = decodedJwt.getToken();
         customUserDetails.userRole = decodedJwt.getClaim("userRole").asString();
+        if (customUserDetails.userRole == null) {
+            throw new BizException(CommonErrorCode.MISSING_PARAMETER);
+        }
         return customUserDetails;
     }
 
