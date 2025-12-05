@@ -3,7 +3,7 @@ package com.destiny.productservice.application.service.message;
 import com.destiny.productservice.application.dto.ProductFailDetail;
 import com.destiny.productservice.application.dto.ProductMessage;
 import com.destiny.productservice.application.dto.ProductValidationFail;
-import com.destiny.productservice.application.dto.ProductValidationRequest;
+import com.destiny.productservice.application.dto.ProductValidationCommand;
 import com.destiny.productservice.application.dto.ProductValidationMessage;
 import com.destiny.productservice.application.dto.ProductValidationSuccess;
 import com.destiny.productservice.domain.entity.Product;
@@ -109,10 +109,11 @@ public class ProductConsumerService {
     }
 
     @KafkaListener(groupId= "product-group", topics = "product-validate-request")
-    @Transactional
-    public void consumeProductValidateRequest(ProductValidationRequest message) {
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
+    @Transactional(readOnly = true)
+    public void consumeProductValidateRequest(ProductValidationCommand message) {
 
-        List<UUID> productIds = message.productIdList();
+        List<UUID> productIds = message.productIds();
 
         List<Product> availableProducts = getAvailableProducts(productIds);
 
