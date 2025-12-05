@@ -6,6 +6,7 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.Coupo
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent.OrderItemCreateRequestEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.producer.SagaProducer;
 import java.util.List;
@@ -77,29 +78,47 @@ public class SagaService {
         );
     }
 
-    public void productValidateFailure() {
+    @Transactional
+    public void productValidateFailure(ProductValidateFailResult event) {
 
     }
 
 
     // TODO : 재고 차감
     @Transactional
-    public void stockUpdate() {
+    public void stockUpdateSuccess() {
 
 
         sagaProducer.sendCouponValidate(new CouponValidateCommand(null, null));
     }
 
-    // TODO : 쿠폰 검증 및 쿠폰 할인율 가지고 오기
     @Transactional
-    public void couponValidate() {
+    public void stockUpdateFailure() {
 
     }
 
+    // TODO : 쿠폰 검증 및 쿠폰 할인율 가지고 오기
+    @Transactional
+    public void couponUseSuccess() {
+
+    }
+
+    @Transactional
+    public void couponUseFailure() {
+
+    }
 
     // TODO : 결제
     @Transactional
-    public void paymentOrder() {
+    public void paymentSuccess() {
+
+        // TODO: 결제 생성 성공 시 장바구니 비우는 토픽 발행
+
+        // TODO: 결제 생성 성공 시 주문 서비스로 주문 프로세스 완료 토픽 발행
+    }
+
+    @Transactional
+    public void paymentFailure() {
 
     }
 }
