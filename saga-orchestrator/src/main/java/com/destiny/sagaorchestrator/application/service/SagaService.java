@@ -29,6 +29,7 @@ public class SagaService {
 
         // 1) 사가 초기 생성
         SagaState saga = SagaState.of(
+            event.cartId(),
             event.orderId(),
             event.userId(),
             event.couponId()

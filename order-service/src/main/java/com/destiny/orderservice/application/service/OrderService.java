@@ -59,7 +59,7 @@ public class OrderService {
 
         UUID orderId = orderRepository.createOrder(order).getOrderId();
 
-        OrderCreateRequestEvent event = OrderCreateRequestEvent.from(order);
+        OrderCreateRequestEvent event = OrderCreateRequestEvent.from(order, req.cartId());
         orderEventProducer.send(event);
 
         return orderId;

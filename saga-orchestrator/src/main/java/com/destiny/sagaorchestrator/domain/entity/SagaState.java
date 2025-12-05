@@ -36,6 +36,7 @@ public class SagaState {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID sagaId;
 
+    private UUID cartId;
     private UUID orderId;
     private UUID userId;
     private UUID couponId;
@@ -103,11 +104,13 @@ public class SagaState {
     }
 
     public static SagaState of(
+        UUID cartId,
         UUID orderId,
         UUID userId,
         UUID couponId
     ) {
         SagaState sagaState = new SagaState();
+        sagaState.cartId = cartId;
         sagaState.orderId = orderId;
         sagaState.userId = userId;
         sagaState.couponId = couponId;
