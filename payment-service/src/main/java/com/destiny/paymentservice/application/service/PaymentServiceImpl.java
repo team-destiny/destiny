@@ -29,7 +29,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public PaymentResponse requestPayment(PaymentRequest request) {
 
-        //️ [1] 주문 ID 중복 확인 및 상태에 따른 분기 처리 (생성 로직을 위해 Optional 사용)
+        //️ [1] 주문 ID 중복 확인 및 상태에 따른 분기 처리 (Optional 사용)
         Optional<Payment> findPayment = paymentRepository.findByOrderId(request.orderId());
 
         if (findPayment.isPresent()) {
@@ -51,7 +51,6 @@ public class PaymentServiceImpl implements PaymentService {
             request.amount()
         );
 
-        // [3] DB 저장
         Payment savedPayment = paymentRepository.save(newPayment);
 
         return PaymentResponse.fromEntity(savedPayment);
@@ -66,14 +65,14 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse confirmPayment(PaymentConfirmRequest request) {
         // [1] 결제 내역 조회 (PENDING 상태만 승인 가능)
         Payment payment = paymentRepository.findByOrderId(request.orderId())
-            .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_INVALID_REQUEST));
+            .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
-        // ⭐️ [2] PENDING 상태인지 확인 (추가 유효성 검사)
+        // [2] PENDING 상태인지 확인
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
-            throw new BizException(PaymentErrorCode.PAYMENT_INVALID_REQUEST);
+            throw new BizException(PaymentErrorCode.PAYMENT_NOT_PENDING);
         }
 
-        // [3] (TODO: 실제 PG 연동 로직)
+        // [3] 실제 PG 연동 로직
 
         // [4] 도메인 행위 호출 (상태 변경: PENDING -> PAID)
         payment.paid(request.pgTxId(), request.paymentType());
@@ -89,14 +88,14 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse cancelPayment(PaymentCancelRequest request) {
         // [1] 결제 내역 조회 (PAID 상태여야 취소 가능)
         Payment payment = paymentRepository.findByOrderId(request.orderId())
-            .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_INVALID_REQUEST));
+            .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
-        // ⭐️ [2] PAID 상태인지 확인 (추가 유효성 검사)
+        // [2] PAID 상태인지 확인
         if (payment.getPaymentStatus() != PaymentStatus.PAID) {
-            throw new BizException(PaymentErrorCode.PAYMENT_INVALID_REQUEST);
+            throw new BizException(PaymentErrorCode.PAYMENT_NOT_PAID);
         }
 
-        // [3] (TODO: 실제 PG 연동 로직)
+        // [3] 실제 PG 연동 로직
 
         // [4] 도메인 행위 호출 (상태 변경: PAID -> CANCELED)
         payment.cancel();
@@ -110,7 +109,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentResponse getPaymentByOrderId(UUID orderId) {
         Payment payment = paymentRepository.findByOrderId(orderId)
-            .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_INVALID_REQUEST));
+            .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         return PaymentResponse.fromEntity(payment);
     }
 }

@@ -1,6 +1,5 @@
 package com.destiny.paymentservice.application.service;
 
-import com.destiny.paymentservice.domain.entity.Payment;
 import com.destiny.paymentservice.presentation.dto.request.PaymentCancelRequest;
 import com.destiny.paymentservice.presentation.dto.request.PaymentConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.request.PaymentRequest;
