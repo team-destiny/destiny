@@ -1,7 +1,7 @@
 package com.destiny.sagaorchestrator.infrastructure.messaging.producer;
 
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidateCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +19,7 @@ public class SagaProducer {
     private final ObjectMapper objectMapper;
 
     // TODO : 상품 검증
-    public void sendProductValidate(ProductValidateCommand event) {
+    public void sendProductValidate(ProductValidationCommand event) {
         try {
 
             String message = objectMapper.writeValueAsString(event);

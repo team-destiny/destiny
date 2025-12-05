@@ -3,7 +3,7 @@ package com.destiny.sagaorchestrator.application.service;
 import com.destiny.sagaorchestrator.domain.entity.SagaState;
 import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidateCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent.OrderItemCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateResult;
@@ -59,7 +59,7 @@ public class SagaService {
             .toList();
 
         // 3-2) 상품 검증 토픽 발행
-        sagaProducer.sendProductValidate(new ProductValidateCommand(productId));
+        sagaProducer.sendProductValidate(new ProductValidationCommand(productId));
 
         // etc : 쿠폰 검증 이벤트부터 먼저 테스트.
         // 이후 아래 메서드는 상품 검증 이후 실행해야 하는 메서드로 productValidate로 이동 예정
