@@ -1,7 +1,8 @@
 package com.destiny.paymentservice.presentation.controller;
 
 import com.destiny.global.response.ApiResponse;
-import com.destiny.paymentservice.application.service.PaymentServiceImpl;
+import com.destiny.global.response.PageResponseDto;
+import com.destiny.paymentservice.application.service.PaymentService;
 import com.destiny.paymentservice.presentation.code.PaymentSuccessCode;
 import com.destiny.paymentservice.presentation.dto.request.PaymentCancelRequest;
 import com.destiny.paymentservice.presentation.dto.request.PaymentConfirmRequest;
@@ -10,6 +11,9 @@ import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +24,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class PaymentController {
 
-    private final PaymentServiceImpl paymentService;
+    private final PaymentService paymentService;
 
     /**
      * POST /payments/request : 결제 요청 생성 (PENDING 상태)
@@ -57,5 +61,16 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentByOrderId(@PathVariable UUID orderId) {
         PaymentResponse response = paymentService.getPaymentByOrderId(orderId);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_INQUIRY_SUCCESS, response));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<PageResponseDto<PaymentResponse>>> getAllPayments(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        // Pageable 객체 생성 (기본 정렬: 생성일 기준 내림차순)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        PageResponseDto<PaymentResponse> responsePageDto = paymentService.getAllPayments(pageable);
+        return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_ALL_INQUIRY_SUCCESS, responsePageDto));
     }
 }

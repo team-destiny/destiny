@@ -1,6 +1,7 @@
 package com.destiny.paymentservice.application.service;
 
 import com.destiny.global.exception.BizException;
+import com.destiny.global.response.PageResponseDto;
 import com.destiny.paymentservice.application.exception.PaymentErrorCode;
 import com.destiny.paymentservice.domain.entity.Payment;
 import com.destiny.paymentservice.domain.repository.PaymentRepository;
@@ -12,6 +13,8 @@ import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,8 +111,20 @@ public class PaymentServiceImpl implements PaymentService {
     // =======================================================
     @Override
     public PaymentResponse getPaymentByOrderId(UUID orderId) {
+        // TODO: order 카프카 통신 필요
         Payment payment = paymentRepository.findByOrderId(orderId)
             .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         return PaymentResponse.fromEntity(payment);
+    }
+
+    // =======================================================
+    // 5. 결제 내역 전체 조회 (페이징)
+    // =======================================================
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponseDto<PaymentResponse> getAllPayments(Pageable pageable) {
+        Page<Payment> paymentPage = paymentRepository.findAll(pageable);
+        Page<PaymentResponse> responsePage = paymentPage.map(PaymentResponse::fromEntity);
+        return PageResponseDto.from(responsePage);
     }
 }

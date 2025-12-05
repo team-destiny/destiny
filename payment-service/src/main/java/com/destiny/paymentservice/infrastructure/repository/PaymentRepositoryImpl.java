@@ -5,6 +5,8 @@ import com.destiny.paymentservice.domain.repository.PaymentRepository;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -24,7 +26,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
-    public Optional<Payment> findById(UUID paymentId) {
-        return paymentJpaRepository.findById(paymentId);
+    public Page<Payment> findAll(Pageable pageable) {
+        return paymentJpaRepository.findAll(pageable);
     }
 }

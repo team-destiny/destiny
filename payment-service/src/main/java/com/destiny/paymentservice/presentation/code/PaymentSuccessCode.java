@@ -9,6 +9,7 @@ public enum PaymentSuccessCode implements ResponseCode {
     PAYMENT_CONFIRM_SUCCESS(HttpStatus.OK, "PAYM-001", "결제 승인이 완료되었습니다."),
     PAYMENT_CANCEL_SUCCESS(HttpStatus.OK, "PAYM-002", "결제 취소가 완료되었습니다."),
     PAYMENT_INQUIRY_SUCCESS(HttpStatus.OK, "PAYM-003", "결제 조회가 완료되었습니다."),
+    PAYMENT_ALL_INQUIRY_SUCCESS(HttpStatus.OK, "PAYM-003", "결제 목록 조회가 완료되었습니다."),
     PAYMENT_PARTIAL_CANCEL_SUCCESS(HttpStatus.OK, "PAYM-004", "부분 취소가 완료되었습니다.");
 
     private final HttpStatus status;
