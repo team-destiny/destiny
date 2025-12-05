@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/payments")
+@RequestMapping("/v1/payments")
 @AllArgsConstructor
 public class PaymentController {
 
