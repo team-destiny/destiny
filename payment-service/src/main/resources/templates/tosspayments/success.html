@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>결제 성공</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .box {
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .success { background: #e8f5e9; }
+    .error { background: #ffebee; }
+    pre {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+<h1>결제 처리 중...</h1>
+
+<div id="status" class="box">
+  <p>⏳ 결제를 확인하고 있습니다...</p>
+</div>
+
+<h3>📋 결제 정보</h3>
+<p id="paymentKey"></p>
+<p id="orderId"></p>
+<p id="amount"></p>
+
+<h3>🔍 서버 응답</h3>
+<pre id="response">대기 중...</pre>
+
+<script>
+  // URL에서 파라미터 추출
+  const urlParams = new URLSearchParams(window.location.search);
+  const paymentKey = urlParams.get("paymentKey");
+  const orderId = urlParams.get("orderId");
+  const amount = urlParams.get("amount");
+
+  // 화면에 정보 표시
+  document.getElementById("paymentKey").textContent = "paymentKey: " + paymentKey;
+  document.getElementById("orderId").textContent = "주문번호: " + orderId;
+  document.getElementById("amount").textContent = "결제 금액: " + amount + "원";
+
+  // 서버에 결제 승인 요청
+  async function confirmPayment() {
+    const statusDiv = document.getElementById("status");
+    const responseDiv = document.getElementById("response");
+
+    try {
+      // 1. 서버에 POST 요청
+      const response = await fetch("/confirm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          paymentKey: paymentKey,
+          orderId: orderId,
+          amount: amount,
+        }),
+      });
+
+      // 2. 서버 응답 받기
+      const json = await response.json();
+
+      // 3. 화면에 응답 표시
+      responseDiv.textContent = JSON.stringify(json, null, 2);
+
+      // 4. 성공/실패 처리
+      if (json.success && json.data && json.data.paymentSuccess) {
+        // ✅ 결제 성공
+        statusDiv.className = "box success";
+        statusDiv.innerHTML = `
+            <h2>✅ 결제 성공!</h2>
+            <p>${json.message}</p>
+            <p>주문번호: ${json.data.orderId}</p>
+            <p>결제금액: ${json.data.finalAmount}원</p>
+          `;
+
+        console.log("결제 성공:", json);
+      } else {
+        // ❌ 결제 실패
+        statusDiv.className = "box error";
+        statusDiv.innerHTML = `
+            <h2>❌ 결제 실패</h2>
+            <p>${json.message || "알 수 없는 오류"}</p>
+            ${json.data ? `<p>오류 코드: ${json.data.failCode}</p>` : ''}
+            ${json.data ? `<p>오류 메시지: ${json.data.failMessage}</p>` : ''}
+          `;
+
+        console.error("결제 실패:", json);
+      }
+
+    } catch (error) {
+      // 네트워크 오류 등
+      statusDiv.className = "box error";
+      statusDiv.innerHTML = `
+          <h2>❌ 오류 발생</h2>
+          <p>서버와 통신 중 오류가 발생했습니다.</p>
+          <p>${error.message}</p>
+        `;
+
+      responseDiv.textContent = "오류: " + error.message;
+      console.error("통신 오류:", error);
+    }
+  }
+
+  // 페이지 로드 시 자동 실행
+  confirmPayment();
+</script>
+</body>
+</html>

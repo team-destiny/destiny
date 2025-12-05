@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8" />
+  <script src="https://js.tosspayments.com/v2/standard"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .order-info {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .button {
+      width: 100%;
+      padding: 15px;
+      background: #3182f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .button:hover {
+      background: #1b64da;
+    }
+  </style>
+</head>
+<body>
+<div class="order-info">
+  <h2 th:text="${orderName}">주문명</h2>
+  <p>주문번호: <span th:text="${orderId}"></span></p>
+  <p>원가: <span th:text="${amount} + '원'"></span></p>
+  <p>할인: <span th:text="${couponDiscount} + '원'"></span></p>
+  <p><strong>최종 금액: <span id="final-amount" th:text="${amount - couponDiscount} + '원'"></span></strong></p>
+</div>
+
+<div>
+  <input type="checkbox" id="coupon-box" />
+  <label for="coupon-box" th:text="${couponDiscount} + '원 쿠폰 적용'">쿠폰 적용</label>
+</div>
+
+<div id="payment-method"></div>
+<div id="agreement"></div>
+<button class="button" id="payment-button">결제하기</button>
+
+<script th:inline="javascript">
+  main();
+
+  async function main() {
+    const button = document.getElementById("payment-button");
+    const coupon = document.getElementById("coupon-box");
+
+    // 서버에서 전달받은 모든 변수 (타임리프 변수 치환)
+    const clientKey = /*[[${clientKey}]]*/ '';
+    const initialAmount = /*[[${amount}]]*/ 0;
+    const initialOrderId = /*[[${orderId}]]*/ '';
+    const initialOrderName = /*[[${orderName}]]*/ '';
+    const customerKey = /*[[${customerKey}]]*/ '';
+    const couponDiscount = /*[[${couponDiscount}]]*/ 0;
+    const customerEmail = /*[[${customerEmail}]]*/ '';
+    const customerName = /*[[${customerName}]]*/ '';
+    const customerMobilePhone = /*[[${customerMobilePhone}]]*/ '';
+
+    const tossPayments = TossPayments(clientKey);
+    const widgets = tossPayments.widgets({ customerKey });
+
+    // 초기 결제 금액 설정
+    await widgets.setAmount({
+      currency: "KRW",
+      value: initialAmount,
+    });
+
+    // 결제 UI 렌더링
+    await Promise.all([
+      widgets.renderPaymentMethods({
+        selector: "#payment-method",
+        variantKey: "DEFAULT",
+      }),
+      widgets.renderAgreement({
+        selector: "#agreement",
+        variantKey: "AGREEMENT"
+      }),
+    ]);
+
+    // 쿠폰 체크박스 이벤트
+    coupon.addEventListener("change", async function () {
+      let finalAmount = initialAmount;
+      if (coupon.checked) {
+        finalAmount = initialAmount - couponDiscount;
+      }
+
+      await widgets.setAmount({
+        currency: "KRW",
+        value: finalAmount,
+      });
+
+      // UI 업데이트
+      document.getElementById("final-amount").textContent = finalAmount + '원';
+    });
+
+    // 결제하기 버튼 클릭
+    button.addEventListener("click", async function () {
+      try {
+        await widgets.requestPayment({
+          orderId: initialOrderId,
+          orderName: initialOrderName,
+          successUrl: window.location.origin + "/tosspayments/success",
+          failUrl: window.location.origin + "/tosspayments/fail",
+          customerEmail: customerEmail,
+          customerName: customerName,
+          customerMobilePhone: customerMobilePhone,
+        });
+      } catch (error) {
+        console.error("결제 요청 실패:", error);
+        alert("결제 요청에 실패했습니다.");
+      }
+    });
+  }
+</script>
+</body>
+</html>
