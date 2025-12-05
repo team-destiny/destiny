@@ -37,7 +37,7 @@ public class ProductConsumerService {
     private final ProductProducerService productProducerService;
 
     @KafkaListener(groupId = "product-group", topics = "product.after.create")
-    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
+    @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeCreateProductMessage(ProductMessage message,
         @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
@@ -68,7 +68,7 @@ public class ProductConsumerService {
     }
 
     @KafkaListener(groupId = "product-group", topics = "product.after.update")
-    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
+    @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeUpdateProductMessage(ProductMessage message,
         @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
@@ -100,7 +100,7 @@ public class ProductConsumerService {
     }
 
     @KafkaListener(groupId = "product-group", topics = "product.after.delete")
-    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
+    @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeDeleteProductMessage(ProductMessage message) {
 
@@ -109,7 +109,7 @@ public class ProductConsumerService {
     }
 
     @KafkaListener(groupId= "product-group", topics = "product-validate-request")
-    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
+    @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional(readOnly = true)
     public void consumeProductValidateRequest(ProductValidationCommand message) {
 
