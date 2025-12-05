@@ -143,4 +143,9 @@ public class CartServiceImpl implements CartService {
 
         cartRepository.deleteAllByIdIn(cartIds);
     }
+
+    @Override
+    public void clearCart(UUID userId) {
+        cartRepository.deleteAllByUserId(userId);
+    }
 }
