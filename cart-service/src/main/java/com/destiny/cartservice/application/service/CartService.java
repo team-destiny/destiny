@@ -22,4 +22,6 @@ public interface CartService {
     );
 
     void deleteCartItems(UUID userId, CartDeleteRequest request);
+
+    void clearCart(UUID userId);
 }
