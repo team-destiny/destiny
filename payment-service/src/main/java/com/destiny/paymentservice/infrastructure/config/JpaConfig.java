@@ -1,4 +1,4 @@
-package com.destiny.paymentservice.infrastructure.config.jpa;
+package com.destiny.paymentservice.infrastructure.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;

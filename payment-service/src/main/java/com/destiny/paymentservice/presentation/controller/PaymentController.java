@@ -1,0 +1,61 @@
+package com.destiny.paymentservice.presentation.controller;
+
+import com.destiny.global.response.ApiResponse;
+import com.destiny.paymentservice.application.service.PaymentServiceImpl;
+import com.destiny.paymentservice.presentation.code.PaymentSuccessCode;
+import com.destiny.paymentservice.presentation.dto.request.PaymentCancelRequest;
+import com.destiny.paymentservice.presentation.dto.request.PaymentConfirmRequest;
+import com.destiny.paymentservice.presentation.dto.request.PaymentRequest;
+import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
+
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/payments")
+@AllArgsConstructor
+public class PaymentController {
+
+    private final PaymentServiceImpl paymentService;
+
+    /**
+     * POST /payments/request : 결제 요청 생성 (PENDING 상태)
+     */
+    @PostMapping("/request")
+    public ResponseEntity<ApiResponse<PaymentResponse>> requestPayment(@Valid @RequestBody PaymentRequest request) {
+        PaymentResponse response = paymentService.requestPayment(request);
+        return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRM_SUCCESS, response));
+    }
+
+    /**
+     * POST /payments/confirm : 결제 승인 처리 (PENDING -> PAID)
+     * 결제 Key, 금액 불일치 등 복잡한 검증은 Service/PG 연동 계층에서 처리됩니다.
+     */
+    @PostMapping("/confirm")
+    public ResponseEntity<ApiResponse<PaymentResponse>> confirmPayment(@Valid @RequestBody PaymentConfirmRequest request) {
+        PaymentResponse response = paymentService.confirmPayment(request);
+        return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRM_SUCCESS, response));
+    }
+
+    /**
+     * POST /payments/cancel : 결제 전액 취소 (PAID -> CANCELED)
+     */
+    @PostMapping("/cancel")
+    public ResponseEntity<ApiResponse<PaymentResponse>> cancelPayment(@Valid @RequestBody PaymentCancelRequest request) {
+        PaymentResponse response = paymentService.cancelPayment(request);
+        return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CANCEL_SUCCESS, response));
+    }
+
+    /**
+     * GET /payments/{orderId} : 결제 내역 조회
+     */
+    @GetMapping("/{orderId}")
+    public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentByOrderId(@PathVariable UUID orderId) {
+        PaymentResponse response = paymentService.getPaymentByOrderId(orderId);
+        return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_INQUIRY_SUCCESS, response));
+    }
+}
