@@ -8,6 +8,8 @@ import com.destiny.cartservice.presentation.dto.request.CartUpdateQuantityReques
 import com.destiny.cartservice.presentation.dto.response.CartFindAllResponse;
 import com.destiny.cartservice.presentation.dto.response.CartSaveResponse;
 import com.destiny.cartservice.presentation.dto.response.CartUpdateQuantityResponse;
+import com.destiny.global.code.CommonSuccessCode;
+import com.destiny.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -32,29 +34,30 @@ public class CartController {
 
     // 장바구니 전체 조회
     @GetMapping
-    public ResponseEntity<CartFindAllResponse> cartFindAll(
+    public ResponseEntity<ApiResponse<CartFindAllResponse>> cartFindAll(
         @AuthenticationPrincipal CustomUserDetails user) {
         CartFindAllResponse response = cartService.findAllCarts(user.getUserId());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(CommonSuccessCode.OK, response));
 
     }
 
     // 장바구니 담기
     @PostMapping
-    public ResponseEntity<CartSaveResponse> saveCart(@AuthenticationPrincipal CustomUserDetails user,
+    public ResponseEntity<ApiResponse<CartSaveResponse>> saveCart(
+        @AuthenticationPrincipal CustomUserDetails user,
         @RequestBody @Valid CartSaveRequest request) {
         CartSaveResponse response = cartService.saveCartItem(user.getUserId(), request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(CommonSuccessCode.CREATED, response));
     }
 
     // 장바구니 수량 변경
     @PatchMapping("/{cartId}/quantity")
-    public ResponseEntity<CartUpdateQuantityResponse> updateCartItemQuantity(
+    public ResponseEntity<ApiResponse<CartUpdateQuantityResponse>> updateCartItemQuantity(
         @AuthenticationPrincipal CustomUserDetails user, @PathVariable UUID cartId,
         @RequestBody @Valid CartUpdateQuantityRequest request) {
         CartUpdateQuantityResponse response = cartService.updateCartItemQuantity(user.getUserId(),
             cartId, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(CommonSuccessCode.OK, response));
     }
 
     // 장바구니 선택 삭제
