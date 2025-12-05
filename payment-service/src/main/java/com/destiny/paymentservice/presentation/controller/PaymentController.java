@@ -63,6 +63,9 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_INQUIRY_SUCCESS, response));
     }
 
+    /**
+     * GET /payments?page=0&size=10 : 결제 내역 조회
+     */
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponseDto<PaymentResponse>>> getAllPayments(
         @RequestParam(defaultValue = "0") int page,
