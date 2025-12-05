@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Slf4j
 @Controller
-@RequestMapping("/payments/tosspayments")
+@RequestMapping("/v1/payments/tosspayments")
 @RequiredArgsConstructor
 public class TossPaymentsController {
 
