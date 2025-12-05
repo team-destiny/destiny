@@ -1,4 +1,4 @@
-package com.destiny.paymentservice.infrastructure.config.feign;
+package com.destiny.paymentservice.infrastructure.config;
 
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Configuration;
