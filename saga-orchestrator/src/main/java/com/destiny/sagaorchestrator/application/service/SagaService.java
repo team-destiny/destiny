@@ -6,7 +6,7 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.Coupo
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent.OrderItemCreateRequestEvent;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.producer.SagaProducer;
 import java.util.List;
 import java.util.UUID;
@@ -38,12 +38,9 @@ public class SagaService {
             saga.getProductResults().put(
                 item.productId(),
                 // 아직 검증 전이므로 하드 코딩 직접 값 넣어주었음.
-                new  ProductValidateResult(
+                new ProductValidateSuccessResult(
+                    event.orderId(),
                     item.productId(),
-                    null,
-                    null,
-                    null,
-                    null,
                     null,
                     null
                 )
@@ -53,23 +50,34 @@ public class SagaService {
         sagaRepository.createSaga(saga);
 
         // 3-1) 주문 아이템에서 productId 추출
-        List<UUID> productId = event.items()
+        List<UUID> productIds = event.items()
             .stream()
             .map(OrderItemCreateRequestEvent::productId)
             .toList();
 
         // 3-2) 상품 검증 토픽 발행
-        sagaProducer.sendProductValidate(new ProductValidationCommand(productId));
+        sagaProducer.sendProductValidate(new ProductValidationCommand(saga.getOrderId(), productIds));
 
-        // etc : 쿠폰 검증 이벤트부터 먼저 테스트.
-        // 이후 아래 메서드는 상품 검증 이후 실행해야 하는 메서드로 productValidate로 이동 예정
-        sagaProducer.sendCouponValidate(new CouponValidateCommand(event.couponId(), null));
     }
 
     // TODO : 상품 서비스 검증 및 상품 가격 가지고 오기
     @Transactional
-    public void productValidate(ProductValidateResult event) {
+    public void productValidateSuccess(ProductValidateSuccessResult event) {
 
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+
+        saga.getProductResults().put(
+            event.productId(),
+            new ProductValidateSuccessResult(
+                event.orderId(),
+                event.productId(),
+                event.brandId(),
+                event.price()
+            )
+        );
+    }
+
+    public void productValidateFailure() {
 
     }
 
@@ -78,6 +86,8 @@ public class SagaService {
     @Transactional
     public void stockUpdate() {
 
+
+        sagaProducer.sendCouponValidate(new CouponValidateCommand(null, null));
     }
 
     // TODO : 쿠폰 검증 및 쿠폰 할인율 가지고 오기
