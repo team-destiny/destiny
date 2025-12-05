@@ -53,4 +53,14 @@ public class SagaConsumer {
     public void onProductValidateFail(String message) {
 
     }
+
+    @KafkaListener(topics = "coupon-use-success", groupId = "saga-orchestrator")
+    public void onCouponUseSuccess(String message) {
+
+    }
+
+    @KafkaListener(topics = "coupon-use-fail", groupId = "saga-orcgestrator")
+    public void onCouponUseFail(String message) {
+
+    }
 }
