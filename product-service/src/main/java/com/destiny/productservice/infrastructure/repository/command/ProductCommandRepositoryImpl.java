@@ -1,7 +1,9 @@
 package com.destiny.productservice.infrastructure.repository.command;
 
 import com.destiny.productservice.domain.entity.Product;
+import com.destiny.productservice.domain.entity.ProductStatus;
 import com.destiny.productservice.domain.repository.ProductCommandRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -32,4 +34,15 @@ public class ProductCommandRepositoryImpl implements ProductCommandRepository {
     public boolean existsByNameAndBrandId(String name, UUID brandId) {
         return productCommandJpaRepository.existsByNameAndBrandId(name , brandId);
     }
+
+    @Override
+    public List<Product> findByIdInAndStatus(List<UUID> ids, ProductStatus status) {
+        return productCommandJpaRepository.findByIdInAndStatus(ids, status);
+    }
+
+    @Override
+    public List<Product> findByIdIn(List<UUID> productIds) {
+        return productCommandJpaRepository.findByIdIn(productIds);
+    }
+
 }
