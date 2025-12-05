@@ -49,7 +49,7 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(authorize -> {
             authorize
                 .requestMatchers("/actuator/**").permitAll()
-                // 로그 조회: MASTER, PRTNER
+                // 로그 조회: MASTER, PARTNER
                 .requestMatchers("/v1/brand-notifications/logs")
                 .hasAnyRole("MASTER", "PARTNER")
                 // 나머지 알림 발송 API: 내부 호출이면 permitAll
