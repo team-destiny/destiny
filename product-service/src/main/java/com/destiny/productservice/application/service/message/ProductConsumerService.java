@@ -111,36 +111,40 @@ public class ProductConsumerService {
     @KafkaListener(groupId= "product-group", topics = "product-validate-request")
     @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional(readOnly = true)
-    public void consumeProductValidateRequest(ProductValidationCommand message) {
+    public void consumeProductValidateRequest(ProductValidationCommand command) {
 
-        List<UUID> productIds = message.productIds();
+        List<UUID> productIds = command.productIds();
 
         List<Product> availableProducts = getAvailableProducts(productIds);
 
         if (availableProducts.size() == productIds.size()) {
-            handleValidationSuccess(availableProducts);
+            handleValidationSuccess(command.orderId(), availableProducts);
             return;
         }
 
-        handleValidationFail(productIds, availableProducts);
+        handleValidationFail(command.orderId(), productIds, availableProducts);
     }
 
     private List<Product> getAvailableProducts(List<UUID> productIds) {
         return productCommandRepository.findByIdInAndStatus(productIds, ProductStatus.AVAILABLE);
     }
 
-    private void handleValidationSuccess(List<Product> availableProducts) {
+    private void handleValidationSuccess(UUID orderId, List<Product> availableProducts) {
 
-        List<ProductValidationMessage> messageList = availableProducts.stream()
+        List<ProductValidationMessage> messages = availableProducts.stream()
             .map(ProductValidationMessage::from)
             .toList();
 
-        ProductValidationSuccess successMessage = new ProductValidationSuccess(messageList);
+        ProductValidationSuccess successMessage = new ProductValidationSuccess(orderId, messages);
 
         productProducerService.sendProductValidationSuccess(successMessage);
     }
 
-    private void handleValidationFail(List<UUID> productIds, List<Product> availableProducts) {
+    private void handleValidationFail(
+        UUID orderId,
+        List<UUID> productIds,
+        List<Product> availableProducts
+    ) {
 
         List<Product> allProducts = productCommandRepository.findByIdIn(productIds);
 
@@ -157,18 +161,18 @@ public class ProductConsumerService {
             .toList();
 
         productProducerService.sendProductValidationFail(
-            new ProductValidationFail(failDetails)
+            new ProductValidationFail(orderId, failDetails)
         );
     }
 
-    private ProductFailDetail mapFailDetail(UUID id, Map<UUID, Product> productMap) {
+    private ProductFailDetail mapFailDetail(UUID productId, Map<UUID, Product> productMap) {
 
-        Product product = productMap.get(id);
+        Product product = productMap.get(productId);
 
         if (product == null) {
-            return new ProductFailDetail(id, "NOT_FOUND");
+            return new ProductFailDetail(productId, "NOT_FOUND");
         }
 
-        return new ProductFailDetail(id, "UNAVAILABLE: " + product.getStatus());
+        return new ProductFailDetail(productId, "UNAVAILABLE: " + product.getStatus());
     }
 }
