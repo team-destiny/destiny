@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/coupon-templates")
+@PreAuthorize("hasRole('MASTER')")
 public class CouponTemplateController {
 
     private final CouponTemplateService couponTemplateService;
