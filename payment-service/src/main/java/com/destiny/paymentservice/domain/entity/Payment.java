@@ -67,7 +67,7 @@ public class Payment extends BaseEntity {
         }
 
         Payment payment = new Payment();
-        PaymentType finalPaymentType = (paymentType == null || !StringUtils.hasText(pgTxId)) ? PaymentType.MOCK : paymentType;
+        PaymentType finalPaymentType = (paymentType != null) ? paymentType : PaymentType.MOCK;
 
         payment.orderId = orderId;
         payment.pgTxId = pgTxId;
@@ -102,7 +102,7 @@ public class Payment extends BaseEntity {
     }
 
     /**
-     * 결제를 취소 상태로 변경하고, 금액을 0으로 설정합니다. (전액 취소)
+     * 결제를 취소 상태로 변경
      */
     public void cancel() {
         if (this.paymentStatus == PaymentStatus.CANCELED) {
@@ -111,8 +111,6 @@ public class Payment extends BaseEntity {
         if (this.paymentStatus != PaymentStatus.PAID) {
             throw new BizException(PaymentErrorCode.PAYMENT_INVALID_REQUEST);
         }
-
-        this.amount = 0; // 실제로 결제된 금액
         this.paymentStatus = PaymentStatus.CANCELED;
     }
 }
