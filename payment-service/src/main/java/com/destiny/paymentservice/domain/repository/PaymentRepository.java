@@ -3,6 +3,8 @@ package com.destiny.paymentservice.domain.repository;
 import com.destiny.paymentservice.domain.entity.Payment;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface PaymentRepository {
 
@@ -10,5 +12,5 @@ public interface PaymentRepository {
 
     Optional<Payment> findByOrderId(UUID orderId);
 
-    Optional<Payment> findById(UUID paymentId);
+    Page<Payment> findAll(Pageable pageable);
 }

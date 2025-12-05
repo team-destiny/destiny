@@ -43,7 +43,7 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    implementation 'com.github.team-destiny:destiny-global:0.0.2'
+    implementation 'com.github.team-destiny:destiny-global:0.0.3'
 
     // TODO 추후 spring-boot-starter-web에 포함된 jackson으로 리팩토링
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
