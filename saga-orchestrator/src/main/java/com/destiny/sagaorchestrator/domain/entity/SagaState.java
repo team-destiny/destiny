@@ -1,6 +1,6 @@
 package com.destiny.sagaorchestrator.domain.entity;
 
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationResult;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -55,7 +55,7 @@ public class SagaState {
 
     @Type(JsonType.class)
     @Column(columnDefinition = "jsonb")
-    private Map<UUID, ProductValidateSuccessResult> productResults = new HashMap<>();
+    private Map<UUID, ProductValidationResult> productResults = new HashMap<>();
 
     private String paymentMethod;
     private boolean paymentValid;

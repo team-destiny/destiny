@@ -8,6 +8,8 @@ public enum SagaStep {
     PRODUCT_VALIDATED,      // 상품 검증 성공
     STOCK_RESERVATION,      // 재고 차감(예약)
     STOCK_RESERVED,         // 재고 성공
+    COUPON_VALIDATION,      // 쿠폰 검증 단계
+    COUPON_VALIDATED,       // 쿠폰 검증 성공
     PAYMENT_APPROVAL,       // 결제 승인 요청
     PAYMENT_APPROVED,       // 결제 성공
     ORDER_COMPLETED,        // 사가 완료 (최종)
