@@ -2,6 +2,7 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.consumer;
 
 import com.destiny.sagaorchestrator.application.service.SagaService;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationSuccessResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -53,6 +54,16 @@ public class SagaConsumer {
     @KafkaListener(topics = "product-validate-fail", groupId = "saga-orchestrator")
     public void onProductValidateFail(String message) {
 
+        try {
+            log.info("Join Saga Service : product-validate-fail");
+
+            ProductValidateFailResult event = objectMapper.readValue(
+                message, ProductValidateFailResult.class);
+            sagaService.productValidateFailure(event);
+        } catch (JsonProcessingException e) {
+
+            log.error("Saga Service : product-validate-fail json processing error", e);
+        }
     }
 
     @KafkaListener(topics = "coupon-use-success", groupId = "saga-orchestrator")
