@@ -6,11 +6,12 @@ import org.springframework.http.HttpStatus;
 
 public enum PaymentSuccessCode implements ResponseCode {
 
-    PAYMENT_CONFIRM_SUCCESS(HttpStatus.OK, "PAYM-001", "결제 승인이 완료되었습니다."),
-    PAYMENT_CANCEL_SUCCESS(HttpStatus.OK, "PAYM-002", "결제 취소가 완료되었습니다."),
-    PAYMENT_INQUIRY_SUCCESS(HttpStatus.OK, "PAYM-003", "결제 조회가 완료되었습니다."),
-    PAYMENT_ALL_INQUIRY_SUCCESS(HttpStatus.OK, "PAYM-004", "결제 목록 조회가 완료되었습니다."),
-    PAYMENT_PARTIAL_CANCEL_SUCCESS(HttpStatus.OK, "PAYM-005", "부분 취소가 완료되었습니다.");
+    PAYMENT_REQUEST_SUCCESS(HttpStatus.OK, "PAYM-001", "결제 요청이 완료되었습니다."),
+    PAYMENT_CONFIRM_SUCCESS(HttpStatus.OK, "PAYM-002", "결제가 정상적으로 완료되었습니다."),
+    PAYMENT_CANCEL_SUCCESS(HttpStatus.OK, "PAYM-003", "결제 취소가 완료되었습니다."),
+    PAYMENT_INQUIRY_SUCCESS(HttpStatus.OK, "PAYM-004", "결제 조회가 완료되었습니다."),
+    PAYMENT_ALL_INQUIRY_SUCCESS(HttpStatus.OK, "PAYM-005", "결제 목록 조회가 완료되었습니다."),
+    PAYMENT_PARTIAL_CANCEL_SUCCESS(HttpStatus.OK, "PAYM-006", "부분 취소가 완료되었습니다.");
 
     private final HttpStatus status;
     private final String code;
