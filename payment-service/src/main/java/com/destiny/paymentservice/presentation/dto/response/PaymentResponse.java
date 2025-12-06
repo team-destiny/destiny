@@ -3,7 +3,6 @@ package com.destiny.paymentservice.presentation.dto.response;
 import com.destiny.paymentservice.domain.entity.Payment;
 import com.destiny.paymentservice.domain.vo.PaymentStatus;
 import com.destiny.paymentservice.domain.vo.PaymentType;
-import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 /**

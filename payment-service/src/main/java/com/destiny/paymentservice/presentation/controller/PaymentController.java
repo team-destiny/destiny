@@ -34,7 +34,7 @@ public class PaymentController {
     @PostMapping("/request")
     public ResponseEntity<ApiResponse<PaymentResponse>> requestPayment(@Valid @RequestBody PaymentRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
         PaymentResponse response = paymentService.requestPayment(request, userDetails);
-        return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRM_SUCCESS, response));
+        return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_REQUEST_SUCCESS, response));
     }
 
     /**
