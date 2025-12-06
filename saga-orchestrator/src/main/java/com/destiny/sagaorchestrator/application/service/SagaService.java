@@ -6,6 +6,7 @@ import com.destiny.sagaorchestrator.domain.entity.SagaStep;
 import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent.OrderItemCreateRequestEvent;
@@ -14,6 +15,8 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.Produc
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationMessageResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.producer.SagaProducer;
 import java.util.List;
 import java.util.UUID;
@@ -33,7 +36,6 @@ public class SagaService {
     @Transactional
     public void createSaga(OrderCreateRequestEvent event) {
 
-        // 1) 사가 초기 생성
         SagaState saga = SagaState.of(
             event.cartId(),
             event.orderId(),
@@ -41,11 +43,9 @@ public class SagaService {
             event.couponId()
         );
 
-        // 2) productId 기반으로 빈 ProductValidateResult 등록
         event.items().forEach(item -> {
             saga.getProductResults().put(
                 item.productId(),
-                // 아직 검증 전이므로 하드 코딩 직접 값 넣어주었음.
                 new ProductValidationResult(
                     event.orderId(),
                     item.productId(),
@@ -58,18 +58,14 @@ public class SagaService {
 
         sagaRepository.createSaga(saga);
 
-        // 3-1) 주문 아이템에서 productId 추출
         List<UUID> productIds = event.items()
             .stream()
             .map(OrderItemCreateRequestEvent::productId)
             .toList();
 
-        // 3-2) 상품 검증 토픽 발행
         sagaProducer.sendProductValidate(new ProductValidationCommand(saga.getOrderId(), productIds));
-
     }
 
-    // TODO : 상품 서비스 검증 및 상품 가격 가지고 오기
     @Transactional
     public void productValidateSuccess(ProductValidationSuccessResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
@@ -88,9 +84,14 @@ public class SagaService {
             saga.getProductResults().put(update.productId(), update);
         }
 
+        Integer totalAmount = saga.getProductResults().values().stream()
+                .mapToInt(item -> item.price() * item.stock()).sum();
+
+        saga.updateOriginalAmount(totalAmount);
         saga.updateStep(SagaStep.PRODUCT_VALIDATED);
         saga.updateStatus(SagaStatus.PROGRESS);
 
+        sagaProducer.sendStockReduce(new StockReduceCommand());
     }
 
     @Transactional
@@ -110,17 +111,15 @@ public class SagaService {
         ));
     }
 
-
-    // TODO : 재고 차감
     @Transactional
-    public void stockUpdateSuccess() {
+    public void stockReduceSuccess(StockReduceSuccessResult event) {
 
 
         sagaProducer.sendCouponValidate(new CouponValidateCommand(null, null));
     }
 
     @Transactional
-    public void stockUpdateFailure() {
+    public void stockReduceFailure(StockReduceFailResult event) {
 
 
     }
