@@ -36,7 +36,11 @@ public class Payment extends BaseEntity {
     @Column(nullable = false, unique = true)
     private UUID orderId;
 
-    // PG사 거래 고유 식별자 (MOCK 결제 시 null)
+    @Column(nullable = false)
+    @NotNull
+    private UUID userId;
+
+    // PG사 거래 고유 식별자 (MOCK 결제 시 null 가능)
     private String pgTxId;
 
     // PG사 종류 (TOSSPAYMENTS, BOOTPAY, PORTONE, MOCK 등)
@@ -61,7 +65,7 @@ public class Payment extends BaseEntity {
     /**
      * 초기 결제 엔티티를 생성합니다. (기본 상태는 PENDING)
      */
-    public static Payment of(UUID orderId, String pgTxId, PaymentType paymentType, Integer amount) {
+    public static Payment of(UUID orderId, UUID userId, String pgTxId, PaymentType paymentType, Integer amount) {
         if (orderId == null || amount == null || amount < 0) {
             throw new BizException(PaymentErrorCode.PAYMENT_INVALID_REQUEST);
         }
@@ -70,6 +74,7 @@ public class Payment extends BaseEntity {
         PaymentType finalPaymentType = (paymentType != null) ? paymentType : PaymentType.MOCK;
 
         payment.orderId = orderId;
+        payment.userId = userId;
         payment.pgTxId = pgTxId;
         payment.paymentType = finalPaymentType;
         payment.amount = amount;

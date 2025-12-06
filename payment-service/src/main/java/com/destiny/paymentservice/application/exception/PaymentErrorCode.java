@@ -12,7 +12,9 @@ public enum PaymentErrorCode implements ResponseCode {
     PAYMENT_ALREADY_CANCELED(HttpStatus.BAD_REQUEST, "PAYM-004", "이미 취소된 결제입니다."),
     PAYMENT_NOT_PENDING(HttpStatus.BAD_REQUEST, "PAYM-005", "결제 승인 대기 상태(PENDING)가 아닙니다."),
     PAYMENT_NOT_PAID(HttpStatus.BAD_REQUEST, "PAYM-006", "결제 완료 상태(PAID)가 아닙니다."),
-    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYM-007", "요청하신 주문 번호의 결제 내역을 찾을 수 없습니다.");
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYM-007", "요청하신 주문 번호의 결제 내역을 찾을 수 없습니다."),
+    FORBIDDEN_ACCESS(HttpStatus.FORBIDDEN, "PAYM-008", "해당 결제에 접근할 권한이 없습니다."),
+    PAYMENT_OWNER_MISMATCH(HttpStatus.FORBIDDEN, "PAYM-009", "결제 정보의 소유자가 일치하지 않아 요청을 처리할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

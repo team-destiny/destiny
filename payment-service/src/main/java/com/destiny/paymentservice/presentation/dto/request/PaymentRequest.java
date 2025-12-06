@@ -9,7 +9,7 @@ import java.util.UUID;
  * 결제 생성 요청 DTO (PENDING 상태 생성)
  */
 public record PaymentRequest(
-    @NotNull(message = "주문 번호는 필수입니다.")
+    @NotNull(message = "주문번호는 필수입니다.")
     UUID orderId,
 
     // PG사 거래 번호는 MOCK 결제 시 null이 될 수 있도록 설정

@@ -3,6 +3,7 @@ package com.destiny.paymentservice.presentation.dto.response;
 import com.destiny.paymentservice.domain.entity.Payment;
 import com.destiny.paymentservice.domain.vo.PaymentStatus;
 import com.destiny.paymentservice.domain.vo.PaymentType;
+import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 /**
@@ -11,6 +12,7 @@ import java.util.UUID;
 public record PaymentResponse(
     UUID id,
     UUID orderId,
+    UUID userId,
     String pgTxId,
     PaymentType paymentType,
     Integer amount,
@@ -20,6 +22,7 @@ public record PaymentResponse(
         return new PaymentResponse(
             payment.getId(),
             payment.getOrderId(),
+            payment.getUserId(),
             payment.getPgTxId(),
             payment.getPaymentType(),
             payment.getAmount(),
