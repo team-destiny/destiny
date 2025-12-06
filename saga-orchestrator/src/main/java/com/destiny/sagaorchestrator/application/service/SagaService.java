@@ -120,12 +120,8 @@ public class SagaService {
     }
 
     @Transactional
-    public void stockUpdateFailure(CouponUseFailResult event) {
-        SagaState saga = sagaRepository.findByOrderId(event.orderId());
-        saga.updateStep(SagaStep.COUPON_VALIDATION);
-        saga.updateStatus(SagaStatus.FAILED);
-        saga.updateFailureReason(event.message());
-        saga.updateFailureStep("COUPON");
+    public void stockUpdateFailure() {
+
 
     }
 
@@ -136,8 +132,20 @@ public class SagaService {
     }
 
     @Transactional
-    public void couponUseFailure() {
+    public void couponUseFailure(CouponUseFailResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.COUPON_VALIDATION);
+        saga.updateStatus(SagaStatus.FAILED);
+        saga.updateFailureReason(event.message());
+        saga.updateFailureStep("COUPON");
 
+        sagaProducer.sendOrderFailed(new OrderCreateFailedEvent(
+            saga.getSagaId(),
+            event.orderId(),
+            "쿠폰 적용하기 실패",
+            "SAC-001",
+            "COUPON-SERVICE"
+        ));
     }
 
     // TODO : 결제
