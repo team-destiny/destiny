@@ -6,6 +6,7 @@ import com.destiny.paymentservice.application.exception.PaymentErrorCode;
 import com.destiny.paymentservice.domain.entity.Payment;
 import com.destiny.paymentservice.domain.repository.PaymentRepository;
 import com.destiny.paymentservice.domain.vo.PaymentStatus; // PaymentStatus 임포트 추가
+import com.destiny.paymentservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.paymentservice.presentation.dto.request.PaymentCancelRequest;
 import com.destiny.paymentservice.presentation.dto.request.PaymentConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.request.PaymentRequest;
@@ -30,12 +31,15 @@ public class PaymentServiceImpl implements PaymentService {
     // =======================================================
     @Override
     @Transactional
-    public PaymentResponse requestPayment(PaymentRequest request) {
+    public PaymentResponse requestPayment(PaymentRequest request, CustomUserDetails userDetails) {
 
         //️ [1] 주문 ID 중복 확인 및 상태에 따른 분기 처리 (Optional 사용)
         Optional<Payment> findPayment = paymentRepository.findByOrderId(request.orderId());
 
         if (findPayment.isPresent()) {
+            if (!findPayment.get().getUserId().equals(userDetails.getUserId())) {
+                throw new BizException(PaymentErrorCode.FORBIDDEN_ACCESS);
+            }
             if (findPayment.get().getPaymentStatus().equals(PaymentStatus.PENDING)) {
                 // PENDING 상태: 기존 정보를 그대로 반환 (confirm 시도를 유도)
                 return PaymentResponse.fromEntity(findPayment.get());
@@ -49,6 +53,7 @@ public class PaymentServiceImpl implements PaymentService {
         // [2] 새로운 PENDING Payment 엔티티 생성 (기존 결제가 없거나 CANCELED/FAILED 상태인 경우)
         Payment newPayment = Payment.of(
             request.orderId(),
+            userDetails.getUserId(),
             request.pgTxId(),
             request.paymentType(),
             request.amount()
@@ -65,10 +70,14 @@ public class PaymentServiceImpl implements PaymentService {
     // =======================================================
     @Override
     @Transactional
-    public PaymentResponse confirmPayment(PaymentConfirmRequest request) {
+    public PaymentResponse confirmPayment(PaymentConfirmRequest request, CustomUserDetails userDetails) {
         // [1] 결제 내역 조회 (PENDING 상태만 승인 가능)
         Payment payment = paymentRepository.findByOrderId(request.orderId())
             .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        if (!payment.getUserId().equals(userDetails.getUserId())) {
+            throw new BizException(PaymentErrorCode.PAYMENT_OWNER_MISMATCH);
+        }
 
         // [2] PENDING 상태인지 확인
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
@@ -88,10 +97,14 @@ public class PaymentServiceImpl implements PaymentService {
     // =======================================================
     @Override
     @Transactional
-    public PaymentResponse cancelPayment(PaymentCancelRequest request) {
+    public PaymentResponse cancelPayment(PaymentCancelRequest request, CustomUserDetails userDetails) {
         // [1] 결제 내역 조회 (PAID 상태여야 취소 가능)
         Payment payment = paymentRepository.findByOrderId(request.orderId())
             .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        if (!payment.getUserId().equals(userDetails.getUserId())) {
+            throw new BizException(PaymentErrorCode.PAYMENT_OWNER_MISMATCH);
+        }
 
         // [2] PAID 상태인지 확인
         if (payment.getPaymentStatus() != PaymentStatus.PAID) {
@@ -107,13 +120,16 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     // =======================================================
-    // 4. 결제 조회
+    // 4. 결제 단건 조회
     // =======================================================
     @Override
-    public PaymentResponse getPaymentByOrderId(UUID orderId) {
-        // TODO: order 카프카 통신 필요
-        Payment payment = paymentRepository.findByOrderId(orderId)
-            .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+    public PaymentResponse getPaymentByOrderId(UUID orderId, CustomUserDetails userDetails) {
+        Payment payment = switch (userDetails.getUserRole()) {
+            case "CUSTOMER" -> paymentRepository.findByOrderIdAndUserId(orderId, userDetails.getUserId()).orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+            case "MASTER" -> paymentRepository.findByOrderId(orderId).orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+            default -> throw new BizException(PaymentErrorCode.FORBIDDEN_ACCESS);
+        };
+
         return PaymentResponse.fromEntity(payment);
     }
 
@@ -122,9 +138,16 @@ public class PaymentServiceImpl implements PaymentService {
     // =======================================================
     @Override
     @Transactional(readOnly = true)
-    public PageResponseDto<PaymentResponse> getAllPayments(Pageable pageable) {
-        Page<Payment> paymentPage = paymentRepository.findAll(pageable);
+    public PageResponseDto<PaymentResponse> getAllPayments(Pageable pageable, CustomUserDetails userDetails) {
+
+        Page<Payment> paymentPage = switch (userDetails.getUserRole()) {
+            case "CUSTOMER" -> paymentRepository.findAllByUserId(userDetails.getUserId(), pageable);
+            case "MASTER" -> paymentRepository.findAll(pageable);
+            default -> throw new BizException(PaymentErrorCode.FORBIDDEN_ACCESS);
+        };
+
         Page<PaymentResponse> responsePage = paymentPage.map(PaymentResponse::fromEntity);
+
         return PageResponseDto.from(responsePage);
     }
 }

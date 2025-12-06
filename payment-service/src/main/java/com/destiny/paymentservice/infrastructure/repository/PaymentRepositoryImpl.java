@@ -29,4 +29,16 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     public Page<Payment> findAll(Pageable pageable) {
         return paymentJpaRepository.findAll(pageable);
     }
+
+    @Override
+    public Page<Payment> findAllByUserId(UUID userId, Pageable pageable) {
+        return paymentJpaRepository.findAllByUserId(userId, pageable);
+    }
+
+    @Override
+    public Optional<Payment> findByOrderIdAndUserId(UUID orderId, UUID userId) {
+        return paymentJpaRepository.findByOrderIdAndUserId(orderId, userId);
+    }
+
+
 }
