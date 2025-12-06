@@ -66,6 +66,16 @@ public class SagaConsumer {
         }
     }
 
+    @KafkaListener(topics = "stock-reduce-success", groupId = "saga-orchestrator")
+    public void onStockReduceSuccess(String message) {
+
+    }
+
+    @KafkaListener(topics = "stock-reduce-fail", groupId = "saga-orchestrator")
+    public void onStockReduceFail(String message) {
+
+    }
+
     @KafkaListener(topics = "coupon-use-success", groupId = "saga-orchestrator")
     public void onCouponUseSuccess(String message) {
 
