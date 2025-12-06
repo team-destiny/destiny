@@ -2,7 +2,8 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.consumer;
 
 import com.destiny.sagaorchestrator.application.service.SagaService;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationSuccessResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -40,8 +41,8 @@ public class SagaConsumer {
         try {
             log.info("Join Saga Service : product-validate-success");
 
-            ProductValidateSuccessResult event = objectMapper.readValue(
-                message, ProductValidateSuccessResult.class);
+            ProductValidationSuccessResult event = objectMapper.readValue(
+                message, ProductValidationSuccessResult.class);
             sagaService.productValidateSuccess(event);
         } catch (JsonProcessingException e) {
 

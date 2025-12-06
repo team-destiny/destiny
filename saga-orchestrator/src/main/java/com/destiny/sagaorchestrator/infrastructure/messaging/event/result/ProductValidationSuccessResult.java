@@ -1,12 +1,12 @@
 package com.destiny.sagaorchestrator.infrastructure.messaging.event.result;
 
+import java.util.List;
 import java.util.UUID;
 
-public record ProductValidateSuccessResult(
+public record ProductValidationSuccessResult(
     UUID orderId,
-    UUID productId,
-    UUID brandId,
-    Integer price
+    List<ProductValidationMessageResult> messages
+
 ) {
 
 }

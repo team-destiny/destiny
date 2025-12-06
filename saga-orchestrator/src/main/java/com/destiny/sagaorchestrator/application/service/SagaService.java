@@ -1,13 +1,19 @@
 package com.destiny.sagaorchestrator.application.service;
 
 import com.destiny.sagaorchestrator.domain.entity.SagaState;
+import com.destiny.sagaorchestrator.domain.entity.SagaStatus;
+import com.destiny.sagaorchestrator.domain.entity.SagaStep;
 import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent.OrderItemCreateRequestEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateFailResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationMessageResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.producer.SagaProducer;
 import java.util.List;
 import java.util.UUID;
@@ -40,9 +46,10 @@ public class SagaService {
             saga.getProductResults().put(
                 item.productId(),
                 // 아직 검증 전이므로 하드 코딩 직접 값 넣어주었음.
-                new ProductValidateSuccessResult(
+                new ProductValidationResult(
                     event.orderId(),
                     item.productId(),
+                    item.stock(),
                     null,
                     null
                 )
@@ -64,24 +71,43 @@ public class SagaService {
 
     // TODO : 상품 서비스 검증 및 상품 가격 가지고 오기
     @Transactional
-    public void productValidateSuccess(ProductValidateSuccessResult event) {
-
+    public void productValidateSuccess(ProductValidationSuccessResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
 
-        saga.getProductResults().put(
-            event.productId(),
-            new ProductValidateSuccessResult(
-                event.orderId(),
-                event.productId(),
-                event.brandId(),
-                event.price()
-            )
-        );
+        for (ProductValidationMessageResult msg : event.messages()) {
+            ProductValidationResult old = saga.getProductResults().get(msg.productId());
+
+            ProductValidationResult update = new ProductValidationResult(
+                old.orderId(),
+                old.productId(),
+                old.stock(),
+                msg.brandId(),
+                msg.price()
+            );
+
+            saga.getProductResults().put(update.productId(), update);
+        }
+
+        saga.updateStep(SagaStep.PRODUCT_VALIDATED);
+        saga.updateStatus(SagaStatus.PROGRESS);
+
     }
 
     @Transactional
     public void productValidateFailure(ProductValidateFailResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.PRODUCT_VALIDATION);
+        saga.updateStatus(SagaStatus.FAILED);
+        saga.updateFailureReason(event.message());
+        saga.updateFailureStep("PRODUCT");
 
+        sagaProducer.sendOrderFailed(new OrderCreateFailedEvent(
+            saga.getSagaId(),
+            saga.getOrderId(),
+            "상품 데이터 가져오기 실패",
+            "SAP-001",
+            "PRODUCT-SERVICE"
+        ));
     }
 
 
@@ -94,7 +120,12 @@ public class SagaService {
     }
 
     @Transactional
-    public void stockUpdateFailure() {
+    public void stockUpdateFailure(CouponUseFailResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.COUPON_VALIDATION);
+        saga.updateStatus(SagaStatus.FAILED);
+        saga.updateFailureReason(event.message());
+        saga.updateFailureStep("COUPON");
 
     }
 
