@@ -43,10 +43,23 @@ public class SecurityConfig {
         // JWT 필터 등록 (SecurityContext에 Authentication 세팅)
         httpSecurity.addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        httpSecurity.authorizeHttpRequests(authorize -> {
-            // TODO : 접근 권한 부여
-            authorize.anyRequest().authenticated();
-        });
+        httpSecurity.authorizeHttpRequests(auth -> auth
+
+            // 쿠폰 템플릿 생성/수정/삭제 → MASTER만
+            .requestMatchers(HttpMethod.POST,   "/v1/coupon-templates").hasRole("MASTER")
+            .requestMatchers(HttpMethod.PATCH,  "/v1/coupon-templates/**").hasRole("MASTER")
+            .requestMatchers(HttpMethod.DELETE, "/v1/coupon-templates/**").hasRole("MASTER")
+
+            //  쿠폰 템플릿 조회는 로그인 사용자 모두 가능
+            .requestMatchers(HttpMethod.GET, "/v1/coupon-templates/**").authenticated()
+
+            //  발급 쿠폰은 모두 로그인 필수
+            .requestMatchers("/v1/issued-coupons/**").authenticated()
+            .requestMatchers("/v1/coupons/**").authenticated()
+
+            //  나머지는 전부 로그인 필요
+            .anyRequest().authenticated()
+        );
 
         return httpSecurity.build();
     }
