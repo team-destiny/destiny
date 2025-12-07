@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import java.util.UUID;
 import lombok.Getter;
 
 @Entity
@@ -17,14 +18,14 @@ import lombok.Getter;
 public class Review extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String reviewId;
+    private UUID reviewId;
 
     @Column(nullable = false)
-    private String userId;
+    private UUID userId;
     @Column(nullable = false)
-    private String productId;
+    private UUID productId;
     @Column(nullable = false)
-    private String orderId;
+    private UUID orderId;
 
     @Min(1)
     @Max(5)
@@ -37,7 +38,7 @@ public class Review extends BaseEntity {
 
     public Review() {}
 
-    public static Review createReview(String userId, String productId, String orderId, int rating,
+    public static Review createReview(UUID userId, UUID productId, UUID orderId, int rating,
         String content, String imageUrls){
         Review review = new Review();
 
