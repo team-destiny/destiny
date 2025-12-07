@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -101,12 +102,13 @@ public class UserController {
         return ApiResponse.success(CommonSuccessCode.OK);
     }
 
+    @PreAuthorize("hasRole('MASTER')")
     @GetMapping
     public ApiResponse<List<UserGetResponse>> getUsers(
-        @RequestParam boolean deleted,
-        @RequestParam UserRole userRole,
-        @RequestParam String searchType,
-        @RequestParam String keyword,
+        @RequestParam(defaultValue = "false")  boolean deleted,
+        @RequestParam(required = false) UserRole userRole,
+        @RequestParam(required = false) String searchType,
+        @RequestParam(required = false) String keyword,
         @RequestParam(defaultValue = "10") int size,
         @RequestParam(required = false) String sortBy,          // "createdAt" / "updatedAt"
         @RequestParam(defaultValue = "true") boolean isDescending
