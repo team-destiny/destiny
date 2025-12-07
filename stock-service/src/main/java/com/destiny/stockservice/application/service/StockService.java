@@ -1,0 +1,59 @@
+package com.destiny.stockservice.application.service;
+
+import com.destiny.stockservice.domain.entity.Stock;
+import com.destiny.stockservice.domain.repository.StockRepository;
+import jakarta.persistence.OptimisticLockException;
+import java.util.Map;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class StockService {
+
+    private final StockRepository stockRepository;
+
+    @Transactional
+    public boolean validateAndDecrease(Map<UUID, Integer> orderedProducts) {
+
+        for (Map.Entry<UUID, Integer> entry : orderedProducts.entrySet()) {
+            UUID productId = entry.getKey();
+            Integer amount = entry.getValue();
+
+            Stock stock = stockRepository.findByProductId(productId);
+
+            if (stock.getQuantity() < amount) {
+                return false;
+            }
+        }
+
+        for (Map.Entry<UUID, Integer> entry : orderedProducts.entrySet()) {
+            UUID productId = entry.getKey();
+            Integer amount = entry.getValue();
+
+            Stock stock = stockRepository.findByProductId(productId);
+
+            stock.tryDecrease(amount);
+        }
+
+        return true;
+    }
+
+    @Transactional
+    public void rollbackQuantity(Map<UUID, Integer> orderedProducts) {
+        for (Map.Entry<UUID, Integer> entry : orderedProducts.entrySet()) {
+            UUID productId = entry.getKey();
+            Integer amount = entry.getValue();
+
+            Stock stock = stockRepository.findByProductId(productId);
+
+            if (stock == null) {
+                throw new IllegalStateException("롤백할 재고가 존재하지 않음: " + productId);
+            }
+
+            stock.increase(amount);
+        }
+    }
+}
