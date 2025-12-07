@@ -13,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -27,13 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/coupon-templates")
-@PreAuthorize("hasRole('MASTER')")
 public class CouponTemplateController {
 
     private final CouponTemplateService couponTemplateService;
 
 
-    @PreAuthorize("hasRole('MASTER')")
     @PostMapping
     public ResponseEntity<CouponTemplateCreateResponse> createTemplate(
         @Valid @RequestBody CouponTemplateCreateRequest request
@@ -44,7 +41,6 @@ public class CouponTemplateController {
 
 
     @GetMapping("/{templateId}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CouponTemplateGetResponse> getTemplate(
         @PathVariable UUID templateId
     ) {
@@ -54,7 +50,6 @@ public class CouponTemplateController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<CouponTemplateGetResponse>> searchTemplates(
         @ModelAttribute CouponTemplateSearchRequest req,
         Pageable pageable
@@ -63,7 +58,6 @@ public class CouponTemplateController {
     }
 
     @PatchMapping("/{templateId}")
-    @PreAuthorize("hasRole('MASTER')")
     public ResponseEntity<CouponTemplateGetResponse> updateTemplate(
         @PathVariable UUID templateId,
         @Valid @RequestBody CouponTemplateUpdateRequest request
@@ -73,7 +67,6 @@ public class CouponTemplateController {
     }
 
     @DeleteMapping("/{templateId}")
-    @PreAuthorize("hasRole('MASTER')")
     public ResponseEntity<Void> deleteTemplate(
         @PathVariable UUID templateId
     ) {
