@@ -1,5 +1,33 @@
 @baseUrl = http://localhost:8080
 
+### 회원가입 (customer)
+POST {{baseUrl}}/v1/auths/signup
+Content-Type: application/json
+
+{
+  "username": "user001",
+  "password": "Test1234!",
+  "nickname": "테스트유저1",
+  "phone": "010-1234-5678",
+  "email": "test001@example.com",
+  "zipCode": "01234",
+  "address1": "서울시 어딘가 1길 10",
+  "address2": "101동 1001호",
+  "birth": "1998-01-01"
+}
+
+### 회원가입 (관리자)
+POST {{baseUrl}}/v1/auths/signup
+Content-Type: application/json
+
+{
+  "username": "admin001",
+  "password": "Admin1234!",
+  "userRole": "MASTER",
+  "adminToken": "my-super-secret-admin-token",
+  "email": "admin@example.com"
+}
+
 ### 로그인 성공 - 일반사용자
 POST {{baseUrl}}/v1/auths/login
 Content-Type: application/json
@@ -60,7 +88,17 @@ Content-Type: application/json
 Authorization: {{ADMIN_ACCESS_TOKEN}}
 
 
-### 회원 개별 조회 - gw
+### 회원 개별 조회
 GET {{baseUrl}}/v1/users/550e8400-e29b-41d4-a716-111111110000
 Content-Type: application/json
 Authorization: {{ACCESS_TOKEN}}
+
+### 전체 목록 조회
+GET {{baseUrl}}/v1/users
+Authorization: {{ADMIN_ACCESS_TOKEN}}
+Accept: application/json
+
+### 기본 목록 조회 (삭제 안된 user, 최신순)
+GET {{baseUrl}}/v1/users?deleted=false&userRole=CUSTOMER&size=10&isDescending=true
+Authorization: {{ADMIN_ACCESS_TOKEN}}
+Accept: application/json
