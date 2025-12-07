@@ -8,16 +8,15 @@ import com.destiny.userservice.presentation.advice.UserSuccessCode;
 import com.destiny.userservice.presentation.annotation.IssueTokens;
 import com.destiny.userservice.presentation.dto.request.UserLoginRequest;
 import com.destiny.userservice.presentation.dto.request.UserSignUpRequest;
-import com.destiny.userservice.presentation.dto.response.TokenResponse;
 import com.destiny.userservice.presentation.dto.response.UserLoginResponse;
 import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,17 +47,14 @@ public class AuthController {
         return ApiResponse.success(CommonSuccessCode.OK, body);
     }
 
+    @IssueTokens
     @PostMapping("/reissue")
-    public ApiResponse<TokenResponse> reissueToken(
-        @RequestHeader("Authorization") String authHeader,
-        @RequestHeader(value = "X-Refresh-Token", required = false) String refreshToken
+    public ApiResponse<Void> reissueToken(
+        @CookieValue(name = "X-Refresh-Token", required = false) String refreshToken
     ) {
-        // TODO: refreshToken 검증 + 새 토큰 발급
-        String newAccessToken = "dummy-new-access-token";
-        String newRefreshToken = "dummy-new-refresh-token";
+        authService.reissueAccessToken(refreshToken);
 
-        TokenResponse body = TokenResponse.of(newAccessToken, newRefreshToken);
-        return ApiResponse.success(CommonSuccessCode.OK, body);
+        return ApiResponse.success(CommonSuccessCode.OK);
     }
 
     @PostMapping("/logout")

@@ -2,16 +2,21 @@ package com.destiny.userservice.infrastructure.security.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.destiny.global.code.CommonErrorCode;
+import com.destiny.global.exception.BizException;
 import com.destiny.userservice.domain.entity.User;
+import com.destiny.userservice.presentation.advice.UserErrorCode;
 import java.time.Instant;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
-public class JwtTokenGenerator {
+public class JwtUtil {
 
     private final JwtProperties jwtProperties;
-    public JwtTokenGenerator(JwtProperties jwtProperties) {this.jwtProperties = jwtProperties;}
+    public JwtUtil(JwtProperties jwtProperties) {this.jwtProperties = jwtProperties;}
 
     private Algorithm algorithm() {
         return Algorithm.HMAC256(jwtProperties.getSecretKey());
@@ -42,5 +47,19 @@ public class JwtTokenGenerator {
             .withExpiresAt(now.plusMillis(jwtProperties.getRefreshExpirationMillis()))
             .withClaim("userId", userId)
             .sign(algorithm());
+    }
+
+    public DecodedJWT verifyRefreshToken(String refreshToken) {
+        DecodedJWT decodedAccessJwt;
+        try {
+            decodedAccessJwt = JWT.require(algorithm())
+                .build()
+                .verify(refreshToken);
+        } catch (JWTVerificationException e) {
+            throw new BizException(UserErrorCode.USER_TOKEN_INVALID);
+        } catch (IllegalArgumentException e) {
+            throw new BizException(CommonErrorCode.INTERNAL_SERVER_ERROR);
+        }
+        return decodedAccessJwt;
     }
 }

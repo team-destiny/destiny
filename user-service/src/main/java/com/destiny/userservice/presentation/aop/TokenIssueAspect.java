@@ -1,6 +1,6 @@
 package com.destiny.userservice.presentation.aop;
 
-import com.destiny.userservice.domain.dto.LoginTokens;
+import com.destiny.userservice.domain.dto.IssueTokens;
 import com.destiny.userservice.presentation.advice.TokenHeaderWriter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,15 +28,19 @@ public class TokenIssueAspect {
             // 원래 메서드 실행
             Object result = joinPoint.proceed();
 
-            // ThreadLocal에서 LoginTokens 가져오기
-            LoginTokens loginTokens = TokenContextHolder.getTokens();
+            // ThreadLocal에서 IssueTokens 가져오기
+            IssueTokens issueTokens = TokenContextHolder.getTokens();
 
-            if (loginTokens != null) {
+            if (issueTokens != null) {
                 HttpServletResponse servletResponse = getHttpServletResponse();
 
                 if (servletResponse != null) {
-                    tokenHeaderWriter.accessTokenWrite(servletResponse, loginTokens.accessToken());
-                    tokenHeaderWriter.refreshTokenWrite(servletResponse, loginTokens.refreshToken());
+                    if (issueTokens.accessToken() != null) {
+                        tokenHeaderWriter.accessTokenWrite(servletResponse, issueTokens.accessToken());
+                    }
+                    if (issueTokens.refreshToken() != null) {
+                        tokenHeaderWriter.refreshTokenWrite(servletResponse, issueTokens.refreshToken());
+                    }
                 } else {
                     log.warn("HttpServletResponse를 가져올 수 없습니다");
                 }

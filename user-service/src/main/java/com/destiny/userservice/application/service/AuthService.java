@@ -1,21 +1,24 @@
 package com.destiny.userservice.application.service;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.destiny.global.code.CommonErrorCode;
 import com.destiny.global.exception.BizException;
 import com.destiny.userservice.application.cache.AuthCache;
-import com.destiny.userservice.domain.dto.LoginTokens;
+import com.destiny.userservice.domain.dto.IssueTokens;
 import com.destiny.userservice.domain.entity.User;
 import com.destiny.userservice.domain.entity.UserRole;
 import com.destiny.userservice.domain.repository.UserRepository;
 import com.destiny.userservice.infrastructure.security.auth.CustomUserDetails;
-import com.destiny.userservice.infrastructure.security.jwt.JwtTokenGenerator;
+import com.destiny.userservice.infrastructure.security.jwt.JwtUtil;
 import com.destiny.userservice.presentation.advice.UserErrorCode;
 import com.destiny.userservice.presentation.aop.TokenContextHolder;
 import com.destiny.userservice.presentation.dto.request.UserLoginRequest;
 import com.destiny.userservice.presentation.dto.request.UserSignUpRequest;
 import com.destiny.userservice.presentation.dto.response.UserLoginResponse;
 import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +35,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenGenerator jwtTokenGenerator;
+    private final JwtUtil jwtUtil;
     private final AuthCache authCache;
 
     @Value("${user.admin.token}")
@@ -84,10 +87,10 @@ public class AuthService {
             throw new BizException(UserErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
 
-        String accessToken = jwtTokenGenerator.generateAccessToken(user);
-        String refreshToken =jwtTokenGenerator.generateRefreshToken(user.getUserId().toString());
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user.getUserId().toString());
 
-        TokenContextHolder.setToken(new LoginTokens(accessToken, refreshToken));
+        TokenContextHolder.setToken(new IssueTokens(accessToken, refreshToken));
 
         log.info("로그인 성공 - userId={}, username={}", user.getUserId(), user.getUsername());
 
@@ -123,4 +126,28 @@ public class AuthService {
         userRepository.existsByUserIdAndDeletedAtIsNull(userId);
     }
 
+    public void reissueAccessToken(String refreshToken) {
+        DecodedJWT decodedJwt = jwtUtil.verifyRefreshToken(refreshToken);
+        UUID userId = UUID.fromString(decodedJwt.getClaim("userId").asString());
+        User user = userRepository.findByUserIdAndDeletedAtIsNull(userId);
+
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String newRefreshToken = null;
+        if(needRotate(decodedJwt)){
+            newRefreshToken = jwtUtil.generateRefreshToken(user.getUserId().toString());
+        }
+
+        IssueTokens tokens = newRefreshToken == null
+            ? new IssueTokens(accessToken, null)
+            : new IssueTokens(accessToken, newRefreshToken);
+        TokenContextHolder.setToken(tokens);
+    }
+
+    private boolean needRotate(DecodedJWT refreshToken) {
+        LocalDateTime now = LocalDateTime.now();
+        Duration remain = Duration.between(now, refreshToken.getExpiresAtAsInstant());
+        long remainDays = remain.toDays();
+
+        return remainDays <= 3;   // 남은 기간 3일 이하면 true
+    }
 }
