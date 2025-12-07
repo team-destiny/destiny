@@ -37,8 +37,6 @@ spring:
   data:
     elasticsearch:
       host: localhost:9200
-      username: elastic
-      password: password
       repositories:
         enabled: true
 
