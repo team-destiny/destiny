@@ -127,6 +127,10 @@ public class AuthService {
     }
 
     public void reissueAccessToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new BizException(UserErrorCode.REFRESH_TOKEN_MISSING);
+        }
+
         DecodedJWT decodedJwt = jwtUtil.verifyRefreshToken(refreshToken);
         UUID userId = UUID.fromString(decodedJwt.getClaim("userId").asString());
         User user = userRepository.findByUserIdAndDeletedAtIsNull(userId);
