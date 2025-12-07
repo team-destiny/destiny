@@ -34,7 +34,6 @@ public class UserJpaRepositoryAdaptor implements UserRepository {
     @Override
     public User findById(UUID userId) {
         return userJpaRepository.findById(userId)
-            // TODO : userException 추가
             .orElseThrow(() -> new BizException(UserErrorCode.USER_NOT_FOUND));
     }
 
