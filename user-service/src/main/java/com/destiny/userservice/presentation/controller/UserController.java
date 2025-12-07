@@ -6,6 +6,9 @@ import com.destiny.userservice.application.service.UserService;
 import com.destiny.userservice.domain.entity.User;
 import com.destiny.userservice.domain.entity.UserRole;
 import com.destiny.userservice.domain.entity.UserStatus;
+import com.destiny.userservice.infrastructure.security.auth.CustomUserDetails;
+import com.destiny.userservice.presentation.advice.PageingUtils;
+import com.destiny.userservice.presentation.advice.UserSuccessCode;
 import com.destiny.userservice.presentation.dto.request.UserPasswordUpdateRequest;
 import com.destiny.userservice.presentation.dto.request.UserUpdateRequest;
 import com.destiny.userservice.presentation.dto.response.UserGetResponse;
@@ -15,6 +18,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,23 +34,34 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/v1/users")
 public class UserController {
-    // TODO : userSuccessCode 만들기
 
     private final UserService userService;
 
     @GetMapping("/{userId}")
-    public ApiResponse<UserGetResponse> getUser(@PathVariable UUID userId) {
-        // TODO : userService.getUser(userId);
+    public ApiResponse<UserGetResponse> getUser(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails,
+        @PathVariable UUID userId) {
 
-        User user = getMockUser(userId);
-        UserGetResponse body = UserGetResponse.of(user);
+        UUID authUserId = customUserDetails.getUserId();
+        UserRole authUserRole = UserRole.valueOf(customUserDetails.getUserRole());
 
-        return ApiResponse.success(CommonSuccessCode.OK, body);
+        UserGetResponse body = userService.getUser(authUserId, authUserRole, userId);
+
+        return ApiResponse.success(UserSuccessCode.USER_GET, body);
     }
 
     @PatchMapping("/{userId}")
-    public ApiResponse<UserGetResponse> updateUser(@PathVariable UUID userId, @Valid @RequestBody UserUpdateRequest userUpdateRequest) {
-        // TODO : userService.uadateUser(userId, uesrGetRequest);
+    public ApiResponse<UserGetResponse> updateUser(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails,
+        @PathVariable UUID userId,
+        @Valid @RequestBody UserUpdateRequest userUpdateRequest) {
+
+        
+        UUID authUserId = customUserDetails.getUserId();
+        UserRole authUserRole = UserRole.valueOf(customUserDetails.getUserRole());
+
+        // TODO : [user] 사용자 수정 기능 구현
+//        UserGetResponse body = userService.uadateUser(authUserId, authUserRole, userId, userUpdateRequest);
 
         User user = getMockUser(userId);
         UserGetResponse body = UserGetResponse.of(user);
@@ -86,19 +102,22 @@ public class UserController {
     }
 
     @GetMapping
-    public ApiResponse<List<UserGetResponse>> getUsers() {
-        // TODO : userService.getUsers();
+    public ApiResponse<List<UserGetResponse>> getUsers(
+        @RequestParam boolean deleted,
+        @RequestParam UserRole userRole,
+        @RequestParam String searchType,
+        @RequestParam String keyword,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) String sortBy,          // "createdAt" / "updatedAt"
+        @RequestParam(defaultValue = "true") boolean isDescending
+    ) {
 
-        List<User> users = List.of(
-            getMockUser(UUID.randomUUID()),
-            getMockUser(UUID.randomUUID())
-        );
+        Pageable pageable = PageingUtils.createPageable(size, sortBy, isDescending);
 
-        List<UserGetResponse> body = users.stream()
-            .map(UserGetResponse::of)
-            .toList();
+        List<UserGetResponse> responses =
+            userService.getUsers(deleted, userRole, searchType, keyword, pageable);
 
-        return ApiResponse.success(CommonSuccessCode.OK, body);
+        return ApiResponse.success(CommonSuccessCode.OK, responses);
     }
 
     @PostMapping("/{userId}/status")
