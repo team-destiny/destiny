@@ -27,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -203,7 +205,13 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
         IssuedCoupon issuedCoupon = issuedCouponRepository.findById(issuedCouponId)
             .orElseThrow(() -> new BizException(IssuedCouponErrorCode.ISSUED_COUPON_NOT_FOUND));
 
-        if (!issuedCoupon.getUserId().equals(userId)) {
+        //  현재 사용자 권한 확인
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isMaster = authentication.getAuthorities().stream()
+            .anyMatch(auth -> auth.getAuthority().equals("ROLE_MASTER"));
+
+        // MASTER 아니면 소유자 검증
+        if (!isMaster && !issuedCoupon.getUserId().equals(userId)) {
             throw new BizException(IssuedCouponErrorCode.INVALID_OWNER);
         }
 
@@ -240,7 +248,8 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
             }
 
             // 2) 템플릿 조회
-            CouponTemplate template = couponTemplateRepository.findById(coupon.getCouponTemplateId())
+            CouponTemplate template = couponTemplateRepository.findById(
+                    coupon.getCouponTemplateId())
                 .orElseThrow(() -> new BizException(IssuedCouponErrorCode.TEMPLATE_NOT_FOUND));
 
             // 3) 최소 주문 금액 검증
@@ -274,7 +283,8 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
             try {
                 couponValidateProducer.sendFail(failEvent);
             } catch (Exception sendEx) {
-                log.error("[handleCouponValidate] sendFail 실패 - 수동 개입 필요: couponId={}", couponId, sendEx);
+                log.error("[handleCouponValidate] sendFail 실패 - 수동 개입 필요: couponId={}", couponId,
+                    sendEx);
             }
         }
     }
