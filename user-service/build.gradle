@@ -31,7 +31,7 @@ ext {
 
 dependencies {
     // global
-    implementation 'com.github.team-destiny:destiny-global:0.0.2'
+    implementation 'com.github.team-destiny:destiny-global:0.0.3'
 
     // jwt
     implementation 'com.auth0:java-jwt:4.4.0'
