@@ -36,11 +36,21 @@ public class UserService {
         return UserGetResponse.of(user);
     }
 
+    @Transactional
     public UserGetResponse uadateUser(UUID authUserId, UserRole authUserRole, UUID targetUserId, UserUpdateRequest userUpdateRequest) {
         validateAccess(authUserId, authUserRole, targetUserId);
-        User user = userRepository.findById(targetUserId);
+        User user = userRepository.findByUserIdAndDeletedAtIsNull(targetUserId);
 
-        return null;
+        if(userUpdateRequest.email() != null) {
+            user.changeEmail(userUpdateRequest.email());
+        }
+
+        UserInfo userInfo = user.getUserInfo();
+        if(userInfo != null) {
+            userInfo.updateProfile(userUpdateRequest);
+        }
+
+        return UserGetResponse.of(user);
     }
 
     /**

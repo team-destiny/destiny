@@ -7,7 +7,7 @@ public record UserUpdateRequest(
     String nickname,
     @Pattern(regexp="\\d{3}-\\d{4}-\\d{4}") String phone,
     @Email String email,
-    String zipcode,
+    String zipCode,
     String address1,
     String address2
 ) {

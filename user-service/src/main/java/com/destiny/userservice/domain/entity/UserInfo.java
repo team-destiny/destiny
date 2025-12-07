@@ -1,6 +1,7 @@
 package com.destiny.userservice.domain.entity;
 
 import com.destiny.global.entity.BaseEntity;
+import com.destiny.userservice.presentation.dto.request.UserUpdateRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -67,5 +68,23 @@ public class UserInfo extends BaseEntity {
         userInfo.membershipGrade = MembershipGrade.WELCOME;
 
         return userInfo;
+    }
+
+    public void updateProfile(UserUpdateRequest request) {
+        if (request.nickname() != null) {
+            this.nickname = request.nickname();
+        }
+        if (request.phone() != null) {
+            this.phone = request.phone();
+        }
+        if (request.zipCode() != null) {
+            this.zipCode = request.zipCode();
+        }
+        if (request.address1() != null) {
+            this.address1 = request.address1();
+        }
+        if (request.address2() != null) {
+            this.address2 = request.address2();
+        }
     }
 }

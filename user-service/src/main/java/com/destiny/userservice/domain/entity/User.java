@@ -79,4 +79,12 @@ public class User extends BaseEntity {
 
         return user;
     }
+
+    public void changePassword(String newPassword) {
+        this.password = newPassword;
+    }
+
+    public void changeEmail(String newEmail) {
+        this.email = newEmail;
+    }
 }

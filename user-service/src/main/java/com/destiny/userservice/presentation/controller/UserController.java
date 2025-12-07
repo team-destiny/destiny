@@ -3,7 +3,6 @@ package com.destiny.userservice.presentation.controller;
 import com.destiny.global.code.CommonSuccessCode;
 import com.destiny.global.response.ApiResponse;
 import com.destiny.userservice.application.service.UserService;
-import com.destiny.userservice.domain.entity.User;
 import com.destiny.userservice.domain.entity.UserRole;
 import com.destiny.userservice.domain.entity.UserStatus;
 import com.destiny.userservice.infrastructure.security.auth.CustomUserDetails;
@@ -14,7 +13,6 @@ import com.destiny.userservice.presentation.dto.request.UserUpdateRequest;
 import com.destiny.userservice.presentation.dto.response.UserGetResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -57,35 +55,12 @@ public class UserController {
         @PathVariable UUID userId,
         @Valid @RequestBody UserUpdateRequest userUpdateRequest) {
 
-        
         UUID authUserId = customUserDetails.getUserId();
         UserRole authUserRole = UserRole.valueOf(customUserDetails.getUserRole());
 
-        // TODO : [user] 사용자 수정 기능 구현
-//        UserGetResponse body = userService.uadateUser(authUserId, authUserRole, userId, userUpdateRequest);
-
-        User user = getMockUser(userId);
-        UserGetResponse body = UserGetResponse.of(user);
+        UserGetResponse body = userService.uadateUser(authUserId, authUserRole, userId, userUpdateRequest);
 
         return ApiResponse.success(CommonSuccessCode.OK, body);
-    }
-
-    // TODO : userService 생성 후 제거
-    private User getMockUser(UUID userId) {
-        User user = User.createUser(
-            "username"
-            , "a123!@#"
-            , "master@email.com"
-            , UserRole.MASTER
-            , "관리자"
-            ,"010-1234-5678"
-            , "12345"
-            , "서울 송파구"
-            , "101호"
-            , LocalDate.now()
-        );
-
-        return user;
     }
 
     @PostMapping("/{userId}/password")
