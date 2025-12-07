@@ -90,14 +90,14 @@ public class UserController {
 
     @PostMapping("/{userId}/password")
     public ApiResponse updatePassword(@PathVariable UUID userId, @Valid @RequestBody UserPasswordUpdateRequest userPasswordUpdateRequest) {
-        // TODO : userService.updatePassword(userId, requestDto);
+        userService.updatePassword(userId, userPasswordUpdateRequest);
 
         return ApiResponse.success(CommonSuccessCode.OK);
     }
 
     @DeleteMapping("/{userId}")
     public ApiResponse deleteUser(@PathVariable UUID userId) {
-        // TODO : userService.deleteUser(userId);
+        userService.deleteUser(userId);
 
         return ApiResponse.success(CommonSuccessCode.OK);
     }

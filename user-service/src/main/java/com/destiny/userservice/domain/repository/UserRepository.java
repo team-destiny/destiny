@@ -13,4 +13,5 @@ public interface UserRepository {
     User findByUsername(String username);
     boolean existsByUserIdAndDeletedAtIsNull(UUID userId);
     Page<User> searchUsers(boolean deleted, UserRole userRole, String searchType, String keyword, Pageable pageable);
+    User findByUserIdAndDeletedAtIsNull(UUID userId);
 }
