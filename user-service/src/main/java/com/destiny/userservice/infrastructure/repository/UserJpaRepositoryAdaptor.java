@@ -107,4 +107,12 @@ public class UserJpaRepositoryAdaptor implements UserRepository {
             .toArray(OrderSpecifier[]::new);
     }
 
+    @Override
+    public User findByUserIdAndDeletedAtIsNull(UUID userId) {
+        return userJpaRepository.findByUserIdAndDeletedAtIsNull(userId)
+            .orElseThrow(() -> new BizException(UserErrorCode.USER_NOT_FOUND));
+    }
+
+
+
 }
