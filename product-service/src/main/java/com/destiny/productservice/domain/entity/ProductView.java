@@ -24,7 +24,7 @@ public class ProductView {
 
     private String name;
 
-    private Long price;
+    private Integer price;
 
     @Field(type = Text)
     private UUID brandId;

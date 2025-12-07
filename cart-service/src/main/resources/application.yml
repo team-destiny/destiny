@@ -6,22 +6,19 @@ spring:
     name: cart-service
 
   datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:cart-db;MODE=PostgreSQL
-    username: sa
-    password:
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5441/cart_db
+    username: root
+    password: 1234
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 eureka:
   client:
@@ -29,3 +26,14 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  secretKey: XVFkQby3tnqMa8MUDANspAtarbl1VZyT
+  access-expiration-millis: 1800000 # 30분
+  refresh-expiration-millis: 1209600000 # 14일
+  access-header-name: Authorization
+  refresh-cookie-name: X-Refresh-Token
+  header-prefix: Bearer
+  access-subject: AccessToken
+  refresh-subject: RefreshToken
+  is-refresh-cookie-secure: false

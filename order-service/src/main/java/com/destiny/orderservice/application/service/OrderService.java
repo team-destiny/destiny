@@ -1,5 +1,6 @@
 package com.destiny.orderservice.application.service;
 
+import com.destiny.global.code.CommonErrorCode;
 import com.destiny.global.exception.BizException;
 import com.destiny.orderservice.domain.entity.Order;
 import com.destiny.orderservice.domain.entity.OrderItem;
@@ -7,13 +8,16 @@ import com.destiny.orderservice.domain.entity.OrderItemStatus;
 import com.destiny.orderservice.domain.entity.OrderStatus;
 import com.destiny.orderservice.domain.repository.OrderItemRepository;
 import com.destiny.orderservice.domain.repository.OrderRepository;
+import com.destiny.orderservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.orderservice.infrastructure.exception.OrderError;
 import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCreateRequestEvent;
 import com.destiny.orderservice.infrastructure.messaging.producer.OrderEventProducer;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
+import com.destiny.orderservice.presentation.dto.request.OrderStatusRequest;
 import com.destiny.orderservice.presentation.dto.response.OrderDetailResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderItemForBrandResponse;
+import com.destiny.orderservice.presentation.dto.response.OrderListResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderProcessingResponse;
 import java.util.List;
 import java.util.UUID;
@@ -30,10 +34,10 @@ public class OrderService {
     private final OrderEventProducer orderEventProducer;
 
     @Transactional
-    public UUID createOrder(OrderCreateRequest req) {
+    public UUID createOrder(CustomUserDetails customUserDetails, OrderCreateRequest req) {
 
         Order order = Order.of(
-            UUID.randomUUID(),
+            customUserDetails.getUserId(),
             req.couponId(),
             req.paymentMethod(),
             req.recipientName(),
@@ -55,11 +59,28 @@ public class OrderService {
 
         UUID orderId = orderRepository.createOrder(order).getOrderId();
 
-        // TODO : 사가 오케스트레이션으로 카프카 메시지 발송
         OrderCreateRequestEvent event = OrderCreateRequestEvent.from(order);
         orderEventProducer.send(event);
 
         return orderId;
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderListResponse> getOrderList(CustomUserDetails customUserDetails) {
+
+        if (customUserDetails.getUserRole().equalsIgnoreCase("MASTER")) {
+            List<Order> orders = orderRepository.findAll();
+
+            return orders.stream()
+                .map(OrderListResponse::from)
+                .toList();
+        }
+
+        List<Order> orders = orderRepository.findAllByUserId(customUserDetails.getUserId());
+
+        return orders.stream()
+            .map(OrderListResponse::from)
+            .toList();
     }
 
     @Transactional(readOnly = true)
@@ -73,9 +94,11 @@ public class OrderService {
     }
 
     @Transactional
-    public UUID cancelOrder(UUID orderId) {
+    public UUID cancelOrder(CustomUserDetails customUserDetails, UUID orderId) {
 
         Order order = getOrder(orderId);
+
+        validateOrderUser(order, customUserDetails.getUserId());
 
         boolean isAllPending = order.getItems().stream()
             .allMatch(item -> item.getStatus() == OrderItemStatus.PENDING);
@@ -93,9 +116,13 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Object getOrderDetail(UUID orderId) {
+    public Object getOrderDetail(CustomUserDetails customUserDetails, UUID orderId) {
 
         Order order = getOrder(orderId);
+
+        if (!customUserDetails.getUserRole().equalsIgnoreCase("MASTER")) {
+            validateOrderUser(order, customUserDetails.getUserId());
+        }
 
         if (order.getDeletedAt() == null || order.getDeletedBy() == null) {
             throw new BizException(OrderError.ORDER_NOT_FOUND);
@@ -110,12 +137,31 @@ public class OrderService {
     }
 
     @Transactional
-    public void deleteOrder(UUID orderId) {
+    public void deleteOrder(CustomUserDetails customUserDetails, UUID orderId) {
         Order order = getOrder(orderId);
 
         if (order.getDeletedAt() != null || order.getDeletedBy() != null) {
-            order.markDeleted(1L);
+            throw new BizException(OrderError.ORDER_NOT_FOUND);
         }
+
+        validateOrderUser(order, customUserDetails.getUserId());
+
+        order.markDeleted(customUserDetails.getUserId());
+    }
+
+    @Transactional
+    public UUID changeOrderStatus(CustomUserDetails customUserDetails, OrderStatusRequest req, UUID orderId) {
+
+        if (!customUserDetails.getUserRole().equalsIgnoreCase("MASTER")) {
+            throw new BizException(CommonErrorCode.ACCESS_DENIED);
+        }
+
+        Order order = getOrder(orderId);
+
+        order.updateStatus(req.orderStatus());
+        Order updateOrder = orderRepository.updateOrder(order);
+
+        return updateOrder.getOrderId();
     }
 
     private Order getOrder(UUID orderId) {
@@ -123,5 +169,11 @@ public class OrderService {
         return orderRepository.findOrderWithItems(orderId).orElseThrow(
             () -> new BizException(OrderError.ORDER_NOT_FOUND)
         );
+    }
+
+    private void validateOrderUser(Order order, UUID userId) {
+        if (!order.getUserId().equals(userId)) {
+            throw new BizException(OrderError.ORDER_NOT_FOUND);
+        }
     }
 }

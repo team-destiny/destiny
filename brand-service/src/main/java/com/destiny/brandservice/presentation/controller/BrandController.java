@@ -1,6 +1,7 @@
 package com.destiny.brandservice.presentation.controller;
 
 import com.destiny.brandservice.application.service.BrandService;
+import com.destiny.brandservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
 import com.destiny.brandservice.presentation.dto.request.BrandUpdateRequest;
 import com.destiny.brandservice.presentation.dto.response.BrandResponse;
@@ -11,6 +12,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -30,9 +32,10 @@ public class BrandController {
 
     @PostMapping
     public ResponseEntity<UUID> createBrand(
-        @RequestBody @Valid BrandCreateRequest req
+        @RequestBody @Valid BrandCreateRequest req,
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID brand = brandService.createBrand(req);
+        UUID brand = brandService.createBrand(userDetails, req);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(brand);
     }
@@ -60,20 +63,22 @@ public class BrandController {
     @PatchMapping("/{brandId}")
     public ResponseEntity<UUID> updateBrand(
         @PathVariable UUID brandId,
+        @AuthenticationPrincipal CustomUserDetails userDetails,
         @RequestBody BrandUpdateRequest req
     ) {
 
-        UUID brand = brandService.updateBrand(brandId, req);
+        UUID brand = brandService.updateBrand(userDetails ,brandId, req);
 
         return ResponseEntity.status(HttpStatus.OK).body(brand);
     }
 
     @DeleteMapping("/{brandId}")
     public ResponseEntity<String> deleteBrand(
-        @PathVariable UUID brandId
+        @PathVariable UUID brandId,
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
 
-        brandService.deleteBrand(brandId);
+        brandService.deleteBrand(userDetails, brandId);
 
         return ResponseEntity
             .status(HttpStatus.OK)
@@ -82,10 +87,11 @@ public class BrandController {
 
     @GetMapping("/{brandId}/orders")
     public ResponseEntity<List<OrderItemForBrandResponse>> getMyOrders(
-        @PathVariable UUID brandId
+        @PathVariable UUID brandId,
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         // TODO : 헤더로 유저 넘어오면 스프링 시큐리티 설정 이후 유저 검증 진행 해야함 !
-        List<OrderItemForBrandResponse> orders = brandService.getMyOrders(brandId);
+        List<OrderItemForBrandResponse> orders = brandService.getMyOrders(userDetails, brandId);
 
         return ResponseEntity
             .status(HttpStatus.OK)

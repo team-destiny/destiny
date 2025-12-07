@@ -31,7 +31,10 @@ ext {
 
 dependencies {
 
-    implementation 'com.github.team-destiny:destiny-global:0.0.1'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'com.auth0:java-jwt:4.4.0'
+
+    implementation 'com.github.team-destiny:destiny-global:0.0.2'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

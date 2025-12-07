@@ -1,10 +1,21 @@
 package com.destiny.productservice.application.service.message;
 
+import com.destiny.productservice.application.dto.ProductFailDetail;
 import com.destiny.productservice.application.dto.ProductMessage;
+import com.destiny.productservice.application.dto.ProductValidationFail;
+import com.destiny.productservice.application.dto.ProductValidationCommand;
+import com.destiny.productservice.application.dto.ProductValidationMessage;
+import com.destiny.productservice.application.dto.ProductValidationSuccess;
 import com.destiny.productservice.domain.entity.Product;
+import com.destiny.productservice.domain.entity.ProductStatus;
 import com.destiny.productservice.domain.entity.ProductView;
 import com.destiny.productservice.domain.repository.ProductCommandRepository;
 import com.destiny.productservice.domain.repository.ProductQueryRepository;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -23,9 +34,10 @@ public class ProductConsumerService {
 
     private final ProductCommandRepository productCommandRepository;
     private final ProductQueryRepository productQueryRepository;
+    private final ProductProducerService productProducerService;
 
     @KafkaListener(groupId = "product-group", topics = "product.after.create")
-    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
+    @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeCreateProductMessage(ProductMessage message,
         @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
@@ -56,7 +68,7 @@ public class ProductConsumerService {
     }
 
     @KafkaListener(groupId = "product-group", topics = "product.after.update")
-    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
+    @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeUpdateProductMessage(ProductMessage message,
         @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
@@ -88,11 +100,79 @@ public class ProductConsumerService {
     }
 
     @KafkaListener(groupId = "product-group", topics = "product.after.delete")
-    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
+    @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeDeleteProductMessage(ProductMessage message) {
 
         // TODO userId 파라미터 필요
 
+    }
+
+    @KafkaListener(groupId= "product-group", topics = "product-validate-request")
+    @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
+    @Transactional(readOnly = true)
+    public void consumeProductValidateRequest(ProductValidationCommand command) {
+
+        List<UUID> productIds = command.productIds();
+
+        List<Product> availableProducts = getAvailableProducts(productIds);
+
+        if (availableProducts.size() == productIds.size()) {
+            handleValidationSuccess(command.orderId(), availableProducts);
+            return;
+        }
+
+        handleValidationFail(command.orderId(), productIds, availableProducts);
+    }
+
+    private List<Product> getAvailableProducts(List<UUID> productIds) {
+        return productCommandRepository.findByIdInAndStatus(productIds, ProductStatus.AVAILABLE);
+    }
+
+    private void handleValidationSuccess(UUID orderId, List<Product> availableProducts) {
+
+        List<ProductValidationMessage> messages = availableProducts.stream()
+            .map(ProductValidationMessage::from)
+            .toList();
+
+        ProductValidationSuccess successMessage = new ProductValidationSuccess(orderId, messages);
+
+        productProducerService.sendProductValidationSuccess(successMessage);
+    }
+
+    private void handleValidationFail(
+        UUID orderId,
+        List<UUID> productIds,
+        List<Product> availableProducts
+    ) {
+
+        List<Product> allProducts = productCommandRepository.findByIdIn(productIds);
+
+        Map<UUID, Product> productMap = allProducts.stream()
+            .collect(Collectors.toMap(Product::getId, p -> p));
+
+        Set<UUID> availableIds = availableProducts.stream()
+            .map(Product::getId)
+            .collect(Collectors.toSet());
+
+        List<ProductFailDetail> failDetails = productIds.stream()
+            .filter(id -> !availableIds.contains(id))
+            .map(id -> mapFailDetail(id, productMap))
+            .toList();
+
+        productProducerService.sendProductValidationFail(
+            new ProductValidationFail(orderId, failDetails)
+        );
+    }
+
+    private ProductFailDetail mapFailDetail(UUID productId, Map<UUID, Product> productMap) {
+
+        Product product = productMap.get(productId);
+
+        if (product == null) {
+            return new ProductFailDetail(productId, "NOT_FOUND");
+        }
+
+        return new ProductFailDetail(productId, "UNAVAILABLE: " + product.getStatus());
     }
 }

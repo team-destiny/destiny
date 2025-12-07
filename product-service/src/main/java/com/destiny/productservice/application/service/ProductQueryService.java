@@ -126,7 +126,7 @@ public class ProductQueryService {
         }
     }
 
-    private void addPriceFilter(Long minPrice, Long maxPrice, BoolQuery.Builder boolQuery) {
+    private void addPriceFilter(Integer minPrice, Integer maxPrice, BoolQuery.Builder boolQuery) {
         if (minPrice != null || maxPrice != null) {
 
             RangeQuery rangeQuery = new RangeQuery.Builder()

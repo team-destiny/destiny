@@ -1,6 +1,7 @@
 package com.destiny.orderservice.infrastructure.repository;
 
 import com.destiny.orderservice.domain.entity.Order;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,12 @@ public interface OrderJpaRepository extends JpaRepository<Order, UUID> {
            where o.orderId = :orderId
         """)
     Optional<Order> findOrderWithItems(UUID orderId);
+
+    @Query("""
+           select distinct o
+           from Order o
+           left join fetch o.items
+           where o.userId = :userId
+        """)
+    List<Order> findAllByUserId(UUID userId);
 }

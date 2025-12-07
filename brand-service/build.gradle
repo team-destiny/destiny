@@ -31,12 +31,17 @@ ext {
 
 dependencies {
     //common dependencies
-    implementation 'com.github.team-destiny:destiny-global:0.0.1'
+    implementation 'com.github.team-destiny:destiny-global:0.0.2'
 
     // data & jpa
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     runtimeOnly 'org.postgresql:postgresql'
+
+    // security
+    implementation 'com.auth0:java-jwt:4.4.0'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
 
     // kafka & feign
     implementation 'org.springframework.kafka:spring-kafka'
