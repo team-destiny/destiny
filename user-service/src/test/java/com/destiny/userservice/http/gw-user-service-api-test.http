@@ -89,7 +89,7 @@ Authorization: {{ADMIN_ACCESS_TOKEN}}
 
 
 ### 회원 개별 조회
-GET {{baseUrl}}/v1/users/550e8400-e29b-41d4-a716-111111110000
+GET {{baseUrl}}/v1/users/{{CUSTOMER_USER_ID}}
 Content-Type: application/json
 Authorization: {{ACCESS_TOKEN}}
 
@@ -102,3 +102,24 @@ Accept: application/json
 GET {{baseUrl}}/v1/users?deleted=false&userRole=CUSTOMER&size=10&isDescending=true
 Authorization: {{ADMIN_ACCESS_TOKEN}}
 Accept: application/json
+
+### 회원 정보 수정
+PATCH {{baseUrl}}/v1/users/{{CUSTOMER_USER_ID}}
+Authorization: {{ACCESS_TOKEN}}
+Content-Type: application/json
+
+{
+  "nickname" : "수정된 사용자",
+  "phone" : "010-1234-5678",
+  "email" : "user@email.com"
+}
+
+### 비밀번호 수정
+POST {{baseUrl}}/v1/users/{{CUSTOMER_USER_ID}}/password
+Authorization: {{ACCESS_TOKEN}}
+Content-Type: application/json
+
+{
+  "currentPassword" : "Test1234!",
+  "newPassword" : "Test123!"
+}
