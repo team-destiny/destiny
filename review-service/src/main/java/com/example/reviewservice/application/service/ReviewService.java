@@ -5,10 +5,10 @@ import com.destiny.global.exception.BizException;
 import com.example.reviewservice.domain.entity.Review;
 import com.example.reviewservice.domain.entity.UserRole;
 import com.example.reviewservice.domain.repository.ReviewRepository;
+import com.example.reviewservice.infrastructure.security.auth.CustomUserDetails;
 import com.example.reviewservice.presentation.dto.request.ReviewCreateRequest;
 import com.example.reviewservice.presentation.dto.request.ReviewUpdateRequest;
 import com.example.reviewservice.presentation.dto.response.ReviewResponse;
-import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +26,17 @@ public class ReviewService {
 
     private final PageableArgumentResolver pageableArgumentResolver;
     private final ReviewRepository reviewRepository;
+    private final OrderClientService orderClientService;
 
     @Transactional
-    public ReviewResponse createReview(@Valid ReviewCreateRequest reviewCreateRequest) {
+    public ReviewResponse createReview(CustomUserDetails userDetails, ReviewCreateRequest reviewCreateRequest) {
+        validateAccess(userDetails.getUserId(), UserRole.valueOf(userDetails.getUserRole()), reviewCreateRequest.userId());
+        orderClientService.verifyUserCanReview(
+            userDetails.getAccessJwt(),
+            userDetails.getUserId(),
+            reviewCreateRequest.orderId(),
+            reviewCreateRequest.productId());
+
         Review review = Review.createReview(
             reviewCreateRequest.userId(),
             reviewCreateRequest.productId(),

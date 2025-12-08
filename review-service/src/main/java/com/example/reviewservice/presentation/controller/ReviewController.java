@@ -38,9 +38,10 @@ public class ReviewController {
 
     @PostMapping
     public ApiResponse<ReviewResponse> createReview(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @RequestBody ReviewCreateRequest reviewCreateRequest
     ) {
-        ReviewResponse body = reviewService.createReview(reviewCreateRequest);
+        ReviewResponse body = reviewService.createReview(userDetails, reviewCreateRequest);
         return ApiResponse.success(CommonSuccessCode.CREATED, body);
     }
 
