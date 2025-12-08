@@ -71,7 +71,7 @@ public class SagaProducer {
 
         try {
             String message = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("order.create.failed", message);
+            kafkaTemplate.send("order-create-failed", message);
             log.info("send success ->  order failed {}", message);
 
         } catch (JsonProcessingException e) {
