@@ -43,26 +43,6 @@ public class ReviewController {
         return ApiResponse.success(CommonSuccessCode.CREATED, body);
     }
 
-//    private Review getMockReview(ReviewCreateRequest reviewCreateRequest) {
-//        Review review = reviewCreateRequest != null ? Review.createReview(
-//            reviewCreateRequest.userId(),
-//            reviewCreateRequest.productId(),
-//            reviewCreateRequest.orderId(),
-//            reviewCreateRequest.rating(),
-//            reviewCreateRequest.content(),
-//            reviewCreateRequest.imageUrls()
-//        ) : Review.createReview(
-//            "dummy-user-id",
-//            "dummy-product-id",
-//            "dummy-order-id",
-//            5,
-//            "리뷰 내용",
-//            ""
-//        );
-//
-//        return review;
-//    }
-
     @PatchMapping("/{reviewId}")
     public ApiResponse<ReviewResponse> updateReview(
         @AuthenticationPrincipal CustomUserDetails userDetails,
