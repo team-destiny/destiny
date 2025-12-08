@@ -1,5 +1,9 @@
 package com.destiny.sagaorchestrator.infrastructure.messaging.event.result;
 
-public record StockReduceSuccessResult() {
+import java.util.UUID;
+
+public record StockReduceSuccessResult(
+    UUID orderId
+) {
 
 }
