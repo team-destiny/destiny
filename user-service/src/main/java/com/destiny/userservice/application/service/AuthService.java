@@ -18,7 +18,6 @@ import com.destiny.userservice.presentation.dto.response.UserLoginResponse;
 import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -148,7 +147,7 @@ public class AuthService {
     }
 
     private boolean needRotate(DecodedJWT refreshToken) {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         Duration remain = Duration.between(now, refreshToken.getExpiresAtAsInstant());
         long remainDays = remain.toDays();
 

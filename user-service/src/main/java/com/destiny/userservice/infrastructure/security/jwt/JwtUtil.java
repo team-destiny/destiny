@@ -50,9 +50,9 @@ public class JwtUtil {
     }
 
     public DecodedJWT verifyRefreshToken(String refreshToken) {
-        DecodedJWT decodedAccessJwt;
+        DecodedJWT decodedRefreshJwt;
         try {
-            decodedAccessJwt = JWT.require(algorithm())
+            decodedRefreshJwt = JWT.require(algorithm())
                 .build()
                 .verify(refreshToken);
         } catch (JWTVerificationException e) {
@@ -60,6 +60,6 @@ public class JwtUtil {
         } catch (IllegalArgumentException e) {
             throw new BizException(CommonErrorCode.INTERNAL_SERVER_ERROR);
         }
-        return decodedAccessJwt;
+        return decodedRefreshJwt;
     }
 }

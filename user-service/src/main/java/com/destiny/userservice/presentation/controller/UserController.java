@@ -58,21 +58,32 @@ public class UserController {
         UUID authUserId = customUserDetails.getUserId();
         UserRole authUserRole = UserRole.valueOf(customUserDetails.getUserRole());
 
-        UserGetResponse body = userService.uadateUser(authUserId, authUserRole, userId, userUpdateRequest);
+        UserGetResponse body = userService.updateUser(authUserId, authUserRole, userId, userUpdateRequest);
 
         return ApiResponse.success(CommonSuccessCode.OK, body);
     }
 
     @PostMapping("/{userId}/password")
-    public ApiResponse updatePassword(@PathVariable UUID userId, @Valid @RequestBody UserPasswordUpdateRequest userPasswordUpdateRequest) {
-        userService.updatePassword(userId, userPasswordUpdateRequest);
+    public ApiResponse updatePassword(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails,
+        @PathVariable UUID userId,
+        @Valid @RequestBody UserPasswordUpdateRequest userPasswordUpdateRequest) {
+        UUID authUserId = customUserDetails.getUserId();
+        UserRole authUserRole = UserRole.valueOf(customUserDetails.getUserRole());
+
+        userService.updatePassword(authUserId, authUserRole, userId, userPasswordUpdateRequest);
 
         return ApiResponse.success(CommonSuccessCode.OK);
     }
 
     @DeleteMapping("/{userId}")
-    public ApiResponse deleteUser(@PathVariable UUID userId) {
-        userService.deleteUser(userId);
+    public ApiResponse deleteUser(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails,
+        @PathVariable UUID userId) {
+        UUID authUserId = customUserDetails.getUserId();
+        UserRole authUserRole = UserRole.valueOf(customUserDetails.getUserRole());
+
+        userService.deleteUser(authUserId, authUserRole, userId);
 
         return ApiResponse.success(CommonSuccessCode.OK);
     }
