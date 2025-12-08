@@ -42,7 +42,7 @@ spring:
             - id: notification-service
               uri: lb://NOTIFICATION-SERVICE
               predicates:
-                - Path=/v*/notifications/**
+                - Path=/v*/brand-notifications/**
             - id: coupon-service
               uri: lb://COUPON-SERVICE
               predicates:
