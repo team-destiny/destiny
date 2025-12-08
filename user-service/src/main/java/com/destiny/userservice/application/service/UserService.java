@@ -10,7 +10,6 @@ import com.destiny.userservice.presentation.advice.UserErrorCode;
 import com.destiny.userservice.presentation.dto.request.UserPasswordUpdateRequest;
 import com.destiny.userservice.presentation.dto.request.UserUpdateRequest;
 import com.destiny.userservice.presentation.dto.response.UserGetResponse;
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +36,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserGetResponse uadateUser(UUID authUserId, UserRole authUserRole, UUID targetUserId, UserUpdateRequest userUpdateRequest) {
+    public UserGetResponse updateUser(UUID authUserId, UserRole authUserRole, UUID targetUserId, UserUpdateRequest userUpdateRequest) {
         validateAccess(authUserId, authUserRole, targetUserId);
         User user = userRepository.findByUserIdAndDeletedAtIsNull(targetUserId);
 
@@ -82,8 +81,8 @@ public class UserService {
     }
 
     @Transactional
-    public void updatePassword(UUID userId,
-        @Valid UserPasswordUpdateRequest userPasswordUpdateRequest) {
+    public void updatePassword(UUID authUserId, UserRole authUserRole, UUID userId, UserPasswordUpdateRequest userPasswordUpdateRequest) {
+        validateAccess(authUserId, authUserRole, userId);
         User user = userRepository.findByUserIdAndDeletedAtIsNull(userId);
 
         // 현재 비밀번호 검증
@@ -96,7 +95,8 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(UUID userId) {
+    public void deleteUser(UUID authUserId, UserRole authUserRole, UUID userId) {
+        validateAccess(authUserId, authUserRole, userId);
         User user = userRepository.findByUserIdAndDeletedAtIsNull(userId);
         user.markDeleted(userId);
         UserInfo userInfo = user.getUserInfo();
@@ -104,4 +104,5 @@ public class UserService {
             userInfo.markDeleted(userId);
         }
     }
+
 }
