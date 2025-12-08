@@ -10,7 +10,7 @@ public class PageingUtils {
     private static final int[] ALLOWED_SIZES = {10, 30, 50};
     private static final int DEFAULT_OFFSET = 0;
 
-    public static Pageable createPageable(int size, String sortBy, boolean isDescending) {
+    public static Pageable createPageable(int page, int size, String sortBy, boolean isDescending) {
 
         // 페이징 정책
         if (!isAllowedSize(size)) {
@@ -20,7 +20,7 @@ public class PageingUtils {
         // 정렬 정책
         Sort sort = createSort(sortBy,isDescending);
 
-        return PageRequest.of(DEFAULT_OFFSET, size, sort);
+        return PageRequest.of(page, size, sort);
     }
 
     // 페이징 정책. 10, 30, 50 단위로 페이징 가능
