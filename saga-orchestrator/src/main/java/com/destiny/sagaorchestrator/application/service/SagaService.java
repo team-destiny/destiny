@@ -124,6 +124,8 @@ public class SagaService {
     @Transactional
     public void stockReduceSuccess(StockReduceSuccessResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.STOCK_RESERVED);
+        saga.updateStatus(SagaStatus.PROGRESS);
 
         sagaProducer.sendCouponValidate(new CouponValidateCommand(saga.getCouponId(), saga.getOriginalAmount()));
     }
