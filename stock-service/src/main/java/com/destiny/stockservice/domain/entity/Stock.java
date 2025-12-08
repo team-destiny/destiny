@@ -1,6 +1,7 @@
 package com.destiny.stockservice.domain.entity;
 
 import com.destiny.global.entity.BaseEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Version;
@@ -21,6 +22,7 @@ public class Stock extends BaseEntity {
 
     private UUID productId;
 
+    @Column(nullable = false)
     private Integer quantity;
 
     @Version
