@@ -21,6 +21,10 @@ public class StockService {
             UUID productId = entry.getKey();
             Integer amount = entry.getValue();
 
+            if (amount == null) {
+                return false;
+            }
+
             Stock stock = stockRepository.findByProductId(productId)
                 .orElseThrow();
 
