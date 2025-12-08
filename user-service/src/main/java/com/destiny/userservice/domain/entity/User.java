@@ -62,20 +62,32 @@ public class User extends BaseEntity {
         user.userRole = (userRole == null ? UserRole.CUSTOMER : userRole);
         user.userStatus = UserStatus.ACTIVE;
 
-        boolean needUserInfo = user.userRole != UserRole.MASTER;
+        UserInfo userInfo = UserInfo.createUserInfo(
+            user,
+            nickname,
+            phone,
+            zipCode,
+            address1,
+            address2,
+            birth
+        );
+        user.userInfo = userInfo;
 
-        if (needUserInfo) {
-            UserInfo userInfo = UserInfo.createUserInfo(
-                user,
-                nickname,
-                phone,
-                zipCode,
-                address1,
-                address2,
-                birth
-            );
-            user.userInfo = userInfo;
-        }
+        return user;
+    }
+
+    public static User createMaster(
+        String username,
+        String password,
+        String email) {
+
+        User user = new User();
+
+        user.username = username;
+        user.password = password;
+        user.email = email;
+        user.userRole = UserRole.MASTER;
+        user.userStatus = UserStatus.ACTIVE;
 
         return user;
     }
