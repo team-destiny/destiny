@@ -44,6 +44,7 @@ public class SecurityConfig {
 
         httpSecurity.authorizeHttpRequests(authorize -> {
             // TODO : 접근 권한 부여
+            authorize.requestMatchers("/actuator/**").permitAll();
             authorize.anyRequest().authenticated();
         });
 
