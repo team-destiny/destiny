@@ -7,6 +7,7 @@ import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceItem;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent.OrderItemCreateRequestEvent;
@@ -91,7 +92,16 @@ public class SagaService {
         saga.updateStep(SagaStep.PRODUCT_VALIDATED);
         saga.updateStatus(SagaStatus.PROGRESS);
 
-        sagaProducer.sendStockReduce(new StockReduceCommand());
+        List<StockReduceItem> items = saga.getProductResults().values().stream()
+                .map(result -> new StockReduceItem(
+                    result.productId(),
+                    result.stock()
+                )).toList();
+
+        sagaProducer.sendStockReduce(new StockReduceCommand(
+            saga.getOrderId(),
+            items
+        ));
     }
 
     @Transactional
@@ -113,9 +123,9 @@ public class SagaService {
 
     @Transactional
     public void stockReduceSuccess(StockReduceSuccessResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
 
-
-        sagaProducer.sendCouponValidate(new CouponValidateCommand(null, null));
+        sagaProducer.sendCouponValidate(new CouponValidateCommand(saga.getCouponId(), saga.getOriginalAmount()));
     }
 
     @Transactional
