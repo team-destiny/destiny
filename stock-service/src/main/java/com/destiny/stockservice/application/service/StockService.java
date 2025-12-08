@@ -22,7 +22,8 @@ public class StockService {
             UUID productId = entry.getKey();
             Integer amount = entry.getValue();
 
-            Stock stock = stockRepository.findByProductId(productId);
+            Stock stock = stockRepository.findByProductId(productId)
+                .orElseThrow();
 
             if (stock.getQuantity() < amount) {
                 return false;
@@ -33,7 +34,8 @@ public class StockService {
             UUID productId = entry.getKey();
             Integer amount = entry.getValue();
 
-            Stock stock = stockRepository.findByProductId(productId);
+            Stock stock = stockRepository.findByProductId(productId)
+                .orElseThrow();
 
             stock.tryDecrease(amount);
         }
@@ -47,7 +49,8 @@ public class StockService {
             UUID productId = entry.getKey();
             Integer amount = entry.getValue();
 
-            Stock stock = stockRepository.findByProductId(productId);
+            Stock stock = stockRepository.findByProductId(productId)
+                .orElseThrow();
 
             if (stock == null) {
                 throw new IllegalStateException("롤백할 재고가 존재하지 않음: " + productId);
