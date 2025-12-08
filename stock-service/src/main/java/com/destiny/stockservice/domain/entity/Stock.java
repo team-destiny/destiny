@@ -26,12 +26,11 @@ public class Stock extends BaseEntity {
     @Version
     private Long version;
 
-    public boolean tryDecrease(Integer amount) {
+    public void tryDecrease(Integer amount) {
         if (quantity < amount) {
-            return false;
+            return;
         }
         quantity -= amount;
-        return true;
     }
 
     public void increase(Integer amount) {
