@@ -3,11 +3,12 @@ package com.destiny.stockservice.domain.entity;
 import com.destiny.global.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Version;
+
 
 @Entity
 @Getter
