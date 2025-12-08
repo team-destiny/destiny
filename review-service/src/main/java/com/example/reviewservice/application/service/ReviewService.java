@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewService {
 
     private final PageableArgumentResolver pageableArgumentResolver;
-    private ReviewRepository reviewRepository;
+    private final ReviewRepository reviewRepository;
 
     @Transactional
     public ReviewResponse createReview(@Valid ReviewCreateRequest reviewCreateRequest) {
