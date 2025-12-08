@@ -6,6 +6,7 @@ import com.destiny.userservice.application.service.AuthService;
 import com.destiny.userservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.userservice.presentation.advice.UserSuccessCode;
 import com.destiny.userservice.presentation.annotation.IssueTokens;
+import com.destiny.userservice.presentation.dto.request.MasterSignUpRequest;
 import com.destiny.userservice.presentation.dto.request.UserLoginRequest;
 import com.destiny.userservice.presentation.dto.request.UserSignUpRequest;
 import com.destiny.userservice.presentation.dto.response.UserLoginResponse;
@@ -32,22 +33,28 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Value("${server.port}")
-    private String serverPort;
-
     @Value("${message}")
     private String message;
 
     @GetMapping("/config-test")
     public String getConfig() {
-        return "Product detail from PORT : " + serverPort + " and message : " + this.message ;
+        return "config test message : " + this.message ;
     }
 
-    @PostMapping("/signup")
-    public ApiResponse<UserSignUpResponse> signUp(
+    @PostMapping("/signup/user")
+    public ApiResponse<UserSignUpResponse> userSignUp(
         @Valid @RequestBody UserSignUpRequest userSignUpRequest
     ) {
-        UserSignUpResponse body = authService.signUp(userSignUpRequest);
+        UserSignUpResponse body = authService.userSignUp(userSignUpRequest);
+
+        return ApiResponse.success(CommonSuccessCode.CREATED, body);
+    }
+
+    @PostMapping("/signup/master")
+    public ApiResponse<UserSignUpResponse> masterSignUp(
+        @Valid @RequestBody MasterSignUpRequest masterSignUpRequest
+    ) {
+        UserSignUpResponse body = authService.masterSignUp(masterSignUpRequest);
 
         return ApiResponse.success(CommonSuccessCode.CREATED, body);
     }

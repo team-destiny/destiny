@@ -12,6 +12,7 @@ import com.destiny.userservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.userservice.infrastructure.security.jwt.JwtUtil;
 import com.destiny.userservice.presentation.advice.UserErrorCode;
 import com.destiny.userservice.presentation.aop.TokenContextHolder;
+import com.destiny.userservice.presentation.dto.request.MasterSignUpRequest;
 import com.destiny.userservice.presentation.dto.request.UserLoginRequest;
 import com.destiny.userservice.presentation.dto.request.UserSignUpRequest;
 import com.destiny.userservice.presentation.dto.response.UserLoginResponse;
@@ -41,27 +42,47 @@ public class AuthService {
     private String masterAdminToken;   // 설정에서 주입
 
     @Transactional
-    public UserSignUpResponse signUp(UserSignUpRequest userSignUpRequest) {
+    public UserSignUpResponse userSignUp(UserSignUpRequest userSignUpRequest) {
         if(userRepository.existsByUsernameAndDeletedAtIsNull(userSignUpRequest.username())){
             throw new BizException(UserErrorCode.USER_ALREADY_EXISTS);
-        }
-
-        UserRole userRole = userSignUpRequest.userRole();
-        if(userRole == UserRole.MASTER){
-            validationAdminToken(userSignUpRequest.adminToken());
         }
 
         User user = User.createUser(
             userSignUpRequest.username()
             , passwordEncoder.encode(userSignUpRequest.password())
             , userSignUpRequest.email()
-            , userRole
+            , userSignUpRequest.userRole()
             , userSignUpRequest.nickname()
             , userSignUpRequest.phone()
             , userSignUpRequest.zipcode()
             , userSignUpRequest.address1()
             , userSignUpRequest.address2()
             , userSignUpRequest.birth()
+        );
+
+        User savedUser = userRepository.save(user);
+
+        log.info("회원가입 성공 - userId={}, username={}, role={}",
+            savedUser.getUserId(), savedUser.getUsername(), savedUser.getUserRole());
+
+        return UserSignUpResponse.of(savedUser);
+    }
+
+    @Transactional
+    public UserSignUpResponse masterSignUp(MasterSignUpRequest masterSignUpRequest) {
+        if(userRepository.existsByUsernameAndDeletedAtIsNull(masterSignUpRequest.username())){
+            throw new BizException(UserErrorCode.USER_ALREADY_EXISTS);
+        }
+
+        UserRole userRole = masterSignUpRequest.userRole();
+        if(userRole == UserRole.MASTER){
+            validationAdminToken(masterSignUpRequest.adminToken());
+        }
+
+        User user = User.createMaster(
+            masterSignUpRequest.username()
+            , passwordEncoder.encode(masterSignUpRequest.password())
+            , masterSignUpRequest.email()
         );
 
         User savedUser = userRepository.save(user);

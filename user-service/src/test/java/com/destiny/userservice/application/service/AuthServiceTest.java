@@ -11,8 +11,8 @@ import static org.mockito.Mockito.when;
 import com.destiny.global.exception.BizException;
 import com.destiny.userservice.domain.entity.User;
 import com.destiny.userservice.domain.entity.UserRole;
-import com.destiny.userservice.presentation.advice.UserErrorCode;
 import com.destiny.userservice.domain.repository.UserRepository;
+import com.destiny.userservice.presentation.advice.UserErrorCode;
 import com.destiny.userservice.presentation.dto.request.UserSignUpRequest;
 import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
 import java.time.LocalDate;
@@ -49,7 +49,6 @@ class AuthServiceTest {
         UserRole userRole,
         String adminToken
     ) {
-        // 네가 실제로 쓰는 record/DTO 생성자에 맞게 파라미터 맞춰줘
         return new UserSignUpRequest(
             username,
             password,
@@ -60,8 +59,7 @@ class AuthServiceTest {
             "01234",
             "서울시 어딘가 1길",
             "101동 1001호",
-            LocalDate.of(2000, 1, 1),
-            adminToken
+            LocalDate.of(2000, 1, 1)
         );
     }
 
@@ -82,7 +80,7 @@ class AuthServiceTest {
 
         //when
         BizException ex = assertThrows(BizException.class,
-            () -> authService.signUp(request));
+            () -> authService.userSignUp(request));
 
         //then
         assertEquals(UserErrorCode.USER_ALREADY_EXISTS, ex.getResponseCode());
@@ -106,7 +104,7 @@ class AuthServiceTest {
 
         // when
         BizException ex = assertThrows(BizException.class,
-            () -> authService.signUp(request));
+            () -> authService.userSignUp(request));
 
         // then
         assertEquals(UserErrorCode.INVALID_ADMIN_TOKEN, ex.getResponseCode());
@@ -136,7 +134,7 @@ class AuthServiceTest {
             .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        UserSignUpResponse response = authService.signUp(request);
+        UserSignUpResponse response = authService.userSignUp(request);
 
         // then
         assertNotNull(response);
