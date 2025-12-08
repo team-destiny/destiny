@@ -27,6 +27,10 @@ public class OrderClientService {
 
         OrderDetailResponse order = response.getData();
 
+        if(order == null) {
+            throw new BizException(ReviewErrorCode.ORDER_INFO_NOT_FOUND);
+        }
+
         // 주문자 == 현재 로그인 유저인지 확인
         if (!order.userId().equals(authUserId)) {
             throw new BizException(ReviewErrorCode.USER_NOT_ORDER_OWNER);
