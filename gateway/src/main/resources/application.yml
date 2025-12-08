@@ -1,72 +1,12 @@
-server:
-  port: 8080
-
 spring:
   application:
     name: gateway
-  data:
-    redis:
-      host: localhost
-      port: 5443
-      password: systempass
-      timeout: 2000
+  profiles:
+    active: dev
+  config:
+    import: "configserver:"
   cloud:
-    gateway:
-      server:
-        webflux:
-          routes:
-            - id: user-service
-              uri: lb://USER-SERVICE
-              predicates:
-                - Path=/v*/users/**, /v*/auths/**
-            - id: product-service
-              uri: lb://PRODUCT-SERVICE
-              predicates:
-                - Path=/v*/products/**
-            - id: stock-service
-              uri: lb://STOCK-SERVICE
-              predicates:
-                - Path=/v*/stocks/**
-            - id: order-service
-              uri: lb://ORDER-SERVICE
-              predicates:
-                - Path=/v*/orders/**
-            - id: brand-service
-              uri: lb://BRAND-SERVICE
-              predicates:
-                - Path=/v*/brands/**
-            - id: payment-service
-              uri: lb://PAYMENT-SERVICE
-              predicates:
-                - Path=/v*/payments/**
-            - id: notification-service
-              uri: lb://NOTIFICATION-SERVICE
-              predicates:
-                - Path=/v*/brand-notifications/**
-            - id: coupon-service
-              uri: lb://COUPON-SERVICE
-              predicates:
-                - Path=/v*/coupons/**
-            - id: review-service
-              uri: lb://REVIEW-SERVICE
-              predicates:
-                - Path=/v*/reviews/**
-            - id: cart-service
-              uri: lb://CART-SERVICE
-              predicates:
-                - Path=/v*/carts/**
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/  # Eureka 서버의 URL을 지정
-
-jwt:
-  secretKey: XVFkQby3tnqMa8MUDANspAtarbl1VZyT
-  #  access-expiration-millis: 1800000 # 30분
-  access-expiration-millis: 1209600000 # 14일
-  refresh-expiration-millis: 1209600000 # 14일
-  access-header-name: Authorization
-  refresh-cookie-name: X-Refresh-Token
-  header-prefix: Bearer
-  access-subject: AccessToken
-  refresh-subject: RefreshToken
+    config:
+      discovery:
+        enabled: true
+        service-id: config-server
