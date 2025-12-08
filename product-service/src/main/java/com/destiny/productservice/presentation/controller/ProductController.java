@@ -42,8 +42,6 @@ public class ProductController {
         @RequestParam(value = "color", required = false) String color,
         Pageable pageable) {
 
-        log.info("request accepted");
-
         Page<ProductResponse> pages = productQueryService.getProducts(
                 ProductSearch.of(minPrice, maxPrice, nameContains, brandId, size, color),
                 pageable
