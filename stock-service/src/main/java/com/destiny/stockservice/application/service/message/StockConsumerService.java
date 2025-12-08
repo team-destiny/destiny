@@ -17,7 +17,7 @@ public class StockConsumerService {
 
     private final StockService stockService;
 
-    @KafkaListener(groupId = "stock-group", topics = "stock.reduce.request")
+    @KafkaListener(groupId = "orchestrator", topics = "stock.reduce.request")
     public void consumeStockMessage(StockDecreaseCommand command) {
 
         boolean success = stockService.validateAndDecrease(command.orderedProducts());
@@ -36,7 +36,7 @@ public class StockConsumerService {
         }
     }
 
-    @KafkaListener(groupId = "stock-group", topics = "stock.reduce.rollback")
+    @KafkaListener(groupId = "orchestrator", topics = "stock.reduce.rollback")
     public void consumeStockRollbackMessage(StockRollbackCommand command) {
         stockService.rollbackQuantity(command.orderedProducts());
     }
