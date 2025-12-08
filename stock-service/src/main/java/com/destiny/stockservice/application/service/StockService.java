@@ -2,7 +2,6 @@ package com.destiny.stockservice.application.service;
 
 import com.destiny.stockservice.domain.entity.Stock;
 import com.destiny.stockservice.domain.repository.StockRepository;
-import jakarta.persistence.OptimisticLockException;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -51,10 +50,6 @@ public class StockService {
 
             Stock stock = stockRepository.findByProductId(productId)
                 .orElseThrow();
-
-            if (stock == null) {
-                throw new IllegalStateException("롤백할 재고가 존재하지 않음: " + productId);
-            }
 
             stock.increase(amount);
         }

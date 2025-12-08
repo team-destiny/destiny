@@ -1,6 +1,5 @@
 package com.destiny.stockservice.application.service.message;
 
-import com.destiny.stockservice.application.dto.StockDecreaseCommand;
 import com.destiny.stockservice.application.dto.StockDecreaseFail;
 import com.destiny.stockservice.application.dto.StockDecreaseSuccess;
 import lombok.RequiredArgsConstructor;
