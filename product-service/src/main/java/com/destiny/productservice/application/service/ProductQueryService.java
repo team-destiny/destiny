@@ -30,9 +30,10 @@ public class ProductQueryService {
 
     private final ElasticsearchOperations elasticsearchOperations;
 
-    public ProductResponse getProductById(UUID productId) {
+    public ProductResponse getProductByBrandIdAndId(UUID brandId, UUID productId) {
 
-        ProductView productView = productQueryRepository.findById(productId)
+        ProductView productView = productQueryRepository
+            .findByBrandIdAndId(brandId, productId)
             .orElseThrow();
 
         return ProductResponse.of(productView);
@@ -42,7 +43,8 @@ public class ProductQueryService {
 
         NativeQuery query = buildSearchQuery(search, pageable);
 
-        SearchHits<ProductView> hits = elasticsearchOperations.search(query, ProductView.class);
+        SearchHits<ProductView> hits = elasticsearchOperations
+            .search(query, ProductView.class);
 
         return toPage(hits, pageable).map(ProductResponse::of);
     }

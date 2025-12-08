@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/products")
+@RequestMapping("/v1/products")
 public class ProductController {
 
     private final ProductCommandService productCommandService;
@@ -48,41 +48,47 @@ public class ProductController {
         return ResponseEntity.ok(pages);
     }
 
-    @GetMapping("/{productId}")
+    @GetMapping("/{brandId}/{productId}")
     public ResponseEntity<ProductResponse> getProductById(
-        @PathVariable("productId") UUID productId) {
+        @PathVariable UUID brandId,
+        @PathVariable UUID productId) {
 
-        ProductResponse response = productQueryService.getProductById(productId);
+        ProductResponse response = productQueryService
+            .getProductByBrandIdAndId(brandId, productId);
 
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping
+    @PostMapping("/{brandId}")
     public ResponseEntity<ProductResponse> createProduct(
+        @PathVariable UUID brandId,
         @RequestBody CreateProductRequest request) {
 
-        ProductResponse response = productCommandService.createProduct(request);
+        ProductResponse response = productCommandService
+            .createProduct(brandId, request);
 
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/{productId}")
+    @PatchMapping("/{brandId}/{productId}")
     public ResponseEntity<Void> updateProduct(
-        @PathVariable("productId")  UUID productId,
+        @PathVariable UUID brandId,
+        @PathVariable UUID productId,
         @RequestBody UpdateProductRequest request) {
 
-        productCommandService.updateProduct(productId, request);
+        productCommandService.updateProduct(brandId, productId, request);
 
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{productId}")
+    @DeleteMapping("/{brandId}/{productId}")
     public ResponseEntity<Void> deleteProductById(
-        @PathVariable("productId") UUID productId) {
+        @PathVariable UUID brandId,
+        @PathVariable UUID productId) {
 
         // TODO 유저 아이디 추가 필요
 
-        productCommandService.deleteProduct(productId);
+        productCommandService.deleteProduct(brandId, productId);
 
         return ResponseEntity.noContent().build();
     }
