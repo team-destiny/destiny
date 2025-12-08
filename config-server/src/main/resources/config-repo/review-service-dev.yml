@@ -1,0 +1,9 @@
+server:
+  port: 18160
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5440/review_db
+    username: root
+    password: 1234

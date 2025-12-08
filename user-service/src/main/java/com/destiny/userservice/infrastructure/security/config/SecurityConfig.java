@@ -47,6 +47,8 @@ public class SecurityConfig {
 
         httpSecurity.authorizeHttpRequests(authorize -> {
             authorize.requestMatchers("/v1/auths/**").permitAll();
+            // config-server 실시간 구성 변경
+            authorize.requestMatchers("/actuator/**").permitAll();
             authorize.anyRequest().authenticated();
         });
 
