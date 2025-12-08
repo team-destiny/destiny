@@ -1,6 +1,7 @@
 package com.destiny.productservice.application.service;
 
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.json.JsonData;
@@ -51,11 +52,11 @@ public class ProductQueryService {
 
     private NativeQuery buildSearchQuery(ProductSearch search, Pageable pageable) {
 
-        BoolQuery.Builder bool = QueryBuilders.bool();
+        Builder bool = QueryBuilders.bool();
 
         addPriceFilter(search.minPrice(), search.maxPrice(), bool);
-        addNameContainsCondition(search.nameContains(), bool);
-        addBrandFilter(search.brandId().toString(), bool);
+        addNameContainsFilter(search.nameContains(), bool);
+        addBrandFilter(search.brandId(), bool);
         addSizeFilter(search.size(), bool);
         addColorFilter(search.color(), bool);
 
@@ -101,27 +102,28 @@ public class ProductQueryService {
         }
     }
 
-    private void addBrandFilter(String brand, BoolQuery.Builder boolQuery) {
-        if (brand != null && !brand.isBlank()) {
-            boolQuery.filter(
-                QueryBuilders.term()
-                    .field("brand.keyword")
-                    .value(brand)
-                    .build()
-                    ._toQuery()
-            );
+    private void addBrandFilter(UUID brandId, BoolQuery.Builder boolQuery) {
+
+        if (brandId == null) {
+            return;
         }
+
+        boolQuery.filter(
+            QueryBuilders.term()
+                .field("brand.keyword")
+                .value(brandId.toString())
+                .build()
+                ._toQuery()
+        );
     }
 
-    private void addNameContainsCondition(String nameContains, BoolQuery.Builder boolQuery) {
+    private void addNameContainsFilter(String nameContains, BoolQuery.Builder bool) {
         if (nameContains != null && !nameContains.isBlank()) {
 
-            String keyword = "*%s*".formatted(nameContains);
-
-            boolQuery.must(
-                QueryBuilders.queryString()
-                    .fields("name")
-                    .query(keyword)
+            bool.must(
+                QueryBuilders.wildcard()
+                    .field("name.keyword")
+                    .value("*" + nameContains + "*")
                     .build()
                     ._toQuery()
             );
