@@ -23,16 +23,16 @@ public class ProductCommandService {
     private final ProductProducerService productProducerService;
 
     @Transactional
-    public ProductResponse createProduct(CreateProductRequest request) {
+    public ProductResponse createProduct(UUID brandId, CreateProductRequest request) {
 
-        if (productCommandRepository.existsByNameAndBrandId(request.name(), request.brandId())) {
+        if (productCommandRepository.existsByBrandIdAndName(brandId, request.name())) {
             throw new IllegalArgumentException();
         }
 
         Product product = Product.of(
             request.name(),
             request.price(),
-            request.brandId(),
+            brandId,
             request.color(),
             request.size()
         );
@@ -55,14 +55,15 @@ public class ProductCommandService {
     }
 
     @Transactional
-    public void updateProduct(UUID productId, UpdateProductRequest request) {
+    public void updateProduct(UUID brandId, UUID productId, UpdateProductRequest request) {
 
-        Product product = productCommandRepository.findById(productId).orElseThrow();
+        Product product = productCommandRepository.findByBrandIdAndId(brandId, productId)
+            .orElseThrow();
 
         product.update(
             request.name(),
             request.price(),
-            request.brandId(),
+            brandId,
             request.status(),
             request.color(),
             request.size()
@@ -82,9 +83,11 @@ public class ProductCommandService {
     }
 
     @Transactional
-    public void deleteProduct(UUID productId) {
+    public void deleteProduct(UUID brandId, UUID productId) {
 
-        Product product = productCommandRepository.findById(productId).orElseThrow();
+        Product product = productCommandRepository
+            .findByBrandIdAndId(brandId, productId)
+            .orElseThrow();
 
         // TODO UserDetails 파라미터 필요, 소프트 딜리트 처리
 

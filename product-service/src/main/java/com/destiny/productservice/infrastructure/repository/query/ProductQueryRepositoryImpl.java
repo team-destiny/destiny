@@ -22,4 +22,9 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
     public ProductView save(ProductView productView) {
         return elasticsearchRepository.save(productView);
     }
+
+    @Override
+    public Optional<ProductView> findByBrandIdAndId(UUID brandId, UUID productId) {
+        return elasticsearchRepository.findByBrandIdAndId(brandId, productId);
+    }
 }

@@ -31,8 +31,8 @@ public class ProductCommandRepositoryImpl implements ProductCommandRepository {
     }
 
     @Override
-    public boolean existsByNameAndBrandId(String name, UUID brandId) {
-        return productCommandJpaRepository.existsByNameAndBrandId(name , brandId);
+    public boolean existsByBrandIdAndName(UUID brandId, String name) {
+        return productCommandJpaRepository.existsByBrandIdAndName(brandId, name);
     }
 
     @Override
@@ -43,6 +43,11 @@ public class ProductCommandRepositoryImpl implements ProductCommandRepository {
     @Override
     public List<Product> findByIdIn(List<UUID> productIds) {
         return productCommandJpaRepository.findByIdIn(productIds);
+    }
+
+    @Override
+    public Optional<Product> findByBrandIdAndId(UUID brandId, UUID productId) {
+        return productCommandJpaRepository.findByBrandIdAndId(brandId, productId);
     }
 
 }
