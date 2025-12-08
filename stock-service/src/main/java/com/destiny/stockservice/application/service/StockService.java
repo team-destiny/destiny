@@ -1,8 +1,9 @@
 package com.destiny.stockservice.application.service;
 
+import com.destiny.stockservice.application.dto.StockReduceItem;
 import com.destiny.stockservice.domain.entity.Stock;
 import com.destiny.stockservice.domain.repository.StockRepository;
-import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,13 +16,14 @@ public class StockService {
     private final StockRepository stockRepository;
 
     @Transactional
-    public boolean validateAndDecrease(Map<UUID, Integer> orderedProducts) {
+    public boolean validateAndDecrease(List<StockReduceItem> items) {
 
-        for (Map.Entry<UUID, Integer> entry : orderedProducts.entrySet()) {
-            UUID productId = entry.getKey();
-            Integer amount = entry.getValue();
+        for (StockReduceItem item : items) {
 
-            if (amount == null) {
+            UUID productId = item.productId();
+            Integer amount = item.stock();
+
+            if (amount == null || amount <= 0) {
                 return false;
             }
 
@@ -33,9 +35,10 @@ public class StockService {
             }
         }
 
-        for (Map.Entry<UUID, Integer> entry : orderedProducts.entrySet()) {
-            UUID productId = entry.getKey();
-            Integer amount = entry.getValue();
+        for (StockReduceItem item : items) {
+
+            UUID productId = item.productId();
+            Integer amount = item.stock();
 
             Stock stock = stockRepository.findByProductId(productId)
                 .orElseThrow();
@@ -47,10 +50,16 @@ public class StockService {
     }
 
     @Transactional
-    public void rollbackQuantity(Map<UUID, Integer> orderedProducts) {
-        for (Map.Entry<UUID, Integer> entry : orderedProducts.entrySet()) {
-            UUID productId = entry.getKey();
-            Integer amount = entry.getValue();
+    public void rollbackQuantity(List<StockReduceItem> items) {
+
+        for (StockReduceItem item : items) {
+
+            UUID productId = item.productId();
+            Integer amount = item.stock();
+
+            if (amount == null || amount < 0) {
+                continue;
+            }
 
             Stock stock = stockRepository.findByProductId(productId)
                 .orElseThrow();
