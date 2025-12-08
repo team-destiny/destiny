@@ -40,7 +40,7 @@ public class StockService {
             Stock stock = stockRepository.findByProductId(productId)
                 .orElseThrow();
 
-            stock.tryDecrease(amount);
+            stock.tryReduceQuantity(amount);
         }
 
         return true;
@@ -55,7 +55,7 @@ public class StockService {
             Stock stock = stockRepository.findByProductId(productId)
                 .orElseThrow();
 
-            stock.increase(amount);
+            stock.addQuantity(amount);
         }
     }
 }

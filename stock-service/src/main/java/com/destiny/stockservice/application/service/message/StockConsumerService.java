@@ -1,8 +1,8 @@
 package com.destiny.stockservice.application.service.message;
 
-import com.destiny.stockservice.application.dto.StockDecreaseCommand;
-import com.destiny.stockservice.application.dto.StockDecreaseFail;
-import com.destiny.stockservice.application.dto.StockDecreaseSuccess;
+import com.destiny.stockservice.application.dto.StockReduceCommand;
+import com.destiny.stockservice.application.dto.StockReduceFail;
+import com.destiny.stockservice.application.dto.StockReduceSuccess;
 import com.destiny.stockservice.application.dto.StockRollbackCommand;
 import com.destiny.stockservice.application.service.StockService;
 import lombok.RequiredArgsConstructor;
@@ -17,26 +17,26 @@ public class StockConsumerService {
 
     private final StockService stockService;
 
-    @KafkaListener(groupId = "orchestrator", topics = "stock.reduce.request")
-    public void consumeStockMessage(StockDecreaseCommand command) {
+    @KafkaListener(groupId = "orchestrator", topics = "stock-reduce-request")
+    public void consumeStockMessage(StockReduceCommand command) {
 
         boolean success = stockService.validateAndDecrease(command.orderedProducts());
 
         if (success) {
-            stockProducerService.sendStockDecreaseSuccess(
-                new StockDecreaseSuccess(
+            stockProducerService.sendStockReduceSuccess(
+                new StockReduceSuccess(
                     command.orderId(),
                     command.orderedProducts()
                 )
             );
         } else {
-            stockProducerService.sendStockDecreaseFail(
-                new StockDecreaseFail(command.orderId())
+            stockProducerService.sendStockReduceFail(
+                new StockReduceFail(command.orderId())
             );
         }
     }
 
-    @KafkaListener(groupId = "orchestrator", topics = "stock.reduce.rollback")
+    @KafkaListener(groupId = "orchestrator", topics = "stock-reduce-rollback")
     public void consumeStockRollbackMessage(StockRollbackCommand command) {
         stockService.rollbackQuantity(command.orderedProducts());
     }
