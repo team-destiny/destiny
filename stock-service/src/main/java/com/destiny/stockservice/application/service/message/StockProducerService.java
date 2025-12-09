@@ -24,6 +24,6 @@ public class StockProducerService {
     @SneakyThrows
     public void sendStockReduceFail(StockReduceFail stockReduceFail) {
         String message = objectMapper.writeValueAsString(stockReduceFail);
-        kafkaTemplate.send("stock-decrease-fail", message);
+        kafkaTemplate.send("stock-reduce-fail", message);
     }
 }
