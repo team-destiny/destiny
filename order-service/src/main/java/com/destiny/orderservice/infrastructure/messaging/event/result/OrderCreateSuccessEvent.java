@@ -16,8 +16,8 @@ public record OrderCreateSuccessEvent(
     public record OrderItem(
         UUID productId,
         UUID brandId,
-        UUID price,
-        UUID stock
+        Integer price,
+        Integer stock
     ) {
 
 
