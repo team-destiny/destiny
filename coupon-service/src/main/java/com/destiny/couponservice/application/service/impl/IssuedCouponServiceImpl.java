@@ -266,6 +266,7 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
 
             // 5) 성공 이벤트 발행
             CouponValidateSuccessEvent event = CouponValidateSuccessEvent.builder()
+                .orderId(command.orderId())
                 .couponId(couponId)
                 .finalAmount(finalAmount)
                 .build();
@@ -275,6 +276,7 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
         } catch (BizException e) {
             // 실패 이벤트 발행
             CouponValidateFailEvent failEvent = CouponValidateFailEvent.builder()
+                .orderId(command.orderId())
                 .couponId(couponId)
                 .errorCode(e.getResponseCode().getCode())
                 .errorMessage(e.getMessage())
