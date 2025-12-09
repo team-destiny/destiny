@@ -3,7 +3,7 @@ spring:
     name: stock-service
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5434/stock
+    url: jdbc:postgresql://localhost:5434/stock_db
     username: root
     password: 1234
   jpa:
