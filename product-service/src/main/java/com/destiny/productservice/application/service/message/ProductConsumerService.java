@@ -11,7 +11,6 @@ import com.destiny.productservice.domain.entity.ProductStatus;
 import com.destiny.productservice.domain.entity.ProductView;
 import com.destiny.productservice.domain.repository.ProductCommandRepository;
 import com.destiny.productservice.domain.repository.ProductQueryRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +18,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
@@ -39,13 +39,17 @@ public class ProductConsumerService {
     private final ProductProducerService productProducerService;
     private final ObjectMapper objectMapper;
 
+    @SneakyThrows
     @KafkaListener(groupId = "product-group", topics = "product.after.create")
     @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
-    public void consumeCreateProductMessage(ProductMessage message,
+    public void consumeCreateProductMessage(String productMessage,
         @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
         @Header(name = RetryTopicHeaders.DEFAULT_HEADER_ATTEMPTS, required = false) Integer attempt
     ) {
+
+        ProductMessage message = objectMapper
+            .readValue(productMessage, ProductMessage.class);
 
         log.info("상품 생성 메세지를 소비했습니다. productId={} topic={}, attempt={}",
             message.id(),
@@ -70,13 +74,17 @@ public class ProductConsumerService {
         }
     }
 
+    @SneakyThrows
     @KafkaListener(groupId = "product-group", topics = "product.after.update")
     @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
-    public void consumeUpdateProductMessage(ProductMessage message,
+    public void consumeUpdateProductMessage(String productMessage,
         @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
         @Header(name = RetryTopicHeaders.DEFAULT_HEADER_ATTEMPTS, required = false) Integer attempt
     ) {
+
+        ProductMessage message = objectMapper
+            .readValue(productMessage, ProductMessage.class);
 
         log.info("상품 수정 메세지를 소비했습니다. productId = {} topic = {}, attempt = {}",
             message.id(),
@@ -111,28 +119,25 @@ public class ProductConsumerService {
 
     }
 
+    @SneakyThrows
     @KafkaListener(groupId= "product-group", topics = "product-validate-request")
     @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional(readOnly = true)
     public void consumeProductValidateRequest(String message) {
 
-        try {
-            ProductValidationCommand event = objectMapper.readValue(message,
-                ProductValidationCommand.class);
+        ProductValidationCommand event = objectMapper.readValue(message,
+            ProductValidationCommand.class);
 
-            List<UUID> productIds = event.productIds();
+        List<UUID> productIds = event.productIds();
 
-            List<Product> availableProducts = getAvailableProducts(productIds);
+        List<Product> availableProducts = getAvailableProducts(productIds);
 
-            if (availableProducts.size() == productIds.size()) {
-                handleValidationSuccess(event.orderId(), availableProducts);
-                return;
-            }
-
-            handleValidationFail(event.orderId(), productIds, availableProducts);
-        } catch (JsonProcessingException e) {
-
+        if (availableProducts.size() == productIds.size()) {
+            handleValidationSuccess(event.orderId(), availableProducts);
+            return;
         }
+
+        handleValidationFail(event.orderId(), productIds, availableProducts);
 
     }
 
