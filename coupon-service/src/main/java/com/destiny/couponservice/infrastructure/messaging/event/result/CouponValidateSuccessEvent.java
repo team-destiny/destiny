@@ -5,6 +5,7 @@ import lombok.Builder;
 
 @Builder
 public record CouponValidateSuccessEvent(
+    UUID orderId,
     UUID couponId,
     Integer finalAmount
 ) {
