@@ -1,5 +1,6 @@
 package com.destiny.sagaorchestrator.infrastructure.messaging.producer;
 
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CartClearCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
@@ -70,6 +71,19 @@ public class SagaProducer {
         } catch (JsonProcessingException e) {
 
             log.error("send failed -> payment confirm request {}" , e.getMessage());
+        }
+    }
+
+    public void sendCartClear(CartClearCommand event) {
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("cart-clear-request", message);
+            log.info("send success -> cart clear send success {}", message);
+
+        } catch (JsonProcessingException e) {
+
+            log.error("send failed -> cart-clear request {}" , e.getMessage());
         }
     }
 
