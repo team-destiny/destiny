@@ -1,0 +1,14 @@
+server:
+  port: 18150
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5439/coupon_db
+    username: root
+    password: 1234
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: coupon-service
