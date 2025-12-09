@@ -4,6 +4,7 @@ import com.destiny.sagaorchestrator.domain.entity.SagaState;
 import com.destiny.sagaorchestrator.domain.entity.SagaStatus;
 import com.destiny.sagaorchestrator.domain.entity.SagaStep;
 import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CartClearCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
@@ -31,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.View;
 
 @Service
 @Slf4j
@@ -39,6 +41,7 @@ public class SagaService {
 
     private final SagaRepository sagaRepository;
     private final SagaProducer sagaProducer;
+    private final View error;
 
     @Transactional
     public void createSaga(OrderCreateRequestEvent event) {
@@ -70,7 +73,8 @@ public class SagaService {
             .map(OrderItemCreateRequestEvent::productId)
             .toList();
 
-        sagaProducer.sendProductValidate(new ProductValidationCommand(saga.getOrderId(), productIds));
+        sagaProducer.sendProductValidate(
+            new ProductValidationCommand(saga.getOrderId(), productIds));
     }
 
     @Transactional
@@ -92,17 +96,17 @@ public class SagaService {
         }
 
         Integer totalAmount = saga.getProductResults().values().stream()
-                .mapToInt(item -> item.price() * item.stock()).sum();
+            .mapToInt(item -> item.price() * item.stock()).sum();
 
         saga.updateOriginalAmount(totalAmount);
         saga.updateStep(SagaStep.PRODUCT_VALIDATED);
         saga.updateStatus(SagaStatus.PROGRESS);
 
         List<StockReduceItem> items = saga.getProductResults().values().stream()
-                .map(result -> new StockReduceItem(
-                    result.productId(),
-                    result.stock()
-                )).toList();
+            .map(result -> new StockReduceItem(
+                result.productId(),
+                result.stock()
+            )).toList();
 
         sagaProducer.sendStockReduce(new StockReduceCommand(
             saga.getOrderId(),
@@ -142,7 +146,8 @@ public class SagaService {
                     saga.getOriginalAmount()));
         }
 
-        sagaProducer.sendPaymentRequest(new PaymentCreateCommand(saga.getOrderId(), saga.getUserId(), saga.getFinalAmount()));
+        sagaProducer.sendPaymentRequest(
+            new PaymentCreateCommand(saga.getOrderId(), saga.getUserId(), saga.getFinalAmount()));
 
     }
 
@@ -153,6 +158,15 @@ public class SagaService {
         saga.updateStatus(SagaStatus.FAILED);
         saga.updateFailureStep("STOCK");
         saga.updateFailureReason("재고 차감 실패(재고 부족)");
+
+        sendOrderCreateFailMessage(
+            event,
+            saga,
+            "해당 상품 재고가 부족합니다.",
+            "SAS-001",
+            "STOCK-SERVICE"
+        );
+
         sagaProducer.sendOrderFailed(new OrderCreateFailedEvent(
             saga.getSagaId(),
             saga.getOrderId(),
@@ -173,7 +187,8 @@ public class SagaService {
         saga.updateDiscountAmount(saga.getOriginalAmount() - event.finalAmount());
 
         // TODO : 결제 생성 요청 이벤트 발행
-        sagaProducer.sendPaymentRequest(new PaymentCreateCommand(saga.getOrderId(), saga.getUserId(), saga.getFinalAmount()));
+        sagaProducer.sendPaymentRequest(
+            new PaymentCreateCommand(saga.getOrderId(), saga.getUserId(), saga.getFinalAmount()));
     }
 
     @Transactional
@@ -184,26 +199,28 @@ public class SagaService {
         saga.updateFailureReason(event.errorMessage());
         saga.updateFailureStep("COUPON");
 
-        sagaProducer.sendOrderFailed(new OrderCreateFailedEvent(
-            saga.getSagaId(),
-            event.orderId(),
-            "쿠폰 적용하기 실패",
+        sendOrderCreateFailMessage(
+            event,
+            saga,
+            "유효한 쿠폰이 아닙니다.",
             "SAC-001",
-            "COUPON-SERVICE"
-        ));
+            "COUPON-SERVICE");
     }
 
     // TODO : 결제
+
     @Transactional
     public void paymentSuccess(PaymentConfirmSuccessResult event) {
 
-        log.info("ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ결제 서비스 -> 사가 서비스 결제 생성 성공 요청 로직 실행ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ");
-
-        // TODO: 결제 생성 성공 시 장바구니 비우는 토픽 발행
-
-        // TODO: 결제 생성 성공 시 주문 서비스로 주문 프로세스 완료 토픽 발행
-
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
+
+        log.info(
+            "ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ결제 서비스 -> 사가 서비스 결제 생성 성공 요청 로직 실행ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ");
+
+        if (saga.getCartId() != null) {
+            sagaProducer.sendCartClear(new CartClearCommand(saga.getCartId()));
+        }
+
         List<OrderItem> items = saga.getProductResults().values().stream()
             .map(r -> new OrderItem(
                 r.productId(),
@@ -227,5 +244,21 @@ public class SagaService {
     @Transactional
     public void paymentFailure(PaymentConfirmFailResult event) {
 
+    }
+
+    private void sendOrderCreateFailMessage(
+        Object event,
+        SagaState saga,
+        String failReason,
+        String errorCode,
+        String failedService
+    ) {
+        sagaProducer.sendOrderFailed(new OrderCreateFailedEvent(
+            saga.getSagaId(),
+            saga.getOrderId(),
+            failReason,
+            errorCode,
+            failedService
+        ));
     }
 }
