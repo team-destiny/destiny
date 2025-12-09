@@ -1,6 +1,7 @@
 package com.destiny.sagaorchestrator.infrastructure.messaging.producer;
 
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
@@ -58,10 +59,18 @@ public class SagaProducer {
         }
     }
 
+    public void sendPaymentRequest(PaymentCreateCommand event) {
 
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("payment-confirm-request", message);
+            log.info("send success -> payment confirm request {}", message);
 
-    // TODO : 결제 요청
+        } catch (JsonProcessingException e) {
 
+            log.error("send failed -> payment confirm request {}" , e.getMessage());
+        }
+    }
 
     /**
      *
