@@ -32,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final PaymentProducer paymentValidateProducer;
+    private final PaymentProducer paymentProducer;
 
     // =======================================================
     // 1. 결제 요청 (PENDING 생성)
@@ -107,7 +107,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .orderId(request.orderId())
                 .build();
 
-            paymentValidateProducer.sendSuccess(event);
+            paymentProducer.sendSuccess(event);
         } catch (BizException e) {
             PaymentFailEvent failEvent = PaymentFailEvent.builder()
                 .orderId(request.orderId())
@@ -116,7 +116,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
 
             try {
-                paymentValidateProducer.sendFail(failEvent);
+                paymentProducer.sendFail(failEvent);
             } catch (Exception sendEx) {
                 log.error("[handlePaymentValidate] sendFail 실패 - 수동 개입 필요: orderId={}", request.orderId(), sendEx);
             }

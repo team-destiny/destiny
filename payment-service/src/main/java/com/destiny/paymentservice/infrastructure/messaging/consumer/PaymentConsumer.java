@@ -18,13 +18,13 @@ public class PaymentConsumer {
     private final PaymentService paymentService;
 
     @KafkaListener(topics = "payment-confirm-request", groupId = "payment-service")
-    public void onPaymentValidate(String message) {
+    public void onPayment(String message) {
         try {
-            log.info("[PaymentValidateConsumer] Received: {}", message);
+            log.info("[PaymentConsumer] Received: {}", message);
             PaymentCommand command = objectMapper.readValue(message, PaymentCommand.class);
             paymentService.requestPayment(command);
         } catch (JsonProcessingException e) {
-            log.error("[PaymentValidateConsumer] JSON 파싱 오류 - 메시지 무시: {}", message, e);
+            log.error("[PaymentConsumer] JSON 파싱 오류 - 메시지 무시: {}", message, e);
         }
     }
 }
