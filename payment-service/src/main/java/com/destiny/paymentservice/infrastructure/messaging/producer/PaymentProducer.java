@@ -26,7 +26,7 @@ public class PaymentProducer {
 
             kafkaTemplate.send(SUCCESS_TOPIC, json).get(5, TimeUnit.SECONDS);
 
-            log.info("[PaymentValidateProducer] success: {}", json);
+            log.info("[PaymentProducer] success: {}", json);
         } catch (Exception e) {
             log.error("Failed to send payment-confirm-success: {}", e.getMessage(), e);
             throw new RuntimeException("Kafka 전송 실패 - payment-confirm-success", e);
@@ -40,7 +40,7 @@ public class PaymentProducer {
 
             kafkaTemplate.send(FAIL_TOPIC, json).get(5, TimeUnit.SECONDS);
 
-            log.info("[PaymentValidateProducer] fail: {}", json);
+            log.info("[PaymentProducer] fail: {}", json);
         } catch (Exception e) {
             log.error("Failed to send payment-confirm-fail: {}", e.getMessage(), e);
             throw new RuntimeException("Kafka 전송 실패 - payment-confirm-fail", e);
