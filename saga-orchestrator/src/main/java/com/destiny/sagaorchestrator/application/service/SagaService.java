@@ -10,6 +10,7 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.Payme
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceItem;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.SuccessSendCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent.OrderItem;
@@ -80,6 +81,8 @@ public class SagaService {
     @Transactional
     public void productValidateSuccess(ProductValidationSuccessResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.PRODUCT_VALIDATION_SUCCESS);
+        saga.updateStatus(SagaStatus.PROGRESS);
 
         for (ProductValidationMessageResult msg : event.messages()) {
             ProductValidationResult old = saga.getProductResults().get(msg.productId());
@@ -99,8 +102,6 @@ public class SagaService {
             .mapToInt(item -> item.price() * item.stock()).sum();
 
         saga.updateOriginalAmount(totalAmount);
-        saga.updateStep(SagaStep.PRODUCT_VALIDATED);
-        saga.updateStatus(SagaStatus.PROGRESS);
 
         List<StockReduceItem> items = saga.getProductResults().values().stream()
             .map(result -> new StockReduceItem(
@@ -117,26 +118,24 @@ public class SagaService {
     @Transactional
     public void productValidateFailure(ProductValidateFailResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
-        saga.updateStep(SagaStep.PRODUCT_VALIDATION);
+        saga.updateStep(SagaStep.PRODUCT_VALIDATION_FAIL);
         saga.updateStatus(SagaStatus.FAILED);
         saga.updateFailureReason(event.message());
-        saga.updateFailureStep("PRODUCT");
 
         // TODO : (주문 실패) 슬랙 서비스 쪽으로 메시지 발행 (주문 아이디, 주문자 아이디, 주문 실패한 이유등)
-
-        sagaProducer.sendOrderFailed(new OrderCreateFailedEvent(
-            saga.getSagaId(),
-            saga.getOrderId(),
-            "상품 데이터 가져오기 실패",
+        sendOrderCreateFailMessage(
+            event,
+            saga,
+            "유효하지 않은 상품입니다.",
             "SAP-001",
-            "PRODUCT-SERVICE"
-        ));
+            "PRODUCT-SERVICE");
+
     }
 
     @Transactional
     public void stockReduceSuccess(StockReduceSuccessResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
-        saga.updateStep(SagaStep.STOCK_RESERVED);
+        saga.updateStep(SagaStep.STOCK_REDUCE_SUCCESS);
         saga.updateStatus(SagaStatus.PROGRESS);
         saga.updateFinalAmount(saga.getOriginalAmount());
 
@@ -154,9 +153,8 @@ public class SagaService {
     @Transactional
     public void stockReduceFailure(StockReduceFailResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
-        saga.updateStep(SagaStep.STOCK_RESERVATION);
+        saga.updateStep(SagaStep.STOCK_REDUCE_FAIL);
         saga.updateStatus(SagaStatus.FAILED);
-        saga.updateFailureStep("STOCK");
         saga.updateFailureReason("재고 차감 실패(재고 부족)");
 
         sendOrderCreateFailMessage(
@@ -166,14 +164,6 @@ public class SagaService {
             "SAS-001",
             "STOCK-SERVICE"
         );
-
-        sagaProducer.sendOrderFailed(new OrderCreateFailedEvent(
-            saga.getSagaId(),
-            saga.getOrderId(),
-            "상품 재고 차감 실패",
-            "SAS-001",
-            "STOCK-SERVICE"
-        ));
     }
 
     // TODO : 쿠폰 검증 및 쿠폰 할인율 가지고 오기
@@ -181,7 +171,7 @@ public class SagaService {
     public void couponUseSuccess(CouponUseSuccessResult event) {
 
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
-        saga.updateStep(SagaStep.COUPON_VALIDATED);
+        saga.updateStep(SagaStep.COUPON_VALIDATION_SUCCESS);
         saga.updateStatus(SagaStatus.PROGRESS);
         saga.updateFinalAmount(event.finalAmount());
         saga.updateDiscountAmount(saga.getOriginalAmount() - event.finalAmount());
@@ -194,10 +184,9 @@ public class SagaService {
     @Transactional
     public void couponUseFailure(CouponUseFailResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
-        saga.updateStep(SagaStep.COUPON_VALIDATION);
+        saga.updateStep(SagaStep.COUPON_VALIDATION_FAIL);
         saga.updateStatus(SagaStatus.FAILED);
         saga.updateFailureReason(event.errorMessage());
-        saga.updateFailureStep("COUPON");
 
         sendOrderCreateFailMessage(
             event,
@@ -211,8 +200,9 @@ public class SagaService {
 
     @Transactional
     public void paymentSuccess(PaymentConfirmSuccessResult event) {
-
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStatus(SagaStatus.COMPLETED);
+        saga.updateStep(SagaStep.ORDER_CREATE_SUCCESS);
 
         log.info(
             "ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ결제 서비스 -> 사가 서비스 결제 생성 성공 요청 로직 실행ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ");
@@ -220,6 +210,21 @@ public class SagaService {
         if (saga.getCartId() != null) {
             sagaProducer.sendCartClear(new CartClearCommand(saga.getCartId()));
         }
+
+        List<SuccessSendCommand.OrderItem> slackItems =
+            saga.getProductResults().values().stream()
+                    .map(r -> new SuccessSendCommand.OrderItem(
+                        r.productId(),
+                        r.brandId(),
+                        r.stock(),
+                        r.price()
+                    )).toList();
+
+        sagaProducer.sendSuccessMessage(new SuccessSendCommand(
+            saga.getOrderId(),
+            saga.getUserId(),
+            slackItems
+        ));
 
         List<OrderItem> items = saga.getProductResults().values().stream()
             .map(r -> new OrderItem(
@@ -243,6 +248,12 @@ public class SagaService {
 
     @Transactional
     public void paymentFailure(PaymentConfirmFailResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.PAYMENT_FAIL);
+        saga.updateStatus(SagaStatus.FAILED);
+        saga.updateFailureReason(event.errorMessage());
+
+
 
     }
 

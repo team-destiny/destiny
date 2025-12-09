@@ -2,9 +2,11 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.producer;
 
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CartClearCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailSendCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.SuccessSendCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -110,6 +112,30 @@ public class SagaProducer {
         } catch (JsonProcessingException e) {
 
             log.error("send failed -> order failed {}" , e.getMessage());
+        }
+    }
+
+    public void sendSuccessMessage(SuccessSendCommand event) {
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("fail-send-message", null);
+            log.info("send success -> success send message {}", message);
+
+        } catch (JsonProcessingException e) {
+            log.error("send failed -> success-send message {}" , e.getMessage());
+        }
+    }
+
+    public void sendFailMessage(FailSendCommand event) {
+        try {
+
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("fail-send-message", message);
+            log.info("send success -> fail send message {}", message);
+
+        } catch (JsonProcessingException e) {
+            log.error("send failed -> fail-send message {}" , e.getMessage());
         }
     }
 
