@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record OrderCreateRequestEvent(
+    UUID cartId,
     UUID orderId,
     UUID userId,
     UUID couponId,

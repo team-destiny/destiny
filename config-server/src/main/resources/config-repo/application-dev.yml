@@ -1,0 +1,32 @@
+eureka:
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true  # Eureka 서버에 등록
+    fetch-registry: true  # Eureka 서버로부터 레지스트리 정보 가져오기
+
+management:
+  # Spring Actuator가 제공하는 엔드포인트 중 /actuator/refresh 만 http로 호출 가능
+  # /actuator/refresh 란? config Server 변경 사항을 수동으로 서비스에 반영하게 함
+  endpoints:
+    web:
+      exposure:
+        include: refresh
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+jwt:
+  access-header-name: Authorization
+  header-prefix: Bearer
+  access-subject: AccessToken

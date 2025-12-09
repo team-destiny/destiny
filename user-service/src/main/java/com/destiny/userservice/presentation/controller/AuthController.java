@@ -13,20 +13,35 @@ import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@RefreshScope // /actuator/refresh 엔드포인트를 호출하여 설정 변경 사항을 동적으로 반영
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/auths")
 public class AuthController {
 
     private final AuthService authService;
+
+    @Value("${server.port}")
+    private String serverPort;
+
+    @Value("${message}")
+    private String message;
+
+    @GetMapping("/config-test")
+    public String getConfig() {
+        return "Product detail from PORT : " + serverPort + " and message : " + this.message ;
+    }
 
     @PostMapping("/signup")
     public ApiResponse<UserSignUpResponse> signUp(

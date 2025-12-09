@@ -2,8 +2,8 @@ package com.destiny.productservice.application.service.message;
 
 import com.destiny.productservice.application.dto.ProductFailDetail;
 import com.destiny.productservice.application.dto.ProductMessage;
-import com.destiny.productservice.application.dto.ProductValidationFail;
 import com.destiny.productservice.application.dto.ProductValidationCommand;
+import com.destiny.productservice.application.dto.ProductValidationFail;
 import com.destiny.productservice.application.dto.ProductValidationMessage;
 import com.destiny.productservice.application.dto.ProductValidationSuccess;
 import com.destiny.productservice.domain.entity.Product;
@@ -11,6 +11,8 @@ import com.destiny.productservice.domain.entity.ProductStatus;
 import com.destiny.productservice.domain.entity.ProductView;
 import com.destiny.productservice.domain.repository.ProductCommandRepository;
 import com.destiny.productservice.domain.repository.ProductQueryRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +37,7 @@ public class ProductConsumerService {
     private final ProductCommandRepository productCommandRepository;
     private final ProductQueryRepository productQueryRepository;
     private final ProductProducerService productProducerService;
+    private final ObjectMapper objectMapper;
 
     @KafkaListener(groupId = "product-group", topics = "product.after.create")
     @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
@@ -111,18 +114,26 @@ public class ProductConsumerService {
     @KafkaListener(groupId= "product-group", topics = "product-validate-request")
     @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional(readOnly = true)
-    public void consumeProductValidateRequest(ProductValidationCommand command) {
+    public void consumeProductValidateRequest(String message) {
 
-        List<UUID> productIds = command.productIds();
+        try {
+            ProductValidationCommand event = objectMapper.readValue(message,
+                ProductValidationCommand.class);
 
-        List<Product> availableProducts = getAvailableProducts(productIds);
+            List<UUID> productIds = event.productIds();
 
-        if (availableProducts.size() == productIds.size()) {
-            handleValidationSuccess(command.orderId(), availableProducts);
-            return;
+            List<Product> availableProducts = getAvailableProducts(productIds);
+
+            if (availableProducts.size() == productIds.size()) {
+                handleValidationSuccess(event.orderId(), availableProducts);
+                return;
+            }
+
+            handleValidationFail(event.orderId(), productIds, availableProducts);
+        } catch (JsonProcessingException e) {
+
         }
 
-        handleValidationFail(command.orderId(), productIds, availableProducts);
     }
 
     private List<Product> getAvailableProducts(List<UUID> productIds) {

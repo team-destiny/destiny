@@ -11,7 +11,8 @@ import com.destiny.orderservice.domain.repository.OrderRepository;
 import com.destiny.orderservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.orderservice.infrastructure.exception.OrderError;
 import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCreateRequestEvent;
-import com.destiny.orderservice.infrastructure.messaging.producer.OrderEventProducer;
+import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateFailedEvent;
+import com.destiny.orderservice.infrastructure.messaging.producer.OrderProducer;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderStatusRequest;
@@ -31,7 +32,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final OrderEventProducer orderEventProducer;
+    private final OrderProducer orderProducer;
 
     @Transactional
     public UUID createOrder(CustomUserDetails customUserDetails, OrderCreateRequest req) {
@@ -59,8 +60,8 @@ public class OrderService {
 
         UUID orderId = orderRepository.createOrder(order).getOrderId();
 
-        OrderCreateRequestEvent event = OrderCreateRequestEvent.from(order);
-        orderEventProducer.send(event);
+        OrderCreateRequestEvent event = OrderCreateRequestEvent.from(order, req.cartId());
+        orderProducer.send(event);
 
         return orderId;
     }
@@ -117,6 +118,8 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public Object getOrderDetail(CustomUserDetails customUserDetails, UUID orderId) {
+        System.out.println(customUserDetails.getUserId());
+        System.out.println(customUserDetails.getUserRole());
 
         Order order = getOrder(orderId);
 
@@ -124,12 +127,17 @@ public class OrderService {
             validateOrderUser(order, customUserDetails.getUserId());
         }
 
-        if (order.getDeletedAt() == null || order.getDeletedBy() == null) {
+        if (order.getDeletedAt() != null || order.getDeletedBy() != null) {
             throw new BizException(OrderError.ORDER_NOT_FOUND);
         }
 
         // 사가 처리 전 상태 : PENDING
         if (order.getOrderStatus().equals(OrderStatus.PENDING)) {
+            return OrderProcessingResponse.of(order.getOrderId(), order.getOrderStatus());
+        }
+
+        // 주문 요청 실패 : FAILED (존재하지 않는 상품, 재고 수량 부족, 결제 실패)
+        if (order.getOrderStatus().equals(OrderStatus.FAILED)) {
             return OrderProcessingResponse.of(order.getOrderId(), order.getOrderStatus());
         }
 
@@ -162,6 +170,14 @@ public class OrderService {
         Order updateOrder = orderRepository.updateOrder(order);
 
         return updateOrder.getOrderId();
+    }
+
+    @Transactional
+    public void failOrder(OrderCreateFailedEvent event) {
+        Order order = getOrder(event.orderId());
+
+        order.updateStatus(OrderStatus.FAILED);
+
     }
 
     private Order getOrder(UUID orderId) {

@@ -2,6 +2,7 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.producer;
 
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,25 +19,32 @@ public class SagaProducer {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    // TODO : 상품 검증
     public void sendProductValidate(ProductValidationCommand event) {
-        try {
 
+        try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("product-validate-request", message);
             log.info("send success -> product validate send success {}", message);
+
         } catch (JsonProcessingException e) {
 
             log.error("send failed -> product validate send failed {}" , e.getMessage());
         }
     }
 
+    public void sendStockReduce(StockReduceCommand event) {
 
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("stock-reduce-request", message);
+            log.info("send success -> stock update send success {}", message);
 
-    // TODO : 재고 차감
+        }catch (JsonProcessingException e){
 
+            log.error("send failed -> stock update send failed {}" , e.getMessage());
+        }
+    }
 
-    // TODO : 쿠폰 검증
     public void sendCouponValidate(CouponValidateCommand event) {
 
         try {
@@ -63,7 +71,7 @@ public class SagaProducer {
 
         try {
             String message = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("order.create.failed", message);
+            kafkaTemplate.send("order-create-failed", message);
             log.info("send success ->  order failed {}", message);
 
         } catch (JsonProcessingException e) {

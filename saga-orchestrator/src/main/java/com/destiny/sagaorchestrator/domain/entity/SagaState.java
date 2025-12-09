@@ -1,9 +1,10 @@
 package com.destiny.sagaorchestrator.domain.entity;
 
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationResult;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -21,18 +22,21 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "p_saga_state")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@EntityListeners(AuditingEntityListener.class)
 public class SagaState {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID sagaId;
 
+    private UUID cartId;
     private UUID orderId;
     private UUID userId;
     private UUID couponId;
@@ -51,7 +55,7 @@ public class SagaState {
 
     @Type(JsonType.class)
     @Column(columnDefinition = "jsonb")
-    private Map<UUID, ProductValidateResult> productResults = new HashMap<>();
+    private Map<UUID, ProductValidationResult> productResults = new HashMap<>();
 
     private String paymentMethod;
     private boolean paymentValid;
@@ -100,11 +104,13 @@ public class SagaState {
     }
 
     public static SagaState of(
+        UUID cartId,
         UUID orderId,
         UUID userId,
         UUID couponId
     ) {
         SagaState sagaState = new SagaState();
+        sagaState.cartId = cartId;
         sagaState.orderId = orderId;
         sagaState.userId = userId;
         sagaState.couponId = couponId;

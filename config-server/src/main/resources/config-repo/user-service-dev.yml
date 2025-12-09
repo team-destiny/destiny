@@ -1,0 +1,34 @@
+server:
+  port: 18080
+
+message: "user-service-dev 79 message"
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/user_db
+    username: root
+    password: 1234
+
+  data:
+    redis:
+      host: localhost
+      password: systempass
+      port: 5443
+      timeout: 2000
+
+user:
+  admin:
+    token: my-super-secret-admin-token
+
+jwt:
+  secretKey: XVFkQby3tnqMa8MUDANspAtarbl1VZyT
+  #  access-expiration-millis: 1800000 # 30분
+  access-expiration-millis: 1209600000 # 14일
+  refresh-expiration-millis: 1209600000 # 14일
+  access-header-name: Authorization
+  refresh-cookie-name: X-Refresh-Token
+  header-prefix: Bearer
+  access-subject: AccessToken
+  refresh-subject: RefreshToken
+  is-refresh-cookie-secure: false

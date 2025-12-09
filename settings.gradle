@@ -12,4 +12,5 @@ include "cart-service",
         "notification-service",
         "brand-service",
         "saga-orchestrator",
-        "review-service"
+        "review-service",
+        "config-server"
