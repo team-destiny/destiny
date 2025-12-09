@@ -4,5 +4,6 @@ public record CreateProductRequest(
     String name,
     Integer price,
     String color,
-    String size
+    String size,
+    Integer quantity
 ) { }

@@ -1,5 +1,6 @@
 package com.destiny.stockservice.application.service;
 
+import com.destiny.stockservice.application.dto.StockCreateMessage;
 import com.destiny.stockservice.application.dto.StockReduceItem;
 import com.destiny.stockservice.domain.entity.Stock;
 import com.destiny.stockservice.domain.repository.StockRepository;
@@ -66,5 +67,10 @@ public class StockService {
 
             stock.addQuantity(amount);
         }
+    }
+
+    @Transactional
+    public void createStock(StockCreateMessage message) {
+        stockRepository.save(message.toEntity());
     }
 }

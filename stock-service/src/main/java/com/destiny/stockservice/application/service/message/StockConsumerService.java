@@ -1,5 +1,6 @@
 package com.destiny.stockservice.application.service.message;
 
+import com.destiny.stockservice.application.dto.StockCreateMessage;
 import com.destiny.stockservice.application.dto.StockReduceCommand;
 import com.destiny.stockservice.application.dto.StockReduceFail;
 import com.destiny.stockservice.application.dto.StockReduceSuccess;
@@ -53,8 +54,18 @@ public class StockConsumerService {
         try {
            stockService.rollbackQuantity(command.items());
            log.info("재고 롤백 완료: orderId={}", command.orderId());
-       } catch (Exception e) {
-            log.error("재고 롤백 실패: orderId={}, 수동 조치 필요", command.orderId(), e);
-       }
+        } catch (Exception e) {
+            log.error("재고 롤백 실패: orderId={}", command.orderId(), e);
+        }
+    }
+
+    @SneakyThrows
+    @KafkaListener(groupId = "orchestrator", topics = "stock-create-message")
+    public void consumeStockCreateMessage(String stockCreateMessage) {
+
+        StockCreateMessage message = objectMapper
+            .readValue(stockCreateMessage, StockCreateMessage.class);
+
+        stockService.createStock(message);
     }
 }
