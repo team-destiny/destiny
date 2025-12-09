@@ -112,6 +112,8 @@ public class SagaService {
         saga.updateFailureReason(event.message());
         saga.updateFailureStep("PRODUCT");
 
+        // TODO : (주문 실패) 슬랙 서비스 쪽으로 메시지 발행 (주문 아이디, 주문자 아이디, 주문 실패한 이유등)
+
         sagaProducer.sendOrderFailed(new OrderCreateFailedEvent(
             saga.getSagaId(),
             saga.getOrderId(),
@@ -132,8 +134,18 @@ public class SagaService {
 
     @Transactional
     public void stockReduceFailure(StockReduceFailResult event) {
-
-
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.STOCK_RESERVATION);
+        saga.updateStatus(SagaStatus.FAILED);
+        saga.updateFailureStep("STOCK");
+        saga.updateFailureReason("재고 차감 실패(재고 부족)");
+        sagaProducer.sendOrderFailed(new OrderCreateFailedEvent(
+            saga.getSagaId(),
+            saga.getOrderId(),
+            "상품 재고 차감 실패",
+            "SAS-001",
+            "STOCK-SERVICE"
+        ));
     }
 
     // TODO : 쿠폰 검증 및 쿠폰 할인율 가지고 오기

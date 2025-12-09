@@ -3,8 +3,9 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.consumer;
 import com.destiny.sagaorchestrator.application.service.SagaService;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateFailResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceSuccessResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -69,10 +70,29 @@ public class SagaConsumer {
     @KafkaListener(topics = "stock-reduce-success", groupId = "saga-orchestrator")
     public void onStockReduceSuccess(String message) {
 
+        try {
+            log.info("Join Saga Service : stock-reduce-success");
+
+            StockReduceSuccessResult event = objectMapper.readValue(
+                message, StockReduceSuccessResult.class);
+            sagaService.stockReduceSuccess(event);
+        } catch (JsonProcessingException e) {
+
+            log.error("Saga Service : stock-reduce-success json processing error", e);
+        }
     }
 
     @KafkaListener(topics = "stock-reduce-fail", groupId = "saga-orchestrator")
     public void onStockReduceFail(String message) {
+
+        try {
+            log.info("Join Saga Service : stock-reduce-fail");
+            StockReduceFailResult event = objectMapper.readValue(
+                message, StockReduceFailResult.class);
+        } catch (JsonProcessingException e) {
+
+            log.error("Saga Service : stock-reduce-fail json processing error", e);
+        }
 
     }
 
