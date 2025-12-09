@@ -3,11 +3,11 @@ package com.destiny.paymentservice.presentation.controller;
 import com.destiny.global.response.ApiResponse;
 import com.destiny.global.response.PageResponseDto;
 import com.destiny.paymentservice.application.service.PaymentService;
+import com.destiny.paymentservice.infrastructure.messaging.event.command.PaymentCommand;
 import com.destiny.paymentservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.paymentservice.presentation.code.PaymentSuccessCode;
 import com.destiny.paymentservice.presentation.dto.request.PaymentCancelRequest;
 import com.destiny.paymentservice.presentation.dto.request.PaymentConfirmRequest;
-import com.destiny.paymentservice.presentation.dto.request.PaymentRequest;
 import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 
 import jakarta.validation.Valid;
@@ -32,8 +32,8 @@ public class PaymentController {
      * POST /payments/request : 결제 요청 생성 (PENDING 상태)
      */
     @PostMapping("/request")
-    public ResponseEntity<ApiResponse<PaymentResponse>> requestPayment(@Valid @RequestBody PaymentRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PaymentResponse response = paymentService.requestPayment(request, userDetails);
+    public ResponseEntity<ApiResponse<PaymentResponse>> requestPayment(@Valid @RequestBody PaymentCommand request) {
+        PaymentResponse response = paymentService.requestPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_REQUEST_SUCCESS, response));
     }
 
@@ -43,7 +43,7 @@ public class PaymentController {
      */
     @PostMapping("/confirm")
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmPayment(@Valid @RequestBody PaymentConfirmRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PaymentResponse response = paymentService.confirmPayment(request, userDetails);
+        PaymentResponse response = paymentService.confirmPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRM_SUCCESS, response));
     }
 
