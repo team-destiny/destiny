@@ -178,8 +178,34 @@ public class OrderService {
 
         Order order = getOrder(event.orderId());
 
+        order.updateAmounts(
+            event.originalAmount(),
+            event.discountAmount(),
+            event.finalAmount()
+        );
+
+        order.markCompleted();
+
+        event.items().forEach(e -> {
+
+            OrderItem item = order.findItem(e.productId()).orElseThrow(
+                () -> new BizException(OrderError.ORDER_ITEM_NOT_FOUND)
+            );
 
 
+            order.updateItem(
+                item,
+                e.brandId(),
+                e.price(),
+                e.price(),
+                0,
+                e.stock()
+            );
+
+            item.updateStatus(OrderItemStatus.PREPARING);
+        });
+
+        orderRepository.updateOrder(order);
     }
 
     @Transactional
@@ -187,7 +213,7 @@ public class OrderService {
         Order order = getOrder(event.orderId());
 
         order.updateStatus(OrderStatus.FAILED);
-
+        orderRepository.updateOrder(order);
     }
 
     private Order getOrder(UUID orderId) {

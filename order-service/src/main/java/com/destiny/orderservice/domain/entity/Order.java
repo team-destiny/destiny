@@ -12,6 +12,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -46,6 +47,20 @@ public class Order extends BaseEntity {
     private String deliveryMessage;
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<OrderItem> items = new ArrayList<>();
+
+    public void updateAmounts(
+        Integer originalAmount,
+        Integer discountAmount,
+        Integer finalAmount
+    ) {
+        this.originalAmount = originalAmount;
+        this.discountAmount = discountAmount;
+        this.finalAmount = finalAmount;
+    }
+
+    public void markCompleted() {
+        this.orderStatus = OrderStatus.COMPLETED;
+    }
 
     public void updateStatus(OrderStatus status) {
         this.orderStatus = status;
@@ -83,5 +98,23 @@ public class Order extends BaseEntity {
     public void addItem(OrderItem item) {
         items.add(item);
         item.addOrder(this);
+    }
+
+    public Optional<OrderItem> findItem(UUID productId) {
+        return this.items.stream()
+            .filter(i -> i.getProductId().equals(productId))
+            .findFirst();
+    }
+
+    public void updateItem(
+        OrderItem item,
+        UUID brandId,
+        Integer unitPrice,
+        Integer finalPrice,
+        Integer discountAmount,
+        Integer stock
+        ) {
+
+        item.updateItemInfo(brandId, unitPrice, finalPrice, discountAmount, stock);
     }
 }
