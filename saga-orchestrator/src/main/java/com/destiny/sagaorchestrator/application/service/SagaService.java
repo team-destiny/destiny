@@ -10,6 +10,8 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.Produ
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceItem;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent.OrderItem;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent.OrderItemCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseFailResult;
@@ -200,6 +202,26 @@ public class SagaService {
         // TODO: 결제 생성 성공 시 장바구니 비우는 토픽 발행
 
         // TODO: 결제 생성 성공 시 주문 서비스로 주문 프로세스 완료 토픽 발행
+
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        List<OrderItem> items = saga.getProductResults().values().stream()
+            .map(r -> new OrderItem(
+                r.productId(),
+                r.brandId(),
+                r.price(),
+                r.stock()
+            )).toList();
+
+        sagaProducer.sendOrderSuccess(new OrderCreateSuccessEvent(
+            saga.getOrderId(),
+            saga.getUserId(),
+            saga.getCouponId(),
+            saga.getOriginalAmount(),
+            saga.getDiscountAmount(),
+            saga.getFinalAmount(),
+            items
+        ));
+
     }
 
     @Transactional
