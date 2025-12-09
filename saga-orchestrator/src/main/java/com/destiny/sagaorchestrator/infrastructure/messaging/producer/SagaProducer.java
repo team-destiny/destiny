@@ -5,6 +5,7 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.Payme
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -72,13 +73,22 @@ public class SagaProducer {
         }
     }
 
-    /**
-     *
-     * @param event : 주문 생성 실패 EVENT DTO
-     */
+    public void sendOrderSuccess(OrderCreateSuccessEvent event) {
+
+        try {
+
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("order-create-success", message);
+        } catch (JsonProcessingException e) {
+
+            log.error("send failed -> order create success {}" , e.getMessage());
+        }
+    }
+
     public void sendOrderFailed(OrderCreateFailedEvent event) {
 
         try {
+
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("order-create-failed", message);
             log.info("send success ->  order failed {}", message);
