@@ -5,6 +5,7 @@ import com.destiny.sagaorchestrator.domain.entity.SagaStatus;
 import com.destiny.sagaorchestrator.domain.entity.SagaStep;
 import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceItem;
@@ -12,6 +13,9 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.Order
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent.OrderItemCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentConfirmFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentConfirmSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationMessageResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationResult;
@@ -128,8 +132,16 @@ public class SagaService {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
         saga.updateStep(SagaStep.STOCK_RESERVED);
         saga.updateStatus(SagaStatus.PROGRESS);
+        saga.updateFinalAmount(saga.getOriginalAmount());
 
-        sagaProducer.sendCouponValidate(new CouponValidateCommand(saga.getCouponId(), saga.getOriginalAmount()));
+        if (saga.getCouponId() != null) {
+            sagaProducer.sendCouponValidate(
+                new CouponValidateCommand(saga.getOrderId(), saga.getCouponId(),
+                    saga.getOriginalAmount()));
+        }
+
+        sagaProducer.sendPaymentRequest(new PaymentCreateCommand(saga.getOrderId(), saga.getUserId(), saga.getFinalAmount()));
+
     }
 
     @Transactional
@@ -150,8 +162,16 @@ public class SagaService {
 
     // TODO : 쿠폰 검증 및 쿠폰 할인율 가지고 오기
     @Transactional
-    public void couponUseSuccess() {
+    public void couponUseSuccess(CouponUseSuccessResult event) {
 
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.COUPON_VALIDATED);
+        saga.updateStatus(SagaStatus.PROGRESS);
+        saga.updateFinalAmount(event.finalAmount());
+        saga.updateDiscountAmount(saga.getOriginalAmount() - event.finalAmount());
+
+        // TODO : 결제 생성 요청 이벤트 발행
+        sagaProducer.sendPaymentRequest(new PaymentCreateCommand(saga.getOrderId(), saga.getUserId(), saga.getFinalAmount()));
     }
 
     @Transactional
@@ -159,7 +179,7 @@ public class SagaService {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
         saga.updateStep(SagaStep.COUPON_VALIDATION);
         saga.updateStatus(SagaStatus.FAILED);
-        saga.updateFailureReason(event.message());
+        saga.updateFailureReason(event.errorMessage());
         saga.updateFailureStep("COUPON");
 
         sagaProducer.sendOrderFailed(new OrderCreateFailedEvent(
@@ -173,7 +193,9 @@ public class SagaService {
 
     // TODO : 결제
     @Transactional
-    public void paymentSuccess() {
+    public void paymentSuccess(PaymentConfirmSuccessResult event) {
+
+        log.info("ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ결제 서비스 -> 사가 서비스 결제 생성 성공 요청 로직 실행ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ");
 
         // TODO: 결제 생성 성공 시 장바구니 비우는 토픽 발행
 
@@ -181,7 +203,7 @@ public class SagaService {
     }
 
     @Transactional
-    public void paymentFailure() {
+    public void paymentFailure(PaymentConfirmFailResult event) {
 
     }
 }
