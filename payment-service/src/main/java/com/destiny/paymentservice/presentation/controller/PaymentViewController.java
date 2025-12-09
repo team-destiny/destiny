@@ -1,6 +1,6 @@
 package com.destiny.paymentservice.presentation.controller;
 
-import com.destiny.paymentservice.domain.vo.PaymentType;
+import com.destiny.paymentservice.domain.vo.PaymentProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -30,7 +30,7 @@ public class PaymentViewController {
 
         // 1. MainPG 타입 조회 로직 (현재는 TOSSPAYMENTS로 임시 하드코딩)
         // 실제로는 paymentConfigService.getMainPgType() 등을 통해 DB/Redis에서 읽어와야 합니다.
-        PaymentType mainPgType = PaymentType.TOSSPAYMENTS;
+        PaymentProvider mainPgType = PaymentProvider.TOSSPAYMENTS;
 
         log.info("Main PG Type: {} - Routing to checkout page.", mainPgType);
 
