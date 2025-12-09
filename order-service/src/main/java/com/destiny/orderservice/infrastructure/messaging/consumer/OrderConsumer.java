@@ -1,7 +1,8 @@
-package com.destiny.orderservice.infrastructure.messaging.producer;
+package com.destiny.orderservice.infrastructure.messaging.consumer;
 
 import com.destiny.orderservice.application.service.OrderService;
 import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateFailedEvent;
+import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateSuccessEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,22 @@ public class OrderConsumer {
     private final ObjectMapper objectMapper;
     private final OrderService orderService;
 
+    @KafkaListener(topics = "order-create-success", groupId = "saga-orchestrator")
+    public void createOrderSuccess(String message) {
+
+        try {
+            log.info("Join Order Service : order-create-success");
+            OrderCreateSuccessEvent event = objectMapper.readValue(
+                message, OrderCreateSuccessEvent.class);
+
+            orderService.successOrder(event);
+        } catch (JsonProcessingException e) {
+
+            log.error("Order Create Success Json Process Error", e);
+        }
+
+    }
+
     @KafkaListener(topics = "order-create-failed", groupId = "saga-orchestrator")
     public void createOrderFailed(String message) {
 
@@ -31,5 +48,6 @@ public class OrderConsumer {
             log.error("Order Service : order-create-failed json processing error", e);
         }
     }
+
 
 }

@@ -1,0 +1,26 @@
+package com.destiny.orderservice.infrastructure.messaging.event.result;
+
+import java.util.List;
+import java.util.UUID;
+
+public record OrderCreateSuccessEvent(
+    UUID orderId,
+    UUID userId,
+    UUID couponId,
+    Integer originalAmount,
+    Integer discountAmount,
+    Integer finalAmount,
+    List<OrderItem> items
+) {
+
+    public record OrderItem(
+        UUID productId,
+        UUID brandId,
+        UUID price,
+        UUID stock
+    ) {
+
+
+    }
+
+}

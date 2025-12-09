@@ -12,6 +12,7 @@ import com.destiny.orderservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.orderservice.infrastructure.exception.OrderError;
 import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCreateRequestEvent;
 import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateFailedEvent;
+import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateSuccessEvent;
 import com.destiny.orderservice.infrastructure.messaging.producer.OrderProducer;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
@@ -170,6 +171,15 @@ public class OrderService {
         Order updateOrder = orderRepository.updateOrder(order);
 
         return updateOrder.getOrderId();
+    }
+
+    @Transactional
+    public void successOrder(OrderCreateSuccessEvent event) {
+
+        Order order = getOrder(event.orderId());
+
+
+
     }
 
     @Transactional
