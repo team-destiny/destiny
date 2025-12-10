@@ -8,6 +8,7 @@ import com.destiny.brandservice.infrastructure.exception.BrandError;
 import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
 import com.destiny.brandservice.presentation.dto.request.BrandUpdateRequest;
 import com.destiny.brandservice.presentation.dto.response.BrandResponse;
+import com.destiny.brandservice.presentation.dto.response.OrderForBrandResponse;
 import com.destiny.brandservice.presentation.dto.response.OrderItemForBrandResponse;
 import com.destiny.global.code.CommonErrorCode;
 import com.destiny.global.exception.BizException;
@@ -107,7 +108,7 @@ public class BrandService {
         brandRepository.update(brand);
     }
 
-    public List<OrderItemForBrandResponse> getMyOrders(CustomUserDetails userDetails, UUID brandId) {
+    public List<OrderForBrandResponse> getMyOrders(CustomUserDetails userDetails, UUID brandId) {
 
         log.info("userRole : {}", userDetails.getUserRole());
         log.info("user Id : {}", userDetails.getUserId());

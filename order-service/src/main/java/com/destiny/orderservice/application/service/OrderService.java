@@ -18,6 +18,7 @@ import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderStatusRequest;
 import com.destiny.orderservice.presentation.dto.response.OrderDetailResponse;
+import com.destiny.orderservice.presentation.dto.response.OrderForBrandResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderItemForBrandResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderListResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderProcessingResponse;
@@ -86,12 +87,12 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrderItemForBrandResponse> getItemsForBrand(UUID brandId) {
+    public List<OrderForBrandResponse> getItemsForBrand(UUID brandId) {
 
-        List<OrderItem> items = orderItemRepository.findByBrandId(brandId);
+        List<Order> orders = orderRepository.findByBrandId(brandId);
 
-        return items.stream()
-            .map(OrderItemForBrandResponse::from)
+        return orders.stream()
+            .map(OrderForBrandResponse::from)
             .toList();
     }
 

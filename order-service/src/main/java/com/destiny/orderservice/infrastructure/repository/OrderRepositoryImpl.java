@@ -43,4 +43,10 @@ public class OrderRepositoryImpl implements OrderRepository {
 
         return orderJpaRepository.findAll();
     }
+
+    @Override
+    public List<Order> findByBrandId(UUID brandId) {
+
+        return orderJpaRepository.findOrderWithItemsByBrandId(brandId);
+    }
 }
