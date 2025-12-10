@@ -33,7 +33,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.View;
 
 @Service
 @Slf4j
@@ -42,7 +41,6 @@ public class SagaService {
 
     private final SagaRepository sagaRepository;
     private final SagaProducer sagaProducer;
-    private final View error;
 
     @Transactional
     public void createSaga(OrderCreateRequestEvent event) {
@@ -246,7 +244,13 @@ public class SagaService {
         saga.updateStatus(SagaStatus.FAILED);
         saga.updateFailureReason(event.errorMessage());
 
-
+        sendOrderCreateFailMessage(
+            event,
+            saga,
+            "결제 생성 요청 실패하였습니다.",
+            "SA-001",
+            "PAYMENT-SERVICE"
+        );
 
     }
 
