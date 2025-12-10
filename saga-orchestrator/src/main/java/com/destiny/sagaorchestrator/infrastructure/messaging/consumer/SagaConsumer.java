@@ -120,9 +120,11 @@ public class SagaConsumer {
     public void onCouponUseFail(String message) {
 
         try {
+
             log.info("Join Saga Service : coupon-use-fail");
             CouponUseFailResult event = objectMapper.readValue(
                 message, CouponUseFailResult.class);
+            sagaService.couponUseFailure(event);
         } catch (JsonProcessingException e) {
 
             log.error("Saga Service : coupon-use-fail json processing error", e);
@@ -138,6 +140,7 @@ public class SagaConsumer {
             PaymentConfirmSuccessResult event = objectMapper.readValue(
                 message, PaymentConfirmSuccessResult.class);
 
+            sagaService.paymentSuccess(event);
         } catch (JsonProcessingException e) {
             log.error("Saga Service : payment-confirm-success json processing error", e);
         }
@@ -152,6 +155,7 @@ public class SagaConsumer {
             PaymentConfirmFailResult event = objectMapper.readValue(
                 message, PaymentConfirmFailResult.class);
 
+            sagaService.paymentFailure(event);
         } catch (JsonProcessingException e){
             log.error("Saga Service : payment-confirm-fail json processing error", e);
         }

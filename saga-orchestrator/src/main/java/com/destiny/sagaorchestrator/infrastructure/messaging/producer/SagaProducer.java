@@ -92,9 +92,10 @@ public class SagaProducer {
     public void sendOrderSuccess(OrderCreateSuccessEvent event) {
 
         try {
-
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("order-create-success", message);
+            log.info("send success -> order create send success {}", event);
+
         } catch (JsonProcessingException e) {
 
             log.error("send failed -> order create success {}" , e.getMessage());
