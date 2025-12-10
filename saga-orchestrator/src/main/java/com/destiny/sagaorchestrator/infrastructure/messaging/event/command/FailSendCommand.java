@@ -4,7 +4,6 @@ import java.util.UUID;
 
 public record FailSendCommand(
     UUID orderId,
-    UUID brandId,
     String failStep,
     String errorCode,
     String failReason,
