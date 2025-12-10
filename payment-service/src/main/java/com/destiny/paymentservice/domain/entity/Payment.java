@@ -2,8 +2,9 @@ package com.destiny.paymentservice.domain.entity;
 
 import com.destiny.global.entity.BaseEntity;
 import com.destiny.global.exception.BizException;
+import com.destiny.paymentservice.domain.vo.PaymentMethod;
+import com.destiny.paymentservice.domain.vo.PaymentProvider;
 import com.destiny.paymentservice.domain.vo.PaymentStatus;
-import com.destiny.paymentservice.domain.vo.PaymentType;
 import com.destiny.paymentservice.application.exception.PaymentErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,7 +21,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.util.StringUtils;
 
 @Entity
 @Getter
@@ -45,7 +45,11 @@ public class Payment extends BaseEntity {
 
     // PG사 종류 (TOSSPAYMENTS, BOOTPAY, PORTONE, MOCK 등)
     @Enumerated(EnumType.STRING)
-    private PaymentType paymentType;
+    private PaymentProvider PaymentProvider;
+
+    // 결제수단 카드결제, 계좌이체 등
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
     @Column(nullable = false)
     @PositiveOrZero
@@ -65,18 +69,15 @@ public class Payment extends BaseEntity {
     /**
      * 초기 결제 엔티티를 생성합니다. (기본 상태는 PENDING)
      */
-    public static Payment of(UUID orderId, UUID userId, String pgTxId, PaymentType paymentType, Integer amount) {
+    public static Payment of(UUID orderId, UUID userId, Integer amount) {
         if (orderId == null || amount == null || amount < 0) {
             throw new BizException(PaymentErrorCode.PAYMENT_INVALID_REQUEST);
         }
 
         Payment payment = new Payment();
-        PaymentType finalPaymentType = (paymentType != null) ? paymentType : PaymentType.MOCK;
 
         payment.orderId = orderId;
         payment.userId = userId;
-        payment.pgTxId = pgTxId;
-        payment.paymentType = finalPaymentType;
         payment.amount = amount;
         payment.paymentStatus = PaymentStatus.PENDING;
 
@@ -90,19 +91,16 @@ public class Payment extends BaseEntity {
     /**
      * 결제 상태를 PAID로 변경하고, PG사 거래 정보를 업데이트합니다.
      */
-    public void paid(String pgTxId, PaymentType paymentType) {
+    public void paid(PaymentProvider paymentProvider, PaymentMethod paymentMethod) {
         if (this.paymentStatus == PaymentStatus.PAID) {
             throw new BizException(PaymentErrorCode.PAYMENT_ALREADY_APPROVED);
         }
         if (this.paymentStatus != PaymentStatus.PENDING) {
             throw new BizException(PaymentErrorCode.PAYMENT_CONFIRM_FAILED);
         }
-        if (!StringUtils.hasText(pgTxId) || paymentType == null) {
-            throw new BizException(PaymentErrorCode.PAYMENT_INVALID_REQUEST);
-        }
 
-        this.pgTxId = pgTxId;
-        this.paymentType = paymentType;
+        this.PaymentProvider = paymentProvider;
+        this.paymentMethod = paymentMethod;
         this.paymentStatus = PaymentStatus.PAID;
     }
 

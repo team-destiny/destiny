@@ -1,6 +1,5 @@
 package com.destiny.paymentservice.presentation.dto.request;
 
-import com.destiny.paymentservice.domain.vo.PaymentType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.util.UUID;
@@ -12,12 +11,6 @@ import java.util.UUID;
 public record PaymentConfirmRequest(
     @NotNull(message = "주문 번호는 필수입니다.")
     UUID orderId,
-
-    @NotNull(message = "PG사 고유 거래 번호는 필수입니다.")
-    String pgTxId,
-
-    @NotNull(message = "결제 타입은 필수입니다.")
-    PaymentType paymentType,
 
     @NotNull(message = "결제 금액은 필수입니다.")
     @PositiveOrZero(message = "결제 금액은 0보다 같거나 커야 합니다.")
