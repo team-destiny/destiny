@@ -12,7 +12,6 @@ import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateR
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateGetResponse;
 import com.destiny.global.exception.BizException;
 import jakarta.transaction.Transactional;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -135,33 +134,16 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
         CouponTemplate template = couponTemplateRepository.findById(templateId)
             .orElseThrow(() -> new BizException(CouponTemplateErrorCode.TEMPLATE_NOT_FOUND));
 
-        //  패치 후 기준 값 계산 (null 은 기존 값 유지)
-        DiscountType newType =
-            req.getDiscountType() != null ? req.getDiscountType() : template.getDiscountType();
-        Integer newDiscountValue =
-            req.getDiscountValue() != null ? req.getDiscountValue() : template.getDiscountValue();
-
-        LocalDateTime newFrom =
-            req.getAvailableFrom() != null ? req.getAvailableFrom() : template.getAvailableFrom();
-        LocalDateTime newTo =
-            req.getAvailableTo() != null ? req.getAvailableTo() : template.getAvailableTo();
-
-        Integer newMaxDiscountAmount =
-            req.getMaxDiscountAmount() != null
-                ? req.getMaxDiscountAmount()
-                : template.getMaxDiscountAmount();
-
-        if (newTo.isBefore(newFrom)) {
+        if (req.getAvailableTo().isBefore(req.getAvailableFrom())) {
             throw new BizException(CouponTemplateErrorCode.INVALID_DATE_RANGE);
         }
 
-        if (newType == DiscountType.RATE) {
-            if (newDiscountValue == null
-                || newDiscountValue < 1
-                || newDiscountValue > 100) {
+        if (req.getDiscountType() == DiscountType.RATE) {
+            if (req.getDiscountValue() < 1 || req.getDiscountValue() > 100) {
                 throw new BizException(CouponTemplateErrorCode.INVALID_DISCOUNT_VALUE);
             }
-            if (newMaxDiscountAmount == null) {
+
+            if (req.getMaxDiscountAmount() == null) {
                 throw new BizException(CouponTemplateErrorCode.MISSING_MAX_DISCOUNT);
             }
         }
