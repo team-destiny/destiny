@@ -23,4 +23,12 @@ public interface OrderJpaRepository extends JpaRepository<Order, UUID> {
            where o.userId = :userId
         """)
     List<Order> findAllByUserId(UUID userId);
+
+    @Query("""
+        SELECT distinct o
+        from Order o
+        join fetch o.items i
+        where i.brandId = :brandId
+        """)
+    List<Order> findOrderWithItemsByBrandId(UUID brandId);
 }

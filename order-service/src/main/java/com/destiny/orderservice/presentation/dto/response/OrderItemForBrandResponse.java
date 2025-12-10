@@ -14,21 +14,10 @@ public record OrderItemForBrandResponse(
     Integer unitPrice,
     Integer finalPrice,
     Integer itemDiscountAmount,
-    OrderItemStatus status,
-
-    UUID orderId,
-    OrderStatus orderStatus,
-    String recipientName,
-    String recipientPhone,
-    String zipcode,
-    String address1,
-    String address2,
-    String deliveryMessage,
-    String paymentMethod
+    OrderItemStatus status
 ) {
 
     public static OrderItemForBrandResponse from(OrderItem item) {
-        Order order = item.getOrder();
 
         return new  OrderItemForBrandResponse(
             item.getOrderItemId(),
@@ -37,17 +26,7 @@ public record OrderItemForBrandResponse(
             item.getUnitPrice(),
             item.getFinalPrice(),
             item.getItemDiscountAmount(),
-            item.getStatus(),
-
-            order.getOrderId(),
-            order.getOrderStatus(),
-            order.getRecipientName(),
-            order.getRecipientPhone(),
-            order.getZipcode(),
-            order.getAddress1(),
-            order.getAddress2(),
-            order.getDeliveryMessage(),
-            order.getPaymentMethod()
+            item.getStatus()
         );
     }
 }

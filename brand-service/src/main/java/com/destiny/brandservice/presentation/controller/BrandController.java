@@ -5,6 +5,7 @@ import com.destiny.brandservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
 import com.destiny.brandservice.presentation.dto.request.BrandUpdateRequest;
 import com.destiny.brandservice.presentation.dto.response.BrandResponse;
+import com.destiny.brandservice.presentation.dto.response.OrderForBrandResponse;
 import com.destiny.brandservice.presentation.dto.response.OrderItemForBrandResponse;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -86,12 +87,12 @@ public class BrandController {
     }
 
     @GetMapping("/{brandId}/orders")
-    public ResponseEntity<List<OrderItemForBrandResponse>> getMyOrders(
+    public ResponseEntity<List<OrderForBrandResponse>> getMyOrders(
         @PathVariable UUID brandId,
         @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         // TODO : 헤더로 유저 넘어오면 스프링 시큐리티 설정 이후 유저 검증 진행 해야함 !
-        List<OrderItemForBrandResponse> orders = brandService.getMyOrders(userDetails, brandId);
+        List<OrderForBrandResponse> orders = brandService.getMyOrders(userDetails, brandId);
 
         return ResponseEntity
             .status(HttpStatus.OK)

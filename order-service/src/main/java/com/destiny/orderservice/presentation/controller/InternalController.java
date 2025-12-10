@@ -1,6 +1,7 @@
 package com.destiny.orderservice.presentation.controller;
 
 import com.destiny.orderservice.application.service.OrderService;
+import com.destiny.orderservice.presentation.dto.response.OrderForBrandResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderItemForBrandResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderItemResponse;
 import java.util.List;
@@ -21,7 +22,7 @@ public class InternalController {
     private final OrderService orderService;
 
     @GetMapping("/items")
-    public ResponseEntity<List<OrderItemForBrandResponse>> getItemsForBrand(
+    public ResponseEntity<List<OrderForBrandResponse>> getItemsForBrand(
         @RequestParam UUID brandId
     ) {
 
