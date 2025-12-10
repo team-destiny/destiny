@@ -49,7 +49,7 @@ public class CouponTemplateController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/search")
+    @GetMapping
     public ResponseEntity<Page<CouponTemplateGetResponse>> searchTemplates(
         @ModelAttribute CouponTemplateSearchRequest req,
         Pageable pageable
