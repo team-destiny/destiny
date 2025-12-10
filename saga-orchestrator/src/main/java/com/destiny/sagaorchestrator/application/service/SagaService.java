@@ -11,6 +11,7 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.Payme
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceItem;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.SuccessSendCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent;
@@ -199,6 +200,8 @@ public class SagaService {
         saga.updateStatus(SagaStatus.FAILED);
         saga.updateFailureReason(event.errorMessage());
 
+        sendStockRollback(saga);
+
         sendOrderCreateFailMessage(
             event,
             saga,
@@ -264,6 +267,8 @@ public class SagaService {
         saga.updateStatus(SagaStatus.FAILED);
         saga.updateFailureReason(event.errorMessage());
 
+        sendStockRollback(saga);
+
         sendOrderCreateFailMessage(
             event,
             saga,
@@ -292,6 +297,19 @@ public class SagaService {
             failReason,
             errorCode,
             failedService
+        ));
+    }
+
+    private void sendStockRollback(SagaState saga) {
+        List<StockReduceItem> items = saga.getProductResults().values().stream()
+            .map(r -> new StockReduceItem(
+                r.productId(),
+                r.stock()
+            )).toList();
+
+        sagaProducer.sendStockRollback(new StockRollbackCommand(
+            saga.getOrderId(),
+            items
         ));
     }
 

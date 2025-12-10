@@ -93,6 +93,8 @@ public class SagaConsumer {
             log.info("Join Saga Service : stock-reduce-fail");
             StockReduceFailResult event = objectMapper.readValue(
                 message, StockReduceFailResult.class);
+            sagaService.stockReduceFailure(event);
+
         } catch (JsonProcessingException e) {
 
             log.error("Saga Service : stock-reduce-fail json processing error", e);

@@ -6,6 +6,7 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailS
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.SuccessSendCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent;
@@ -99,6 +100,19 @@ public class SagaProducer {
         } catch (JsonProcessingException e) {
 
             log.error("send failed -> order create success {}" , e.getMessage());
+        }
+    }
+
+    public void sendStockRollback(StockRollbackCommand event) {
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("stock-reduce-rollback", message);
+            log.info("send success -> stock rollback send success {}", event);
+
+        } catch (JsonProcessingException e) {
+
+            log.error("send failed -> stock-rollback request {}" , e.getMessage());
         }
     }
 
