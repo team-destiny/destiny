@@ -166,7 +166,6 @@ public class SagaService {
         );
     }
 
-    // TODO : 쿠폰 검증 및 쿠폰 할인율 가지고 오기
     @Transactional
     public void couponUseSuccess(CouponUseSuccessResult event) {
 
@@ -176,7 +175,6 @@ public class SagaService {
         saga.updateFinalAmount(event.finalAmount());
         saga.updateDiscountAmount(saga.getOriginalAmount() - event.finalAmount());
 
-        // TODO : 결제 생성 요청 이벤트 발행
         sagaProducer.sendPaymentRequest(
             new PaymentCreateCommand(saga.getOrderId(), saga.getUserId(), saga.getFinalAmount()));
     }
@@ -196,16 +194,11 @@ public class SagaService {
             "COUPON-SERVICE");
     }
 
-    // TODO : 결제
-
     @Transactional
     public void paymentSuccess(PaymentConfirmSuccessResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
         saga.updateStatus(SagaStatus.COMPLETED);
         saga.updateStep(SagaStep.ORDER_CREATE_SUCCESS);
-
-        log.info(
-            "ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ결제 서비스 -> 사가 서비스 결제 생성 성공 요청 로직 실행ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ");
 
         if (saga.getCartId() != null) {
             sagaProducer.sendCartClear(new CartClearCommand(saga.getCartId()));
