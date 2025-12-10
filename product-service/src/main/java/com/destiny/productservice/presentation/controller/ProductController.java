@@ -50,47 +50,41 @@ public class ProductController {
         return ResponseEntity.ok(pages);
     }
 
-    @GetMapping("/{brandId}/{productId}")
+    @GetMapping("/{productId}")
     public ResponseEntity<ProductResponse> getProductById(
-        @PathVariable UUID brandId,
         @PathVariable UUID productId) {
 
         ProductResponse response = productQueryService
-            .getProductByBrandIdAndId(brandId, productId);
+            .getProductById(productId);
 
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{brandId}")
+    @PostMapping
     public ResponseEntity<ProductResponse> createProduct(
-        @PathVariable UUID brandId,
         @RequestBody CreateProductRequest request) {
 
         ProductResponse response = productCommandService
-            .createProduct(brandId, request);
+            .createProduct(request);
 
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/{brandId}/{productId}")
+    @PatchMapping("/{productId}")
     public ResponseEntity<Void> updateProduct(
-        @PathVariable UUID brandId,
         @PathVariable UUID productId,
         @RequestBody UpdateProductRequest request) {
 
-        productCommandService.updateProduct(brandId, productId, request);
+        productCommandService.updateProduct(productId, request);
 
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{brandId}/{productId}")
+    @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deleteProductById(
-        @PathVariable UUID brandId,
         @PathVariable UUID productId) {
 
-        // TODO 유저 아이디 추가 필요
-
-        productCommandService.deleteProduct(brandId, productId);
+        productCommandService.deleteProduct(productId);
 
         return ResponseEntity.noContent().build();
     }

@@ -44,10 +44,4 @@ public class ProductCommandRepositoryImpl implements ProductCommandRepository {
     public List<Product> findByIdIn(List<UUID> productIds) {
         return productCommandJpaRepository.findByIdIn(productIds);
     }
-
-    @Override
-    public Optional<Product> findByBrandIdAndId(UUID brandId, UUID productId) {
-        return productCommandJpaRepository.findByBrandIdAndId(brandId, productId);
-    }
-
 }

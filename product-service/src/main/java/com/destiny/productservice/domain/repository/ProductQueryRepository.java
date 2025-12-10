@@ -5,10 +5,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ProductQueryRepository {
-
     Optional<ProductView> findById(UUID id);
-
     ProductView save(ProductView productView);
-
-    Optional<ProductView> findByBrandIdAndId(UUID brandId, UUID productId);
 }
