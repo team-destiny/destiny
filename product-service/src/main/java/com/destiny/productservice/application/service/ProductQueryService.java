@@ -31,10 +31,10 @@ public class ProductQueryService {
 
     private final ElasticsearchOperations elasticsearchOperations;
 
-    public ProductResponse getProductByBrandIdAndId(UUID brandId, UUID productId) {
+    public ProductResponse getProductById(UUID productId) {
 
         ProductView productView = productQueryRepository
-            .findByBrandIdAndId(brandId, productId)
+            .findById(productId)
             .orElseThrow();
 
         return ProductResponse.of(productView);
@@ -119,7 +119,6 @@ public class ProductQueryService {
 
     private void addNameContainsFilter(String nameContains, BoolQuery.Builder bool) {
         if (nameContains != null && !nameContains.isBlank()) {
-
             bool.must(
                 QueryBuilders.wildcard()
                     .field("name.keyword")
@@ -132,7 +131,6 @@ public class ProductQueryService {
 
     private void addPriceFilter(Integer minPrice, Integer maxPrice, BoolQuery.Builder boolQuery) {
         if (minPrice != null || maxPrice != null) {
-
             RangeQuery rangeQuery = new RangeQuery.Builder()
                 .untyped(u -> {
                     u.field("price");

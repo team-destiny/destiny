@@ -24,16 +24,16 @@ public class ProductCommandService {
     private final ProductProducerService productProducerService;
 
     @Transactional
-    public ProductResponse createProduct(UUID brandId, CreateProductRequest request) {
+    public ProductResponse createProduct(CreateProductRequest request) {
 
-        if (productCommandRepository.existsByBrandIdAndName(brandId, request.name())) {
+        if (productCommandRepository.existsByBrandIdAndName(request.brandId(), request.name())) {
             throw new IllegalArgumentException();
         }
 
         Product product = Product.of(
             request.name(),
             request.price(),
-            brandId,
+            request.brandId(),
             request.color(),
             request.size()
         );
@@ -59,25 +59,16 @@ public class ProductCommandService {
             }
         );
 
-
-
         return ProductResponse.of(product);
     }
 
     @Transactional
-    public void updateProduct(UUID brandId, UUID productId, UpdateProductRequest request) {
+    public void updateProduct(UUID productId, UpdateProductRequest request) {
 
-        Product product = productCommandRepository.findByBrandIdAndId(brandId, productId)
+        Product product = productCommandRepository.findById(productId)
             .orElseThrow();
 
-        product.update(
-            request.name(),
-            request.price(),
-            brandId,
-            request.status(),
-            request.color(),
-            request.size()
-        );
+        product.update(request);
 
         TransactionSynchronizationManager.registerSynchronization(
             new TransactionSynchronization() {
@@ -93,13 +84,11 @@ public class ProductCommandService {
     }
 
     @Transactional
-    public void deleteProduct(UUID brandId, UUID productId) {
+    public void deleteProduct(UUID productId) {
 
         Product product = productCommandRepository
-            .findByBrandIdAndId(brandId, productId)
+            .findById(productId)
             .orElseThrow();
-
-        // TODO UserDetails 파라미터 필요, 소프트 딜리트 처리
 
         TransactionSynchronizationManager.registerSynchronization(
             new TransactionSynchronization() {

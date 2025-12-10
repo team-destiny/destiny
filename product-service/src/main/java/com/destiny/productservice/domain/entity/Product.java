@@ -1,6 +1,7 @@
 package com.destiny.productservice.domain.entity;
 
 import com.destiny.global.entity.BaseEntity;
+import com.destiny.productservice.presentation.dto.request.UpdateProductRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -43,12 +44,25 @@ public class Product extends BaseEntity {
         );
     }
 
-    public void update(String name, Integer price, UUID brandId, ProductStatus status, String color, String size) {
-        this.name = name;
-        this.price = price;
-        this.brandId = brandId;
-        this.status = status;
-        this.color = color;
-        this.size = size;
+    public void update(UpdateProductRequest request) {
+        if (request.name() != null) {
+            this.name = request.name();
+        }
+
+        if (request.price() != null) {
+            this.price = request.price();
+        }
+
+        if (request.status() != null) {
+            this.status = request.status();
+        }
+
+        if (request.color() != null) {
+            this.color = request.color();
+        }
+
+        if (request.size() != null) {
+            this.size = request.size();
+        }
     }
 }

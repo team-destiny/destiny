@@ -94,18 +94,21 @@ public class ProductConsumerService {
 
         ProductView productView = productQueryRepository.findById(message.id())
             .orElseThrow(() -> new IllegalStateException(
-                "읽기 모델에 수정할 상품 " + message.id() + " 이 없습니다.")
+                "읽기 모델에 수정할 상품 데이터가 " + message.id() + " 이 없습니다.")
             );
 
         try {
             productView.updateFrom(message);
             productQueryRepository.save(productView);
         } catch (Exception e) {
-            log.error("읽기 모델 상품 수정에 실패했습니다. attempt = {}, productViewId = {}, error = {}",
+            log.error("읽기 모델 상품 데이터 수정에 실패했습니다. attempt = {}, productViewId = {}, error = {}",
                 attempt,
                 productView.getId(),
                 e.getMessage()
             );
+
+            // 데드 레터 메세지 추가
+
             throw e;
         }
     }
