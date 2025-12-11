@@ -1,31 +1,17 @@
 server:
-  port: 18130
+  port: 0
+
+message: "payment-service default message"
 
 spring:
+  profiles:
+    active: dev
   application:
     name: payment-service
-
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5437/payment_db
-    username: root
-    password: 1234
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-    show-sql: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-
-jwt:
-  access-header-name: Authorization
-  header-prefix: Bearer
-  access-subject: AccessToken
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-server

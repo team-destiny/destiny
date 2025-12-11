@@ -2,9 +2,14 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.consumer;
 
 import com.destiny.sagaorchestrator.application.service.SagaService;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentConfirmFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentConfirmSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateFailResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceSuccessResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -69,20 +74,87 @@ public class SagaConsumer {
     @KafkaListener(topics = "stock-reduce-success", groupId = "saga-orchestrator")
     public void onStockReduceSuccess(String message) {
 
+        try {
+            log.info("Join Saga Service : stock-reduce-success");
+
+            StockReduceSuccessResult event = objectMapper.readValue(
+                message, StockReduceSuccessResult.class);
+            sagaService.stockReduceSuccess(event);
+        } catch (JsonProcessingException e) {
+
+            log.error("Saga Service : stock-reduce-success json processing error", e);
+        }
     }
 
     @KafkaListener(topics = "stock-reduce-fail", groupId = "saga-orchestrator")
     public void onStockReduceFail(String message) {
+
+        try {
+            log.info("Join Saga Service : stock-reduce-fail");
+            StockReduceFailResult event = objectMapper.readValue(
+                message, StockReduceFailResult.class);
+        } catch (JsonProcessingException e) {
+
+            log.error("Saga Service : stock-reduce-fail json processing error", e);
+        }
 
     }
 
     @KafkaListener(topics = "coupon-use-success", groupId = "saga-orchestrator")
     public void onCouponUseSuccess(String message) {
 
+        try {
+            log.info("Join Saga Service : coupon-use-success");
+            CouponUseSuccessResult event = objectMapper.readValue(
+                message, CouponUseSuccessResult.class);
+
+            sagaService.couponUseSuccess(event);
+        } catch (JsonProcessingException e) {
+
+            log.error("Saga Service : coupon-use-success json processing error", e);
+        }
+
     }
 
-    @KafkaListener(topics = "coupon-use-fail", groupId = "saga-orcgestrator")
+    @KafkaListener(topics = "coupon-use-fail", groupId = "saga-orchestrator")
     public void onCouponUseFail(String message) {
 
+        try {
+            log.info("Join Saga Service : coupon-use-fail");
+            CouponUseFailResult event = objectMapper.readValue(
+                message, CouponUseFailResult.class);
+        } catch (JsonProcessingException e) {
+
+            log.error("Saga Service : coupon-use-fail json processing error", e);
+         }
+
     }
+
+    @KafkaListener(topics = "payment-confirm-success", groupId = "saga-orchestrator")
+    public void onPaymentConfirmSuccess(String message) {
+
+        try {
+            log.info("Join Saga Service : payment-confirm-success");
+            PaymentConfirmSuccessResult event = objectMapper.readValue(
+                message, PaymentConfirmSuccessResult.class);
+
+        } catch (JsonProcessingException e) {
+            log.error("Saga Service : payment-confirm-success json processing error", e);
+        }
+
+    }
+
+    @KafkaListener(topics = "payment-confirm-fail", groupId = "saga-orchestrator")
+    public void onPaymentConfirmFail(String message) {
+
+        try {
+            log.info("Join Saga Service : payment-confirm-fail");
+            PaymentConfirmFailResult event = objectMapper.readValue(
+                message, PaymentConfirmFailResult.class);
+
+        } catch (JsonProcessingException e){
+            log.error("Saga Service : payment-confirm-fail json processing error", e);
+        }
+    }
+
 }

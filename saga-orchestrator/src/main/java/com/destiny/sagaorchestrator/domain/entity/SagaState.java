@@ -50,7 +50,6 @@ public class SagaState {
     @Enumerated(EnumType.STRING)
     private SagaStep step;
 
-    private String failureStep;
     private String failureReason;
 
     @Type(JsonType.class)
@@ -95,10 +94,6 @@ public class SagaState {
         this.step = step;
     }
 
-    public void updateFailureStep(String failureStep) {
-        this.failureStep = failureStep;
-    }
-
     public void updateFailureReason(String failureReason) {
         this.failureReason = failureReason;
     }
@@ -115,7 +110,7 @@ public class SagaState {
         sagaState.userId = userId;
         sagaState.couponId = couponId;
         sagaState.status = SagaStatus.CREATED;
-        sagaState.step = SagaStep.ORDER_CREATED;
+        sagaState.step = SagaStep.ORDER_CREATED_REQUEST;
         return sagaState;
     }
 }

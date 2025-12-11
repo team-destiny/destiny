@@ -12,6 +12,7 @@ import com.destiny.orderservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.orderservice.infrastructure.exception.OrderError;
 import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCreateRequestEvent;
 import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateFailedEvent;
+import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateSuccessEvent;
 import com.destiny.orderservice.infrastructure.messaging.producer.OrderProducer;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
@@ -173,11 +174,46 @@ public class OrderService {
     }
 
     @Transactional
+    public void successOrder(OrderCreateSuccessEvent event) {
+
+        Order order = getOrder(event.orderId());
+
+        order.updateAmounts(
+            event.originalAmount(),
+            event.discountAmount(),
+            event.finalAmount()
+        );
+
+        order.markCompleted();
+
+        event.items().forEach(e -> {
+
+            OrderItem item = order.findItem(e.productId()).orElseThrow(
+                () -> new BizException(OrderError.ORDER_ITEM_NOT_FOUND)
+            );
+
+
+            order.updateItem(
+                item,
+                e.brandId(),
+                e.price(),
+                e.price(),
+                0,
+                e.stock()
+            );
+
+            item.updateStatus(OrderItemStatus.PREPARING);
+        });
+
+        orderRepository.updateOrder(order);
+    }
+
+    @Transactional
     public void failOrder(OrderCreateFailedEvent event) {
         Order order = getOrder(event.orderId());
 
         order.updateStatus(OrderStatus.FAILED);
-
+        orderRepository.updateOrder(order);
     }
 
     private Order getOrder(UUID orderId) {

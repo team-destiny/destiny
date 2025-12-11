@@ -4,7 +4,9 @@ import java.util.UUID;
 
 public record CouponUseFailResult(
     UUID orderId,
-    String message
+    UUID couponId,
+    String errorCode,
+    String errorMessage
 ) {
 
 }

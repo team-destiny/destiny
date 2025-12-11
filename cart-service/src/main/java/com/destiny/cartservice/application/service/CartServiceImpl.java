@@ -1,5 +1,6 @@
 package com.destiny.cartservice.application.service;
 
+import com.destiny.cartservice.application.dto.event.CartClearEvent;
 import com.destiny.cartservice.application.service.exception.CartErrorCode;
 import com.destiny.cartservice.domain.model.Cart;
 import com.destiny.cartservice.domain.repository.CartRepository;
@@ -145,7 +146,14 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void clearCart(UUID userId) {
-        cartRepository.deleteAllByUserId(userId);
+    public void clearCart(CartClearEvent event) {
+        if (event == null || event.cartId() == null) {
+            throw new BizException(CartErrorCode.INVALID_CLEAR_EVENT);
+        }
+
+        cartRepository.deleteAllByIdIn(List.of(event.cartId()));
     }
 }
+
+
+

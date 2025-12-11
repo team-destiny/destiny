@@ -1,6 +1,7 @@
 package com.destiny.productservice.domain.entity;
 
 import com.destiny.global.entity.BaseEntity;
+import com.destiny.productservice.presentation.dto.request.UpdateProductRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

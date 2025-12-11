@@ -2,9 +2,10 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.event.result;
 
 import java.util.UUID;
 
-public record CouponValidateResult(
-    UUID couponId,
-    Integer finalAmount
+public record PaymentConfirmFailResult(
+    UUID orderId,
+    String errorCode,
+    String errorMessage
 ) {
 
 }
