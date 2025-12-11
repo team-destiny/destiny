@@ -27,7 +27,7 @@ public class ProductCommandService {
     public ProductResponse createProduct(CreateProductRequest request) {
 
         if (productCommandRepository.existsByBrandIdAndName(request.brandId(), request.name())) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("해당 브랜드에 동일한 이름의 상품이 이미 존재합니다.");
         }
 
         Product product = Product.of(
@@ -68,7 +68,14 @@ public class ProductCommandService {
         Product product = productCommandRepository.findById(productId)
             .orElseThrow();
 
-        product.update(request);
+        product.update(
+            request.name(),
+            request.price(),
+            request.status(),
+            request.brandId(),
+            request.color(),
+            request.size()
+        );
 
         TransactionSynchronizationManager.registerSynchronization(
             new TransactionSynchronization() {
