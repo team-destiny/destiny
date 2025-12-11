@@ -1,8 +1,8 @@
 package com.destiny.productservice.application.service;
 
 import com.destiny.productservice.application.dto.ProductMessage;
+import com.destiny.productservice.application.dto.StockCreateMessage;
 import com.destiny.productservice.application.service.message.ProductProducerService;
-import com.destiny.productservice.application.service.message.StockCreateMessage;
 import com.destiny.productservice.domain.entity.Product;
 import com.destiny.productservice.domain.repository.ProductCommandRepository;
 import com.destiny.productservice.presentation.dto.request.CreateProductRequest;

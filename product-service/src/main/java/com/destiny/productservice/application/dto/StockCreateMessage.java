@@ -1,4 +1,4 @@
-package com.destiny.productservice.application.service.message;
+package com.destiny.productservice.application.dto;
 
 import java.util.UUID;
 
