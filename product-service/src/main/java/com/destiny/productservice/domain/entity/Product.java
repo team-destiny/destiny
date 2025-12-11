@@ -1,7 +1,6 @@
 package com.destiny.productservice.domain.entity;
 
 import com.destiny.global.entity.BaseEntity;
-import com.destiny.productservice.presentation.dto.request.UpdateProductRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -44,25 +43,33 @@ public class Product extends BaseEntity {
         );
     }
 
-    public void update(UpdateProductRequest request) {
-        if (request.name() != null) {
-            this.name = request.name();
+    // Product와 ProductView는 CQRS 구조상 동일 필드 업데이트 로직을 가져 중복을 제거하지 않았습니다.
+    @SuppressWarnings("DuplicatedCode")
+    public void update(
+        String name, Integer price, ProductStatus status, UUID brandId, String color, String size
+    ) {
+        if (name != null) {
+            this.name = name;
         }
 
-        if (request.price() != null) {
-            this.price = request.price();
+        if (price != null) {
+            this.price = price;
         }
 
-        if (request.status() != null) {
-            this.status = request.status();
+        if (brandId != null) {
+            this.brandId = brandId;
         }
 
-        if (request.color() != null) {
-            this.color = request.color();
+        if (status != null) {
+            this.status = status;
         }
 
-        if (request.size() != null) {
-            this.size = request.size();
+        if (color != null) {
+            this.color = color;
+        }
+
+        if (size != null) {
+            this.size = size;
         }
     }
 }

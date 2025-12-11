@@ -35,24 +35,20 @@ public class ProductConsumerService {
     @Transactional
     public void consumeCreateProductMessage(
         String productMessage,
-        @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
         @Header(name = RetryTopicHeaders.DEFAULT_HEADER_ATTEMPTS, required = false) Integer attempt
     ) {
         ProductMessage message = objectMapper
             .readValue(productMessage, ProductMessage.class);
 
-        log.info("상품 생성 메세지를 소비했습니다. productId={} topic={}, attempt={}",
-            message.id(), topic, attempt);
-
         Product product = productCommandRepository.findById(message.id())
             .orElseThrow(() -> new IllegalStateException(
-                "쓰기 모델에 생성한 상품 " + message.id() + " 이 없습니다."
+                "상품 데이터가 없습니다. productId=" + message.id()
             ));
 
         try {
             productQueryRepository.save(ProductView.from(product));
         } catch (Exception e) {
-            log.error("읽기 모델 상품 저장에 실패했습니다. attempt={}, productId={}, error={}",
+            log.error("읽기 모델 상품 데이터 저장에 실패했습니다. attempt={}, productId={}, error={}",
                 attempt, product.getId(), e.getMessage());
             throw e;
         }
@@ -63,23 +59,25 @@ public class ProductConsumerService {
     @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeUpdateProductMessage(String productMessage,
-        @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
         @Header(name = RetryTopicHeaders.DEFAULT_HEADER_ATTEMPTS, required = false) Integer attempt
     ) {
         ProductMessage message = objectMapper
             .readValue(productMessage, ProductMessage.class);
 
-        log.info("상품 수정 메세지를 소비했습니다. productId = {} topic = {}, attempt = {}",
-            message.id(), topic, attempt);
-
         ProductView productView = productQueryRepository.findById(message.id())
             .orElseThrow(() -> new IllegalStateException(
-                "읽기 모델에 수정할 상품 데이터가 " + message.id() + " 이 없습니다.")
+                "읽기 모델에 수정할 상품 데이터가 없습니다. productId=" + message.id())
             );
 
         try {
-            productView.updateFrom(message);
-            productQueryRepository.save(productView);
+            productView.update(
+                message.name(),
+                message.price(),
+                message.status(),
+                message.brandId(),
+                message.color(),
+                message.size()
+            );
         } catch (Exception e) {
             log.error("읽기 모델 상품 데이터 수정에 실패했습니다. attempt = {}, productViewId = {}, error = {}",
                 attempt, productView.getId(), e.getMessage());
