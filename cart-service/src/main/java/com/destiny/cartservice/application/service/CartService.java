@@ -1,5 +1,6 @@
 package com.destiny.cartservice.application.service;
 
+import com.destiny.cartservice.application.dto.event.CartClearEvent;
 import com.destiny.cartservice.presentation.dto.request.CartDeleteRequest;
 import com.destiny.cartservice.presentation.dto.request.CartSaveRequest;
 import com.destiny.cartservice.presentation.dto.request.CartUpdateQuantityRequest;
@@ -23,5 +24,5 @@ public interface CartService {
 
     void deleteCartItems(UUID userId, CartDeleteRequest request);
 
-    void clearCart(UUID userId);
+    void clearCart(CartClearEvent event);
 }
