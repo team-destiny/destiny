@@ -1,7 +1,7 @@
 package com.destiny.stockservice.application.service.message;
 
-import com.destiny.stockservice.application.dto.StockReduceFail;
-import com.destiny.stockservice.application.dto.StockReduceSuccess;
+import com.destiny.stockservice.application.dto.StockReduceFailResult;
+import com.destiny.stockservice.application.dto.StockReduceSuccessResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -16,14 +16,14 @@ public class StockProducerService {
     private final ObjectMapper objectMapper;
 
     @SneakyThrows
-    public void sendStockReduceSuccess(StockReduceSuccess stockReduceSuccess) {
-        String message = objectMapper.writeValueAsString(stockReduceSuccess);
+    public void sendStockReduceSuccess(StockReduceSuccessResult stockReduceSuccessResult) {
+        String message = objectMapper.writeValueAsString(stockReduceSuccessResult);
         kafkaTemplate.send("stock-reduce-success", message);
     }
 
     @SneakyThrows
-    public void sendStockReduceFail(StockReduceFail stockReduceFail) {
-        String message = objectMapper.writeValueAsString(stockReduceFail);
+    public void sendStockReduceFail(StockReduceFailResult stockReduceFailResult) {
+        String message = objectMapper.writeValueAsString(stockReduceFailResult);
         kafkaTemplate.send("stock-reduce-fail", message);
     }
 }

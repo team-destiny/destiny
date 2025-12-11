@@ -2,8 +2,8 @@ package com.destiny.stockservice.application.service.message;
 
 import com.destiny.stockservice.application.dto.StockCreateMessage;
 import com.destiny.stockservice.application.dto.StockReduceCommand;
-import com.destiny.stockservice.application.dto.StockReduceFail;
-import com.destiny.stockservice.application.dto.StockReduceSuccess;
+import com.destiny.stockservice.application.dto.StockReduceFailResult;
+import com.destiny.stockservice.application.dto.StockReduceSuccessResult;
 import com.destiny.stockservice.application.dto.StockRollbackCommand;
 import com.destiny.stockservice.application.service.StockService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,11 +41,11 @@ public class StockConsumerService {
 
         if (success) {
             stockProducerService.sendStockReduceSuccess(
-                new StockReduceSuccess(command.orderId(), command.items())
+                new StockReduceSuccessResult(command.orderId(), command.items())
             );
         } else {
             stockProducerService.sendStockReduceFail(
-                new StockReduceFail(command.orderId())
+                new StockReduceFailResult(command.orderId())
             );
         }
     }

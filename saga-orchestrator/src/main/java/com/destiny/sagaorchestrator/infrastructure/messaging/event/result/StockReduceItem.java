@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public record StockReduceItem(
     UUID productId,
-    Integer stock
+    Integer orderedQuantity
 ) {
 
 }
