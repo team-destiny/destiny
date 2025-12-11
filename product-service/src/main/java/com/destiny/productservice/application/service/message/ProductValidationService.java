@@ -33,7 +33,7 @@ public class ProductValidationService {
     private final ObjectMapper objectMapper;
 
     @SneakyThrows
-    @KafkaListener(groupId= "product-group", topics = "product-validate-request")
+    @KafkaListener(groupId= "orchestrator", topics = "product-validate-request")
     @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional(readOnly = true)
     public void consumeProductValidateRequest(String message) {
