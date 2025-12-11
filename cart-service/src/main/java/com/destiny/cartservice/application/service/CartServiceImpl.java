@@ -147,7 +147,9 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void clearCart(CartClearEvent event) {
-        if (event == null || event.cartId() == null) return;
+        if (event == null || event.cartId() == null) {
+            throw new BizException(CartErrorCode.INVALID_CLEAR_EVENT);
+        }
 
         cartRepository.deleteAllByIdIn(List.of(event.cartId()));
     }

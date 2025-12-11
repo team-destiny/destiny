@@ -2,10 +2,8 @@ package com.destiny.cartservice.infrastructure.messaging.consumer;
 
 import com.destiny.cartservice.application.dto.event.CartClearEvent;
 import com.destiny.cartservice.application.service.CartService;
-import com.destiny.cartservice.presentation.dto.request.CartDeleteRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -28,7 +26,7 @@ public class OrderCartConsumer {
             cartService.clearCart(event);
         } catch (JsonProcessingException e) {
 
-            log.error("[Kafka] 장바구니 비우기 중 에러", e);
+            log.error("[Kafka] 장바구니 비우기 중 에러. 원본 메시지: {}", message, e);
         }
     }
 }

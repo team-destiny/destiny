@@ -8,7 +8,7 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
-      group-id: cart-service
+      group-id: saga-orchestrator
 
   datasource:
     driver-class-name: org.postgresql.Driver
