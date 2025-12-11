@@ -217,10 +217,10 @@ public class SagaService {
     }
 
     @Transactional
-    public void paymentSuccess(PaymentConfirmSuccessResult event) {
+    public void paymentCreateSuccess(PaymentConfirmSuccessResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.PAYMENT_SUCCESS);
         saga.updateStatus(SagaStatus.COMPLETED);
-        saga.updateStep(SagaStep.ORDER_CREATE_SUCCESS);
 
         if (saga.getCartId() != null) {
             sagaProducer.sendCartClear(new CartClearCommand(saga.getCartId()));
@@ -261,7 +261,7 @@ public class SagaService {
     }
 
     @Transactional
-    public void paymentFailure(PaymentConfirmFailResult event) {
+    public void paymentCreateFailure(PaymentConfirmFailResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
         saga.updateStep(SagaStep.PAYMENT_FAIL);
         saga.updateStatus(SagaStatus.FAILED);

@@ -1,6 +1,7 @@
 package com.destiny.sagaorchestrator.infrastructure.messaging.producer;
 
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CartClearCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailSendCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
@@ -68,12 +69,12 @@ public class SagaProducer {
 
         try {
             String message = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("payment-confirm-request", message);
-            log.info("send success -> payment confirm request {}", message);
+            kafkaTemplate.send("payment-create-request", message);
+            log.info("send success -> payment create request {}", message);
 
         } catch (JsonProcessingException e) {
 
-            log.error("send failed -> payment confirm request {}" , e.getMessage());
+            log.error("send failed -> payment create request {}" , e.getMessage());
         }
     }
 
@@ -113,6 +114,19 @@ public class SagaProducer {
         } catch (JsonProcessingException e) {
 
             log.error("send failed -> stock-rollback request {}" , e.getMessage());
+        }
+    }
+
+    public void sendCouponRollback(CouponUseRollbackCommand event) {
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("coupon-use-rollback", message);
+            log.info("send success -> coupon use rollback send success {}", event);
+
+        } catch (JsonProcessingException e) {
+
+            log.error("send failed -> coupon use rollback request {}" , e.getMessage());
         }
     }
 
