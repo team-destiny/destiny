@@ -5,7 +5,9 @@ import com.destiny.stockservice.application.dto.StockReduceItem;
 import com.destiny.stockservice.domain.entity.Stock;
 import com.destiny.stockservice.domain.repository.StockRepository;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,33 +20,25 @@ public class StockService {
 
     @Transactional
     public boolean validateAndDecrease(List<StockReduceItem> items) {
+        List<UUID> productIds = items.stream()
+            .map(StockReduceItem::productId)
+            .toList();
+
+        Map<UUID, Stock> stockMap = stockRepository
+            .findByProductIdIn(productIds)
+            .stream()
+            .collect(Collectors.toMap(Stock::getProductId, s -> s));
 
         for (StockReduceItem item : items) {
-
-            UUID productId = item.productId();
-            Integer amount = item.stock();
-
-            if (amount == null || amount <= 0) {
-                return false;
-            }
-
-            Stock stock = stockRepository.findByProductId(productId)
-                .orElseThrow();
-
-            if (stock.getQuantity() < amount) {
+            Stock stock = stockMap.get(item.productId());
+            if (stock == null || stock.getQuantity() < item.stock()) {
                 return false;
             }
         }
 
         for (StockReduceItem item : items) {
-
-            UUID productId = item.productId();
-            Integer amount = item.stock();
-
-            Stock stock = stockRepository.findByProductId(productId)
-                .orElseThrow();
-
-            stock.tryReduceQuantity(amount);
+            Stock stock = stockMap.get(item.productId());
+            stock.tryReduceQuantity(item.stock());
         }
 
         return true;
@@ -52,9 +46,7 @@ public class StockService {
 
     @Transactional
     public void rollbackQuantity(List<StockReduceItem> items) {
-
         for (StockReduceItem item : items) {
-
             UUID productId = item.productId();
             Integer amount = item.stock();
 

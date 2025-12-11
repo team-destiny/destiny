@@ -9,11 +9,7 @@ public record StockCreateMessage(
 ) {
     public Stock toEntity() {
 
-        Integer stockQuantity = 0;
-
-        if (this.quantity != null) {
-            stockQuantity = this.quantity;
-        }
+        Integer stockQuantity = (this.quantity != null) ? this.quantity : 0;
 
         return new Stock(
             this.productId,
