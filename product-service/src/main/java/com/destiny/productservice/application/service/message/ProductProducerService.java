@@ -3,6 +3,7 @@ package com.destiny.productservice.application.service.message;
 import com.destiny.productservice.application.dto.ProductMessage;
 import com.destiny.productservice.application.dto.ProductValidationFail;
 import com.destiny.productservice.application.dto.ProductValidationSuccess;
+import com.destiny.productservice.application.dto.StockCreateMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
