@@ -46,16 +46,25 @@ public class StockService {
 
     @Transactional
     public void rollbackQuantity(List<StockReduceItem> items) {
-        for (StockReduceItem item : items) {
-            UUID productId = item.productId();
-            Integer amount = item.stock();
 
+        List<UUID> productIds = items.stream()
+            .map(StockReduceItem::productId)
+            .toList();
+
+        Map<UUID, Stock> stockMap = stockRepository
+            .findByProductIdIn(productIds).stream()
+            .collect(Collectors.toMap(Stock::getProductId, s -> s));
+
+        for (StockReduceItem item : items) {
+            Integer amount = item.stock();
             if (amount == null || amount < 0) {
                 continue;
             }
 
-            Stock stock = stockRepository.findByProductId(productId)
-                .orElseThrow();
+            Stock stock = stockMap.get(item.productId());
+            if (stock == null) {
+                throw new IllegalStateException("재고 정보가 없습니다. " + item.productId());
+            }
 
             stock.addQuantity(amount);
         }
@@ -63,6 +72,13 @@ public class StockService {
 
     @Transactional
     public void createStock(StockCreateMessage message) {
+
+        if (stockRepository.findByProductId(message.productId()).isPresent()) {
+            throw new IllegalStateException(
+                "해당 상품의 재고 정보가 이미 존재합니다." + message.productId()
+            );
+        }
+
         stockRepository.save(message.toEntity());
     }
 }
