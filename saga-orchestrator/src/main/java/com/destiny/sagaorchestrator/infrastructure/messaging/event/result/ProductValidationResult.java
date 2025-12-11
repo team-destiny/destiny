@@ -5,7 +5,7 @@ import java.util.UUID;
 public record ProductValidationResult(
     UUID orderId,
     UUID productId,
-    Integer stock,
+    Integer orderedQuantity,
     UUID brandId,
     Integer price
 ) {
