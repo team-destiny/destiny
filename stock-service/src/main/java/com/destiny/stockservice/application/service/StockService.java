@@ -31,14 +31,19 @@ public class StockService {
 
         for (StockReduceItem item : items) {
             Stock stock = stockMap.get(item.productId());
-            if (stock == null || stock.getQuantity() < item.stock()) {
+
+            if (stock == null
+                || stock.getQuantity() == null
+                || stock.getQuantity() < item.orderedQuantity()
+            ) {
                 return false;
             }
         }
 
         for (StockReduceItem item : items) {
             Stock stock = stockMap.get(item.productId());
-            stock.tryReduceQuantity(item.stock());
+
+            stock.tryReduceQuantity(item.orderedQuantity());
         }
 
         return true;
@@ -56,8 +61,8 @@ public class StockService {
             .collect(Collectors.toMap(Stock::getProductId, s -> s));
 
         for (StockReduceItem item : items) {
-            Integer amount = item.stock();
-            if (amount == null || amount < 0) {
+            Integer orderedQuantity = item.orderedQuantity();
+            if (orderedQuantity == null || orderedQuantity < 0) {
                 continue;
             }
 
@@ -66,7 +71,7 @@ public class StockService {
                 throw new IllegalStateException("재고 정보가 없습니다. " + item.productId());
             }
 
-            stock.addQuantity(amount);
+            stock.addQuantity(orderedQuantity);
         }
     }
 
