@@ -62,11 +62,16 @@ public class StockService {
 
         for (StockReduceItem item : items) {
             Integer orderedQuantity = item.orderedQuantity();
+
             if (orderedQuantity == null || orderedQuantity < 0) {
-                continue;
+                throw new IllegalArgumentException(
+                    "잘못된 주문 수량입니다. productId=" + item.productId()
+                        + ", orderedQuantity=" + orderedQuantity
+                );
             }
 
             Stock stock = stockMap.get(item.productId());
+
             if (stock == null) {
                 throw new IllegalStateException("재고 정보가 없습니다. " + item.productId());
             }
