@@ -52,10 +52,7 @@ public class ProductConsumerService {
             .readValue(productMessage, ProductMessage.class);
 
         log.info("상품 생성 메세지를 소비했습니다. productId={} topic={}, attempt={}",
-            message.id(),
-            topic,
-            attempt
-        );
+            message.id(), topic, attempt);
 
         Product product = productCommandRepository.findById(message.id())
             .orElseThrow(() -> new IllegalStateException(
@@ -66,10 +63,7 @@ public class ProductConsumerService {
             productQueryRepository.save(ProductView.from(product));
         } catch (Exception e) {
             log.error("읽기 모델 상품 저장에 실패했습니다. attempt={}, productId={}, error={}",
-                attempt,
-                product.getId(),
-                e.getMessage()
-            );
+                attempt, product.getId(), e.getMessage());
             throw e;
         }
     }
@@ -86,39 +80,30 @@ public class ProductConsumerService {
         ProductMessage message = objectMapper
             .readValue(productMessage, ProductMessage.class);
 
-        log.info("상품 수정 메세지를 소비했습니다. productId = {} topic = {}, attempt = {}",
-            message.id(),
-            topic,
-            attempt
-        );
+        log.debug("[Product Update] Received productId={}, attempt={}, topic={}",
+            message.id(), attempt, topic);
 
         ProductView productView = productQueryRepository.findById(message.id())
             .orElseThrow(() -> new IllegalStateException(
-                "읽기 모델에 수정할 상품 데이터가 " + message.id() + " 이 없습니다.")
-            );
+                "읽기 모델에서 상품을 찾을 수 없습니다. id=" + message.id()
+            ));
 
-        try {
-            productView.updateFrom(message);
-            productQueryRepository.save(productView);
-        } catch (Exception e) {
-            log.error("읽기 모델 상품 데이터 수정에 실패했습니다. attempt = {}, productViewId = {}, error = {}",
-                attempt,
-                productView.getId(),
-                e.getMessage()
-            );
+        productView.update(
+            message.name(),
+            message.price(),
+            message.status(),
+            message.color(),
+            message.size()
+        );
 
-            // 데드 레터 메세지 추가
+        productQueryRepository.save(productView);
 
-            throw e;
-        }
     }
 
     @KafkaListener(groupId = "product-group", topics = "product.after.delete")
     @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeDeleteProductMessage(ProductMessage message) {
-
-        // TODO userId 파라미터 필요
 
     }
 
@@ -141,7 +126,6 @@ public class ProductConsumerService {
         }
 
         handleValidationFail(event.orderId(), productIds, availableProducts);
-
     }
 
     private List<Product> getAvailableProducts(List<UUID> productIds) {

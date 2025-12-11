@@ -2,7 +2,6 @@ package com.destiny.productservice.domain.entity;
 
 import static org.springframework.data.elasticsearch.annotations.FieldType.Text;
 
-import com.destiny.productservice.application.dto.ProductMessage;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -48,12 +47,27 @@ public class ProductView {
         );
     }
 
-    public void updateFrom(ProductMessage message) {
-        this.name = message.name();
-        this.price = message.price();
-        this.brandId = message.brandId();
-        this.status = message.status();
-        this.color = message.color();
-        this.size = message.size();
+    // Product와 ProductView는 CQRS 구조상 동일 필드 업데이트 로직을 가져 중복을 제거하지 않았습니다.
+    @SuppressWarnings("DuplicatedCode")
+    public void update(String name, Integer price, ProductStatus status, String color, String size) {
+        if (name != null) {
+            this.name = name;
+        }
+
+        if (price != null) {
+            this.price = price;
+        }
+
+        if (status != null) {
+            this.status = status;
+        }
+
+        if (color != null) {
+            this.color = color;
+        }
+
+        if (size != null) {
+            this.size = size;
+        }
     }
 }
