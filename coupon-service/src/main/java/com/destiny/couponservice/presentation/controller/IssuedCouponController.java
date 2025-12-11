@@ -4,8 +4,6 @@ import com.destiny.couponservice.application.service.IssuedCouponService;
 import com.destiny.couponservice.domain.enums.IssuedCouponStatus;
 import com.destiny.couponservice.infrastructure.security.util.SecurityUtils;
 import com.destiny.couponservice.presentation.dto.request.CouponCancelRequest;
-import com.destiny.couponservice.presentation.dto.request.CouponUseRequest;
-import com.destiny.couponservice.presentation.dto.response.CouponUseResponse;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponResponseDto;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponSearchResponse;
 import jakarta.validation.Valid;
@@ -19,7 +17,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -74,22 +71,6 @@ public class IssuedCouponController {
         return ResponseEntity.ok(response);
     }
 
-
-    @PostMapping("/issued-coupons/{issuedCouponId}/use")
-    public ResponseEntity<CouponUseResponse> useCoupon(
-        @PathVariable UUID issuedCouponId,
-        @Valid @RequestBody CouponUseRequest request
-    ) {
-        UUID userId = SecurityUtils.getCurrentUserId();
-        CouponUseResponse response = issuedCouponService.useCoupon(
-            userId,
-            issuedCouponId,
-            request.getOrderId(),
-            request.getOrderAmount()
-        );
-
-        return ResponseEntity.ok(response);
-    }
 
     @PostMapping("/issued-coupons/{issuedCouponId}/cancel")
     public ResponseEntity<Void> cancelCouponUse(
