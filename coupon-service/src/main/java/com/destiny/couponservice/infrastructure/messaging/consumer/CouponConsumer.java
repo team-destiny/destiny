@@ -1,6 +1,7 @@
 package com.destiny.couponservice.infrastructure.messaging.consumer;
 
 import com.destiny.couponservice.application.service.IssuedCouponService;
+import com.destiny.couponservice.infrastructure.messaging.event.command.CouponRollbackRequestEvent;
 import com.destiny.couponservice.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CouponValidateConsumer {
+public class CouponConsumer {
 
     private final ObjectMapper objectMapper;
     private final IssuedCouponService issuedCouponService;
@@ -29,4 +30,19 @@ public class CouponValidateConsumer {
 
         issuedCouponService.handleCouponValidate(command);
     }
+
+    @KafkaListener(topics = "coupon-use-rollback", groupId = "coupon-service")
+    public void onCouponRollback(String message) {
+        CouponRollbackRequestEvent event;
+        try {
+            log.info("[CouponRollbackRequestEvent] Received: {}", message);
+            event = objectMapper.readValue(message, CouponRollbackRequestEvent.class);
+        } catch (Exception e) {
+            log.error("[CouponRollbackRequestEvent] JSON 파싱 오류 - 메시지 무시: {}", message, e);
+            return;
+        }
+
+        issuedCouponService.couponRollback(event);
+    }
+
 }
