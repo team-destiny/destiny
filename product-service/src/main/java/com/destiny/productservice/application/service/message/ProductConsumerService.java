@@ -9,11 +9,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.retrytopic.RetryTopicHeaders;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,7 +81,7 @@ public class ProductConsumerService {
             productView.updateFrom(message);
             productQueryRepository.save(productView);
         } catch (Exception e) {
-            log.error("읽기 모델 상품 데이터 수정에 실패했습니다. " + "attempt = {}, productViewId = {}, error = {}",
+            log.error("읽기 모델 상품 데이터 수정에 실패했습니다. attempt = {}, productViewId = {}, error = {}",
                 attempt, productView.getId(), e.getMessage());
             throw e;
         }
@@ -90,5 +92,26 @@ public class ProductConsumerService {
     @Transactional
     public void consumeDeleteProductMessage(ProductMessage message) {
 
+    }
+
+    @DltHandler
+    public void handleProductDlt(
+        @Payload String payload,
+        @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
+        @Header(KafkaHeaders.EXCEPTION_MESSAGE) String exceptionMessage,
+        @Header(name = RetryTopicHeaders.DEFAULT_HEADER_ATTEMPTS, required = false) Integer attempts
+    ) {
+        log.error("DLT Topic       : {}", topic);
+        log.error("실패 횟수        : {}", attempts);
+        log.error("원본 메시지      : {}", payload);
+        log.error("예외 메시지      : {}", exceptionMessage);
+
+        if (topic.contains("product.after.create")) {
+            log.error("상품 DLT 메세지 : 상품 생성 메시지 처리 실패");
+        } else if (topic.contains("product.after.update")) {
+            log.error("상품 DLT 메세지 : 상품 수정 메시지 처리 실패");
+        } else if (topic.contains("product.after.delete")) {
+            log.error("상품 DLT 메세지 : 상품 삭제 메시지 처리 실패");
+        }
     }
 }
