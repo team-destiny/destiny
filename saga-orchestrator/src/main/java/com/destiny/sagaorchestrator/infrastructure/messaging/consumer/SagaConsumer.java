@@ -134,7 +134,7 @@ public class SagaConsumer {
 
     }
 
-    @KafkaListener(topics = "payment-confirm-success", groupId = "saga-orchestrator")
+    @KafkaListener(topics = "payment-create-success", groupId = "saga-orchestrator")
     public void onPaymentConfirmSuccess(String message) {
 
         try {
@@ -142,14 +142,14 @@ public class SagaConsumer {
             PaymentConfirmSuccessResult event = objectMapper.readValue(
                 message, PaymentConfirmSuccessResult.class);
 
-            sagaService.paymentSuccess(event);
+            sagaService.paymentCreateSuccess(event);
         } catch (JsonProcessingException e) {
             log.error("Saga Service : payment-confirm-success json processing error", e);
         }
 
     }
 
-    @KafkaListener(topics = "payment-confirm-fail", groupId = "saga-orchestrator")
+    @KafkaListener(topics = "payment-create-fail", groupId = "saga-orchestrator")
     public void onPaymentConfirmFail(String message) {
 
         try {
@@ -157,7 +157,7 @@ public class SagaConsumer {
             PaymentConfirmFailResult event = objectMapper.readValue(
                 message, PaymentConfirmFailResult.class);
 
-            sagaService.paymentFailure(event);
+            sagaService.paymentCreateFailure(event);
         } catch (JsonProcessingException e){
             log.error("Saga Service : payment-confirm-fail json processing error", e);
         }
