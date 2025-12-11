@@ -2,6 +2,6 @@ package com.destiny.stockservice.application.dto;
 
 import java.util.UUID;
 
-public record StockReduceFail(
+public record StockReduceFailResult(
     UUID orderId
 ) { }
