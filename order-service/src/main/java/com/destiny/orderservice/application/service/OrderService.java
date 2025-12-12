@@ -114,8 +114,7 @@ public class OrderService {
             throw new BizException(OrderError.ORDER_CANCEL_NOT_ALLOWED);
         }
 
-        OrderCancelRequestEvent event = OrderCancelRequestEvent.from(order);
-        orderProducer.sendOrderCancel(event);
+        orderProducer.sendOrderCancel(new OrderCancelRequestEvent(order.getOrderId()));
 
         return order.getOrderId();
     }
@@ -194,7 +193,6 @@ public class OrderService {
             OrderItem item = order.findItem(e.productId()).orElseThrow(
                 () -> new BizException(OrderError.ORDER_ITEM_NOT_FOUND)
             );
-
 
             order.updateItem(
                 item,

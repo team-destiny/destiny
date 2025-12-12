@@ -1,4 +1,4 @@
-package com.destiny.orderservice.infrastructure.messaging.event.outbound;
+package com.destiny.sagaorchestrator.infrastructure.messaging.event.request;
 
 import java.util.UUID;
 
