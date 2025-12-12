@@ -71,17 +71,17 @@ public class UserJpaRepositoryAdaptor implements UserRepository {
         // search (username / email / nickname / phone)
         if (StringUtils.hasText(keyword) && StringUtils.hasText(searchType)) {
             switch (searchType) {
-                case "username" -> builder.and(user.username.containsIgnoreCase(keyword));
-                case "email"    -> builder.and(user.email.containsIgnoreCase(keyword));
-                case "nickname" -> builder.and(user.userInfo.nickname.containsIgnoreCase(keyword));
-                case "phone"    -> builder.and(user.userInfo.phone.contains(keyword));
+                case "USERNAME" -> builder.and(user.username.containsIgnoreCase(keyword));
+                case "EMAIL"    -> builder.and(user.email.containsIgnoreCase(keyword));
+                case "NICKNAME" -> builder.and(user.userInfo.nickname.containsIgnoreCase(keyword));
+                case "PHONE"    -> builder.and(user.userInfo.phone.contains(keyword));
                 default -> { /* 알 수 없는 searchType 이면 검색 조건 추가 안함 */ }
             }
         }
 
         JPAQuery<User> query = queryFactory
             .selectFrom(user)
-            .where(builder)
+            .where(builder) // join 적용
             .orderBy(getOrderSpecifiers(pageable, user));
 
         long total = query.fetchCount();
