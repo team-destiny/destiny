@@ -32,10 +32,7 @@ public class StockService {
         for (StockReduceItem item : items) {
             Stock stock = stockMap.get(item.productId());
 
-            if (stock == null
-                || stock.getQuantity() == null
-                || stock.getQuantity() < item.orderedQuantity()
-            ) {
+            if (isInvalidStock(item, stockMap)) {
                 return false;
             }
         }
@@ -47,6 +44,24 @@ public class StockService {
         }
 
         return true;
+    }
+
+    private boolean isInvalidStock(StockReduceItem item, Map<UUID, Stock> stockMap) {
+        Stock stock = stockMap.get(item.productId());
+
+        if (stock == null) {
+            return true;
+        }
+
+        if (stock.getQuantity() == null) {
+            return true;
+        }
+
+        if (item.orderedQuantity() == null) {
+            return true;
+        }
+
+        return stock.getQuantity() < item.orderedQuantity();
     }
 
     @Transactional
