@@ -19,6 +19,9 @@ import com.destiny.userservice.presentation.dto.response.UserLoginResponse;
 import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -127,8 +130,9 @@ public class AuthService {
         validateAccess(authUserId, authUserRole, logoutUserId);
 
          User logoutUser = userRepository.findById(logoutUserId);
+         logoutUser.logout();
 
-        // 실제 로그아웃 처리
+        // 로그아웃 토큰 저장
         authCache.storeToken(logoutUserId.toString(), logoutMillis);
     }
 
@@ -155,6 +159,13 @@ public class AuthService {
         UUID userId = UUID.fromString(decodedJwt.getClaim("userId").asString());
         User user = userRepository.findByUserIdAndDeletedAtIsNull(userId);
 
+        Date logoutTime = toDate(user.getLogoutTime());
+        if(logoutTime != null){
+            if(decodedJwt.getIssuedAt().before(logoutTime)){
+                throw new BizException(CommonErrorCode.ACCESS_DENIED);
+            }
+        }
+
         String accessToken = jwtUtil.generateAccessToken(user);
         String newRefreshToken = null;
         if(needRotate(decodedJwt)){
@@ -173,5 +184,14 @@ public class AuthService {
         long remainDays = remain.toDays();
 
         return remainDays <= 3;   // 남은 기간 3일 이하면 true
+    }
+
+    public Date toDate(LocalDateTime ldt) {
+        ZoneId ZONE = ZoneId.of("Asia/Seoul");
+
+        if(ldt == null){
+            return null;
+        }
+        return Date.from(ldt.atZone(ZONE).toInstant());
     }
 }
