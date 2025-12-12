@@ -10,7 +10,7 @@ public interface UserRepository {
     User save(User user);
     User findById(UUID userId);
     boolean existsByUsernameAndDeletedAtIsNull(String username);
-    User findByUsername(String username);
+    User findByUsernameAndDeletedAtIsNull(String username);
     boolean existsByUserIdAndDeletedAtIsNull(UUID userId);
     Page<User> searchUsers(boolean deleted, UserRole userRole, String searchType, String keyword, Pageable pageable);
     User findByUserIdAndDeletedAtIsNull(UUID userId);

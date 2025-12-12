@@ -101,7 +101,7 @@ public class AuthService {
     }
 
     public UserLoginResponse login(UserLoginRequest userLoginRequest) {
-        User user = userRepository.findByUsername(userLoginRequest.username());
+        User user = userRepository.findByUsernameAndDeletedAtIsNull(userLoginRequest.username());
 
         if(!passwordEncoder.matches(userLoginRequest.password(), user.getPassword())){
             throw new BizException(UserErrorCode.INVALID_LOGIN_CREDENTIALS);
