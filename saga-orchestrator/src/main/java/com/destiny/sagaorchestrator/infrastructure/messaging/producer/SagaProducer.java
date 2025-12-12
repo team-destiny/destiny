@@ -2,7 +2,7 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.producer;
 
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CartClearCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseRollbackCommand;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailSendCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
@@ -31,11 +31,11 @@ public class SagaProducer {
         try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("product-validate-request", message);
-            log.info("send success -> product validate send success {}", message);
+            log.info("[🍏 SAGA-SERVICE -> PRODUCT-SERVICE SUCCESS] - PRODUCT VALIDATE : {}", message);
 
         } catch (JsonProcessingException e) {
 
-            log.error("send failed -> product validate send failed {}" , e.getMessage());
+            log.error("[❌ SAGA-SERVICE -> PRODUCT-SERVICE FAIL JSON EXCEPTION] - PRODUCT VALIDATE : {}", e.getMessage());
         }
     }
 
@@ -44,24 +44,24 @@ public class SagaProducer {
         try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("stock-reduce-request", message);
-            log.info("send success -> stock update send success {}", message);
+            log.info("[🍏 SAGA-SERVICE -> STOCK-SERVICE SUCCESS] - STOCK REDUCE : {}", message);
 
-        }catch (JsonProcessingException e){
+        } catch (JsonProcessingException e){
 
-            log.error("send failed -> stock update send failed {}" , e.getMessage());
+            log.error("[❌ SAGA-SERVICE -> STOCK-SERVICE FAIL JSON EXCEPTION] - STOCK REDUCE : {}", e.getMessage());
         }
     }
 
-    public void sendCouponValidate(CouponValidateCommand event) {
+    public void sendCouponValidate(CouponUseCommand event) {
 
         try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("coupon-use-request", message);
-            log.info("send success ->  coupon success {}", message);
+            log.info("[🍏 SAGA-SERVICE -> COUPON-SERVICE SUCCESS] - COUPON USE : {}", message);
 
         } catch (JsonProcessingException e) {
 
-            log.error("send failed -> coupon failed {}" , e.getMessage());
+            log.error("[❌ SAGA-SERVICE -> STOCK-SERVICE FAIL JSON EXCEPTION] - COUPON USE : {}", e.getMessage());
         }
     }
 
@@ -70,11 +70,11 @@ public class SagaProducer {
         try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("payment-create-request", message);
-            log.info("send success -> payment create request {}", message);
+            log.info("[🍏 SAGA-SERVICE -> PAYMENT-SERVICE SUCCESS] - PAYMENT CREATE : {}", message);
 
         } catch (JsonProcessingException e) {
 
-            log.error("send failed -> payment create request {}" , e.getMessage());
+            log.error("[❌ SAGA-SERVICE -> PAYMENT-SERVICE FAIL JSON EXCEPTION] - PAYMENT CREATE : {}", e.getMessage());
         }
     }
 
@@ -83,11 +83,11 @@ public class SagaProducer {
         try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("cart-clear-request", message);
-            log.info("send success -> cart clear send success {}", message);
+            log.info("[🍏 SAGA-SERVICE -> CART-SERVICE SUCCESS] - CART CLEAR : {}", message);
 
         } catch (JsonProcessingException e) {
 
-            log.error("send failed -> cart-clear request {}" , e.getMessage());
+            log.error("[❌ SAGA-SERVICE -> CART-SERVICE FAIL JSON EXCEPTION] - CART CLEAR : {}", e.getMessage());
         }
     }
 
@@ -96,11 +96,24 @@ public class SagaProducer {
         try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("order-create-success", message);
-            log.info("send success -> order create send success {}", event);
+            log.info("[🍏 SAGA-SERVICE -> ORDER-SERVICE SUCCESS] - ORDER CREATE COMPLETED : {}", message);
 
         } catch (JsonProcessingException e) {
 
-            log.error("send failed -> order create success {}" , e.getMessage());
+            log.error("[❌ SAGA-SERVICE -> ORDER-SERVICE FAIL JSON EXCEPTION] - ORDER CREATE COMPLETED : {}", e.getMessage());
+        }
+    }
+
+    public void sendOrderFailed(OrderCreateFailedEvent event) {
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("order-create-failed", message);
+            log.info("[🍏 SAGA-SERVICE -> ORDER-SERVICE SUCCESS] - ORDER CREATE FAILED : {}", message);
+
+        } catch (JsonProcessingException e) {
+
+            log.error("[❌ SAGA-SERVICE -> ORDER-SERVICE FAIL JSON EXCEPTION] - ORDER CREATE FAILED: {}", e.getMessage());
         }
     }
 
@@ -109,11 +122,11 @@ public class SagaProducer {
         try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("stock-reduce-rollback", message);
-            log.info("send success -> stock rollback send success {}", event);
+            log.info("[🍏 SAGA-SERVICE -> STOCK-SERVICE SUCCESS] - STOCK ROLLBACK : {}", message);
 
         } catch (JsonProcessingException e) {
 
-            log.error("send failed -> stock-rollback request {}" , e.getMessage());
+            log.error("[❌ SAGA-SERVICE -> STOCK-SERVICE FAIL JSON EXCEPTION] - STOCK ROLLBACK: {}", e.getMessage());
         }
     }
 
@@ -122,25 +135,11 @@ public class SagaProducer {
         try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("coupon-use-rollback", message);
-            log.info("send success -> coupon use rollback send success {}", event);
+            log.info("[🍏 SAGA-SERVICE -> COUPON-SERVICE SUCCESS] - COUPON ROLLBACK : {}", message);
 
         } catch (JsonProcessingException e) {
 
-            log.error("send failed -> coupon use rollback request {}" , e.getMessage());
-        }
-    }
-
-    public void sendOrderFailed(OrderCreateFailedEvent event) {
-
-        try {
-
-            String message = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("order-create-failed", message);
-            log.info("send success ->  order failed {}", message);
-
-        } catch (JsonProcessingException e) {
-
-            log.error("send failed -> order failed {}" , e.getMessage());
+            log.error("[❌ SAGA-SERVICE -> COUPON-SERVICE FAIL JSON EXCEPTION] - COUPON ROLLBACK: {}", e.getMessage());
         }
     }
 
@@ -149,22 +148,22 @@ public class SagaProducer {
         try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("success-send-message", message);
-            log.info("send success -> success send message {}", message);
+            log.info("[🍏 SAGA-SERVICE -> NOTIFICATION-SERVICE SUCCESS] - ORDER CREATE SUCCESS SEND : {}", message);
 
         } catch (JsonProcessingException e) {
-            log.error("send failed -> success-send message {}" , e.getMessage());
+            log.error("[❌ SAGA-SERVICE -> NOTIFICATION-SERVICE FAIL JSON EXCEPTION] - ORDER CREATE SUCCESS SEND: {}", e.getMessage());
         }
     }
 
     public void sendFailMessage(FailSendCommand event) {
-        try {
 
+        try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("fail-send-message", message);
-            log.info("send success -> fail send message {}", message);
+            log.info("[🍏 SAGA-SERVICE -> NOTIFICATION-SERVICE SUCCESS] - ORDER CREATE FAIL SEND : {}", message);
 
         } catch (JsonProcessingException e) {
-            log.error("send failed -> fail-send message {}" , e.getMessage());
+            log.error("[❌ SAGA-SERVICE -> NOTIFICATION-SERVICE FAIL JSON EXCEPTION] - ORDER CREATE FAIL: {}", e.getMessage());
         }
     }
 
