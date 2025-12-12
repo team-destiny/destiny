@@ -43,9 +43,9 @@ public class UserJpaRepositoryAdaptor implements UserRepository {
     }
 
     @Override
-    public User findByUsername(String username) {
-        return userJpaRepository.findByUsername(username)
-            .orElseThrow(() -> new BizException(UserErrorCode.INVALID_LOGIN_CREDENTIALS));
+    public User findByUsernameAndDeletedAtIsNull(String username) {
+        return userJpaRepository.findByUsernameAndDeletedAtIsNull(username)
+            .orElseThrow(() -> new BizException(UserErrorCode.USER_NOT_FOUND));
     }
 
     @Override
