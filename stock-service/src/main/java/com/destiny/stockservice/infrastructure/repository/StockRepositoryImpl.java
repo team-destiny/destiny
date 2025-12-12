@@ -2,6 +2,7 @@ package com.destiny.stockservice.infrastructure.repository;
 
 import com.destiny.stockservice.domain.entity.Stock;
 import com.destiny.stockservice.domain.repository.StockRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -16,5 +17,15 @@ public class StockRepositoryImpl implements StockRepository {
     @Override
     public Optional<Stock> findByProductId(UUID productId) {
         return stockJpaRepository.findByProductId(productId);
+    }
+
+    @Override
+    public Stock save(Stock stock) {
+        return stockJpaRepository.save(stock);
+    }
+
+    @Override
+    public List<Stock> findByProductIdIn(List<UUID> productIds) {
+        return stockJpaRepository.findByProductIdIn(productIds);
     }
 }

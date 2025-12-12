@@ -10,16 +10,5 @@ public record OrderItemForBrandResponse(
     Integer unitPrice,
     Integer finalPrice,
     Integer itemDiscountAmount,
-    String status,
-
-    UUID orderId,
-    String orderStatus,
-    String recipientName,
-    String recipientPhone,
-    String zipcode,
-    String address1,
-    String address2,
-    String deliveryMessage,
-    String paymentMethod
-
+    String status
 ) { }

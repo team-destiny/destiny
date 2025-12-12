@@ -23,7 +23,7 @@ public class BrandNotificationLog extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private UUID brandId;
 
     @Column(nullable = false, columnDefinition = "TEXT")

@@ -1,5 +1,7 @@
 package com.destiny.notificationservice.application.service;
 
+import com.destiny.notificationservice.application.dto.event.OrderCreateSuccessEvent;
+import com.destiny.notificationservice.application.dto.event.SagaCreateFailedEvent;
 import com.destiny.notificationservice.domain.model.BrandNotificationChannel;
 import com.destiny.notificationservice.domain.model.BrandNotificationLog;
 import com.destiny.notificationservice.domain.repository.NotificationChannelRepository;
@@ -14,8 +16,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +35,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     private static final String STATUS_SUCCESS = "SUCCESS";
     private static final String STATUS_FAIL = "FAIL";
+
+    @Value("${slack.webhook.admin-url:}")
+    private String adminSlackUrl;
 
     private final NotificationChannelRepository notificationChannelRepository;
     private final NotificationLogRepository notificationLogRepository;
@@ -94,7 +101,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         try {
-            Map<String, String> payload = Collections.singletonMap("text",logMessage);
+            Map<String, String> payload = Collections.singletonMap("text", logMessage);
 
             ResponseEntity<String> response = restTemplate.postForEntity(
                 channel.getSlackUrl(),
@@ -258,5 +265,125 @@ public class NotificationServiceImpl implements NotificationService {
             nvl(req.errorMessage()),
             nvl(req.message())
         );
+    }
+
+
+    @Override
+    public void sendSagaCreateFailedNotification(SagaCreateFailedEvent event) {
+        String message = String.format(
+            "🚨 *[사가 실패 알림]*\n" +
+                "주문ID: %s\n" +
+                "실패 단계: %s\n" +
+                "실패 서비스: %s\n" +
+                "에러 코드: %s\n" +
+                "실패 사유: %s\n" +
+                "상세 메시지: %s",
+            event.orderId(),
+            event.failStep(),
+            event.failService(),
+            event.errorCode(),
+            event.failReason(),
+            event.detailMessage()
+        );
+
+        sendAdminToSlack(
+            adminSlackUrl,
+            message,
+            event.errorCode(),
+            event.failReason());
+    }
+
+    private void sendAdminToSlack(String adminSlackUrl, String message, String errorCode,
+        String errorMessage) {
+
+        if (adminSlackUrl == null || adminSlackUrl.isBlank()) {
+            log.warn("Slack url is null or empty");
+            saveLog(
+                null,
+                sanitizeForLog(message),
+                STATUS_FAIL,
+                500,
+                "Admin Slack url not configured",
+                errorCode,
+                errorMessage);
+
+            return;
+
+        }
+
+        String logMessage = sanitizeForLog(message);
+
+        try {
+            Map<String, String> payload = Collections.singletonMap("text", message);
+            ResponseEntity<String> response = restTemplate.postForEntity(adminSlackUrl, payload,
+                String.class);
+
+            int statusCode = response.getStatusCode().value();
+            boolean success = response.getStatusCode().is2xxSuccessful();
+
+            saveLog(
+                null,
+                logMessage,
+                success ? STATUS_SUCCESS : STATUS_FAIL,
+                statusCode,
+                response.getBody(),
+                errorCode,
+                errorMessage);
+
+        } catch (Exception e) {
+            log.error("Failed to send admin slack message", e);
+            saveLog(
+                null,
+                logMessage,
+                STATUS_FAIL,
+                500,
+                "Slack request failed",
+                "SLACK_SEND_FAILED",
+                e.getMessage()
+            );
+        }
+    }
+
+    @Override
+    public void sendOrderCreateSuccessNotification(OrderCreateSuccessEvent event) {
+
+        Map<UUID, List<OrderCreateSuccessEvent.OrderItem>> itemsByBrand = event.items().stream()
+            .collect(Collectors.groupingBy(OrderCreateSuccessEvent.OrderItem::brandId));
+
+        itemsByBrand.forEach((brandId, items) -> {
+
+            int totalQuantity = items.stream()
+                .mapToInt(OrderCreateSuccessEvent.OrderItem::stock)
+                .sum();
+
+            int totalAmount = items.stream()
+                .mapToInt(OrderCreateSuccessEvent.OrderItem::finalAmount)
+                .sum();
+
+            String message = String.format(
+                "📢 *[신규 주문 알림]*\n" +
+                    "주문ID: %s\n" +
+                    "유저ID: %s\n" +
+                    "브랜드ID: %s\n" +
+                    "상품 개수: %d개\n" +
+                    "총 수량: %d개\n" +
+                    "총 결제 금액: %d원",
+                event.orderId(),
+                event.userId(),
+                brandId,
+                items.size(),
+                totalQuantity,
+                totalAmount
+            );
+
+            sendToSlackAndLog(
+                brandId,
+                message,
+                null,
+                null
+            );
+        });
+
+
     }
 }

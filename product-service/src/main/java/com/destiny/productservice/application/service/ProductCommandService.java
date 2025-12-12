@@ -1,6 +1,7 @@
 package com.destiny.productservice.application.service;
 
 import com.destiny.productservice.application.dto.ProductMessage;
+import com.destiny.productservice.application.dto.StockCreateMessage;
 import com.destiny.productservice.application.service.message.ProductProducerService;
 import com.destiny.productservice.domain.entity.Product;
 import com.destiny.productservice.domain.repository.ProductCommandRepository;
@@ -23,16 +24,16 @@ public class ProductCommandService {
     private final ProductProducerService productProducerService;
 
     @Transactional
-    public ProductResponse createProduct(UUID brandId, CreateProductRequest request) {
+    public ProductResponse createProduct(CreateProductRequest request) {
 
-        if (productCommandRepository.existsByBrandIdAndName(brandId, request.name())) {
-            throw new IllegalArgumentException();
+        if (productCommandRepository.existsByBrandIdAndName(request.brandId(), request.name())) {
+            throw new IllegalArgumentException("해당 브랜드에 동일한 이름의 상품이 이미 존재합니다.");
         }
 
         Product product = Product.of(
             request.name(),
             request.price(),
-            brandId,
+            request.brandId(),
             request.color(),
             request.size()
         );
@@ -47,6 +48,13 @@ public class ProductCommandService {
                         product.getId().toString(),
                         ProductMessage.from(product)
                     );
+
+                    productProducerService.sendProductStock(
+                        new StockCreateMessage(
+                            product.getId(),
+                            request.quantity()
+                        )
+                    );
                 }
             }
         );
@@ -55,16 +63,16 @@ public class ProductCommandService {
     }
 
     @Transactional
-    public void updateProduct(UUID brandId, UUID productId, UpdateProductRequest request) {
+    public void updateProduct(UUID productId, UpdateProductRequest request) {
 
-        Product product = productCommandRepository.findByBrandIdAndId(brandId, productId)
+        Product product = productCommandRepository.findById(productId)
             .orElseThrow();
 
         product.update(
             request.name(),
             request.price(),
-            brandId,
             request.status(),
+            request.brandId(),
             request.color(),
             request.size()
         );
@@ -83,13 +91,11 @@ public class ProductCommandService {
     }
 
     @Transactional
-    public void deleteProduct(UUID brandId, UUID productId) {
+    public void deleteProduct(UUID productId) {
 
         Product product = productCommandRepository
-            .findByBrandIdAndId(brandId, productId)
+            .findById(productId)
             .orElseThrow();
-
-        // TODO UserDetails 파라미터 필요, 소프트 딜리트 처리
 
         TransactionSynchronizationManager.registerSynchronization(
             new TransactionSynchronization() {

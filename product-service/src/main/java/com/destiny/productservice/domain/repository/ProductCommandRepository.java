@@ -13,5 +13,4 @@ public interface ProductCommandRepository {
     boolean existsByBrandIdAndName(UUID brandId, String name);
     List<Product> findByIdInAndStatus(List<UUID> ids, ProductStatus status);
     List<Product> findByIdIn(List<UUID> productIds);
-    Optional<Product> findByBrandIdAndId(UUID brandId, UUID productId);
 }

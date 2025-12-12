@@ -60,7 +60,7 @@
 
     try {
       // 1. 서버에 POST 요청
-      const response = await fetch("/confirm", {
+      const response = await fetch("/v1/payments/tosspayments/confirm", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

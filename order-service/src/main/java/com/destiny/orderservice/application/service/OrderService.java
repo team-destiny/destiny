@@ -11,11 +11,14 @@ import com.destiny.orderservice.domain.repository.OrderRepository;
 import com.destiny.orderservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.orderservice.infrastructure.exception.OrderError;
 import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCreateRequestEvent;
-import com.destiny.orderservice.infrastructure.messaging.producer.OrderEventProducer;
+import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateFailedEvent;
+import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateSuccessEvent;
+import com.destiny.orderservice.infrastructure.messaging.producer.OrderProducer;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderStatusRequest;
 import com.destiny.orderservice.presentation.dto.response.OrderDetailResponse;
+import com.destiny.orderservice.presentation.dto.response.OrderForBrandResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderItemForBrandResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderListResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderProcessingResponse;
@@ -31,7 +34,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final OrderEventProducer orderEventProducer;
+    private final OrderProducer orderProducer;
 
     @Transactional
     public UUID createOrder(CustomUserDetails customUserDetails, OrderCreateRequest req) {
@@ -59,8 +62,8 @@ public class OrderService {
 
         UUID orderId = orderRepository.createOrder(order).getOrderId();
 
-        OrderCreateRequestEvent event = OrderCreateRequestEvent.from(order);
-        orderEventProducer.send(event);
+        OrderCreateRequestEvent event = OrderCreateRequestEvent.from(order, req.cartId());
+        orderProducer.send(event);
 
         return orderId;
     }
@@ -84,12 +87,12 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrderItemForBrandResponse> getItemsForBrand(UUID brandId) {
+    public List<OrderForBrandResponse> getItemsForBrand(UUID brandId) {
 
-        List<OrderItem> items = orderItemRepository.findByBrandId(brandId);
+        List<Order> orders = orderRepository.findByBrandId(brandId);
 
-        return items.stream()
-            .map(OrderItemForBrandResponse::from)
+        return orders.stream()
+            .map(OrderForBrandResponse::from)
             .toList();
     }
 
@@ -117,6 +120,8 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public Object getOrderDetail(CustomUserDetails customUserDetails, UUID orderId) {
+        System.out.println(customUserDetails.getUserId());
+        System.out.println(customUserDetails.getUserRole());
 
         Order order = getOrder(orderId);
 
@@ -124,12 +129,17 @@ public class OrderService {
             validateOrderUser(order, customUserDetails.getUserId());
         }
 
-        if (order.getDeletedAt() == null || order.getDeletedBy() == null) {
+        if (order.getDeletedAt() != null || order.getDeletedBy() != null) {
             throw new BizException(OrderError.ORDER_NOT_FOUND);
         }
 
         // 사가 처리 전 상태 : PENDING
         if (order.getOrderStatus().equals(OrderStatus.PENDING)) {
+            return OrderProcessingResponse.of(order.getOrderId(), order.getOrderStatus());
+        }
+
+        // 주문 요청 실패 : FAILED (존재하지 않는 상품, 재고 수량 부족, 결제 실패)
+        if (order.getOrderStatus().equals(OrderStatus.FAILED)) {
             return OrderProcessingResponse.of(order.getOrderId(), order.getOrderStatus());
         }
 
@@ -162,6 +172,49 @@ public class OrderService {
         Order updateOrder = orderRepository.updateOrder(order);
 
         return updateOrder.getOrderId();
+    }
+
+    @Transactional
+    public void successOrder(OrderCreateSuccessEvent event) {
+
+        Order order = getOrder(event.orderId());
+
+        order.updateAmounts(
+            event.originalAmount(),
+            event.discountAmount(),
+            event.finalAmount()
+        );
+
+        order.markCompleted();
+
+        event.items().forEach(e -> {
+
+            OrderItem item = order.findItem(e.productId()).orElseThrow(
+                () -> new BizException(OrderError.ORDER_ITEM_NOT_FOUND)
+            );
+
+
+            order.updateItem(
+                item,
+                e.brandId(),
+                e.price(),
+                e.price(),
+                0,
+                e.stock()
+            );
+
+            item.updateStatus(OrderItemStatus.PREPARING);
+        });
+
+        orderRepository.updateOrder(order);
+    }
+
+    @Transactional
+    public void failOrder(OrderCreateFailedEvent event) {
+        Order order = getOrder(event.orderId());
+
+        order.updateStatus(OrderStatus.FAILED);
+        orderRepository.updateOrder(order);
     }
 
     private Order getOrder(UUID orderId) {

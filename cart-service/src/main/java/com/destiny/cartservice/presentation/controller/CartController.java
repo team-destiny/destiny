@@ -68,12 +68,4 @@ public class CartController {
         return ResponseEntity.noContent().build();
     }
 
-    // 장바구니 전체 비우기
-    @DeleteMapping("/all")
-    public ResponseEntity<Void> clearCart(
-        @AuthenticationPrincipal CustomUserDetails user
-    ) {
-        cartService.clearCart(user.getUserId());
-        return ResponseEntity.noContent().build();
-    }
 }

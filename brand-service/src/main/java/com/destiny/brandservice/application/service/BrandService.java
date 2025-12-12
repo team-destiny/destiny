@@ -8,18 +8,20 @@ import com.destiny.brandservice.infrastructure.exception.BrandError;
 import com.destiny.brandservice.presentation.dto.request.BrandCreateRequest;
 import com.destiny.brandservice.presentation.dto.request.BrandUpdateRequest;
 import com.destiny.brandservice.presentation.dto.response.BrandResponse;
+import com.destiny.brandservice.presentation.dto.response.OrderForBrandResponse;
 import com.destiny.brandservice.presentation.dto.response.OrderItemForBrandResponse;
 import com.destiny.global.code.CommonErrorCode;
 import com.destiny.global.exception.BizException;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BrandService {
 
     private final BrandRepository brandRepository;
@@ -106,9 +108,13 @@ public class BrandService {
         brandRepository.update(brand);
     }
 
-    public List<OrderItemForBrandResponse> getMyOrders(CustomUserDetails userDetails, UUID brandId) {
+    public List<OrderForBrandResponse> getMyOrders(CustomUserDetails userDetails, UUID brandId) {
+
+        log.info("userRole : {}", userDetails.getUserRole());
+        log.info("user Id : {}", userDetails.getUserId());
 
         Brand brand = findBrand(brandId);
+        log.info("brand managerId : {}", brand.getManagerId());
 
         boolean isPartner = userDetails.getUserRole().equalsIgnoreCase("partner")
             || userDetails.getUserRole().equalsIgnoreCase("master");
@@ -117,7 +123,7 @@ public class BrandService {
             throw new BizException(CommonErrorCode.ACCESS_DENIED);
         }
 
-        if (brand.getManagerId() != userDetails.getUserId()) {
+        if (!brand.getManagerId().equals(userDetails.getUserId())) {
             throw new BizException(CommonErrorCode.ACCESS_DENIED);
         }
 

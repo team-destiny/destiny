@@ -1,12 +1,34 @@
 package com.destiny.sagaorchestrator.application.service;
 
 import com.destiny.sagaorchestrator.domain.entity.SagaState;
+import com.destiny.sagaorchestrator.domain.entity.SagaStatus;
+import com.destiny.sagaorchestrator.domain.entity.SagaStep;
 import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CartClearCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailSendCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceItem;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockRollbackCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.SuccessSendCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent.OrderItem;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent.OrderItemCreateRequestEvent;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentConfirmFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentConfirmSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationMessageResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.producer.SagaProducer;
 import java.util.List;
 import java.util.UUID;
@@ -26,24 +48,20 @@ public class SagaService {
     @Transactional
     public void createSaga(OrderCreateRequestEvent event) {
 
-        // 1) 사가 초기 생성
         SagaState saga = SagaState.of(
+            event.cartId(),
             event.orderId(),
             event.userId(),
             event.couponId()
         );
 
-        // 2) productId 기반으로 빈 ProductValidateResult 등록
         event.items().forEach(item -> {
             saga.getProductResults().put(
                 item.productId(),
-                // 아직 검증 전이므로 하드 코딩 직접 값 넣어주었음.
-                new  ProductValidateResult(
+                new ProductValidationResult(
+                    event.orderId(),
                     item.productId(),
-                    null,
-                    null,
-                    null,
-                    null,
+                    item.stock(),
                     null,
                     null
                 )
@@ -52,44 +70,272 @@ public class SagaService {
 
         sagaRepository.createSaga(saga);
 
-        // 3-1) 주문 아이템에서 productId 추출
-        List<UUID> productId = event.items()
+        List<UUID> productIds = event.items()
             .stream()
             .map(OrderItemCreateRequestEvent::productId)
             .toList();
 
-        // 3-2) 상품 검증 토픽 발행
-        sagaProducer.sendProductValidate(new ProductValidationCommand(productId));
-
-        // etc : 쿠폰 검증 이벤트부터 먼저 테스트.
-        // 이후 아래 메서드는 상품 검증 이후 실행해야 하는 메서드로 productValidate로 이동 예정
-        sagaProducer.sendCouponValidate(new CouponValidateCommand(event.couponId(), null));
+        sagaProducer.sendProductValidate(
+            new ProductValidationCommand(saga.getOrderId(), productIds));
     }
 
-    // TODO : 상품 서비스 검증 및 상품 가격 가지고 오기
     @Transactional
-    public void productValidate(ProductValidateResult event) {
+    public void productValidateSuccess(ProductValidationSuccessResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.PRODUCT_VALIDATION_SUCCESS);
+        saga.updateStatus(SagaStatus.PROGRESS);
 
+        for (ProductValidationMessageResult msg : event.messages()) {
+            ProductValidationResult old = saga.getProductResults().get(msg.productId());
+
+            ProductValidationResult update = new ProductValidationResult(
+                old.orderId(),
+                old.productId(),
+                old.stock(),
+                msg.brandId(),
+                msg.price()
+            );
+
+            saga.getProductResults().put(update.productId(), update);
+        }
+
+        Integer totalAmount = saga.getProductResults().values().stream()
+            .mapToInt(item -> item.price() * item.stock()).sum();
+
+        saga.updateOriginalAmount(totalAmount);
+
+        List<StockReduceItem> items = saga.getProductResults().values().stream()
+            .map(result -> new StockReduceItem(
+                result.productId(),
+                result.stock()
+            )).toList();
+
+        sagaProducer.sendStockReduce(new StockReduceCommand(
+            saga.getOrderId(),
+            items
+        ));
+    }
+
+    @Transactional
+    public void productValidateFailure(ProductValidateFailResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.PRODUCT_VALIDATION_FAIL);
+        saga.updateStatus(SagaStatus.FAILED);
+        saga.updateFailureReason(event.message());
+
+        // TODO : (주문 실패) 슬랙 서비스 쪽으로 메시지 발행 (주문 아이디, 주문자 아이디, 주문 실패한 이유등)
+        sendOrderCreateFailMessage(
+            event,
+            saga,
+            "유효하지 않은 상품입니다.",
+            "SAP-001",
+            "PRODUCT-SERVICE");
+
+        sendSlackFailMessage(
+            saga,
+            "SAP-001",
+            "유효하지 않은 상품입니다.",
+            "PRODUCT-SERVICE"
+        );
 
     }
 
-
-    // TODO : 재고 차감
     @Transactional
-    public void stockUpdate() {
+    public void stockReduceSuccess(StockReduceSuccessResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.STOCK_REDUCE_SUCCESS);
+        saga.updateStatus(SagaStatus.PROGRESS);
+        saga.updateFinalAmount(saga.getOriginalAmount());
+
+        if (saga.getCouponId() != null) {
+            sagaProducer.sendCouponValidate(
+                new CouponValidateCommand(saga.getOrderId(), saga.getCouponId(),
+                    saga.getOriginalAmount()));
+        }
+
+        sagaProducer.sendPaymentRequest(
+            new PaymentCreateCommand(saga.getOrderId(), saga.getUserId(), saga.getFinalAmount()));
 
     }
 
-    // TODO : 쿠폰 검증 및 쿠폰 할인율 가지고 오기
     @Transactional
-    public void couponValidate() {
+    public void stockReduceFailure(StockReduceFailResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.STOCK_REDUCE_FAIL);
+        saga.updateStatus(SagaStatus.FAILED);
+        saga.updateFailureReason("재고 차감 실패(재고 부족)");
 
+        sendOrderCreateFailMessage(
+            event,
+            saga,
+            "해당 상품 재고가 부족합니다.",
+            "SAS-001",
+            "STOCK-SERVICE"
+        );
+
+        sendSlackFailMessage(
+            saga,
+            "SAS-001",
+            "상품 재고 부족",
+            "STOCK-SERVICE"
+        );
     }
 
-
-    // TODO : 결제
     @Transactional
-    public void paymentOrder() {
+    public void couponUseSuccess(CouponUseSuccessResult event) {
 
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.COUPON_VALIDATION_SUCCESS);
+        saga.updateStatus(SagaStatus.PROGRESS);
+        saga.updateFinalAmount(event.finalAmount());
+        saga.updateDiscountAmount(saga.getOriginalAmount() - event.finalAmount());
+
+        sagaProducer.sendPaymentRequest(
+            new PaymentCreateCommand(saga.getOrderId(), saga.getUserId(), saga.getFinalAmount()));
+    }
+
+    @Transactional
+    public void couponUseFailure(CouponUseFailResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.COUPON_VALIDATION_FAIL);
+        saga.updateStatus(SagaStatus.FAILED);
+        saga.updateFailureReason(event.errorMessage());
+
+        sendStockRollback(saga);
+
+        sendOrderCreateFailMessage(
+            event,
+            saga,
+            "유효한 쿠폰이 아닙니다.",
+            "SAC-001",
+            "COUPON-SERVICE");
+
+        sendSlackFailMessage(
+            saga,
+            "SAC-001",
+            "쿠폰 사용에 실패하였습니다.",
+            "COUPON-SERVICE");
+    }
+
+    @Transactional
+    public void paymentCreateSuccess(PaymentConfirmSuccessResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.PAYMENT_SUCCESS);
+        saga.updateStatus(SagaStatus.COMPLETED);
+
+        if (saga.getCartId() != null) {
+            sagaProducer.sendCartClear(new CartClearCommand(saga.getCartId()));
+        }
+
+        List<SuccessSendCommand.OrderItem> slackItems =
+            saga.getProductResults().values().stream()
+                    .map(r -> new SuccessSendCommand.OrderItem(
+                        r.productId(),
+                        r.brandId(),
+                        r.stock(),
+                        r.price()
+                    )).toList();
+
+        sagaProducer.sendSuccessMessage(new SuccessSendCommand(
+            saga.getOrderId(),
+            saga.getUserId(),
+            slackItems
+        ));
+
+        List<OrderItem> items = saga.getProductResults().values().stream()
+            .map(r -> new OrderItem(
+                r.productId(),
+                r.brandId(),
+                r.price(),
+                r.stock()
+            )).toList();
+
+        sagaProducer.sendOrderSuccess(new OrderCreateSuccessEvent(
+            saga.getOrderId(),
+            saga.getUserId(),
+            saga.getCouponId(),
+            saga.getOriginalAmount(),
+            saga.getDiscountAmount(),
+            saga.getFinalAmount(),
+            items
+        ));
+    }
+
+    @Transactional
+    public void paymentCreateFailure(PaymentConfirmFailResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.PAYMENT_FAIL);
+        saga.updateStatus(SagaStatus.FAILED);
+        saga.updateFailureReason(event.errorMessage());
+
+        sendCouponRollback(saga);
+
+        sendStockRollback(saga);
+
+        sendOrderCreateFailMessage(
+            event,
+            saga,
+            "결제 생성 요청 실패하였습니다.",
+            "SAM-001",
+            "PAYMENT-SERVICE"
+        );
+
+        sendSlackFailMessage(
+            saga,
+            "SAM-001",
+            "결제 요청이 실패하였습니다.",
+            "PAYMENT-SERVICE");
+    }
+
+    private void sendOrderCreateFailMessage(
+        Object event,
+        SagaState saga,
+        String failReason,
+        String errorCode,
+        String failedService
+    ) {
+        sagaProducer.sendOrderFailed(new OrderCreateFailedEvent(
+            saga.getSagaId(),
+            saga.getOrderId(),
+            failReason,
+            errorCode,
+            failedService
+        ));
+    }
+
+    private void sendStockRollback(SagaState saga) {
+        List<StockReduceItem> items = saga.getProductResults().values().stream()
+            .map(r -> new StockReduceItem(
+                r.productId(),
+                r.stock()
+            )).toList();
+
+        sagaProducer.sendStockRollback(new StockRollbackCommand(
+            saga.getOrderId(),
+            items
+        ));
+    }
+
+    private void sendCouponRollback(SagaState saga) {
+        sagaProducer.sendCouponRollback(new CouponUseRollbackCommand(
+            saga.getSagaId(),
+            saga.getCouponId()
+        ));
+    }
+
+    private void sendSlackFailMessage(
+        SagaState saga,
+        String errorCode,
+        String detailMessage,
+        String failService
+    ) {
+        sagaProducer.sendFailMessage(new FailSendCommand(
+            saga.getOrderId(),
+            saga.getStep().toString(),
+            errorCode,
+            saga.getFailureReason(),
+            detailMessage,
+            failService
+        ));
     }
 }

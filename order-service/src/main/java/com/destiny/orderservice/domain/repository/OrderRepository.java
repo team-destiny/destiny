@@ -17,4 +17,5 @@ public interface OrderRepository {
 
     List<Order> findAll();
 
+    List<Order> findByBrandId(UUID brandId);
 }

@@ -33,16 +33,8 @@
 </head>
 <body>
 <div class="order-info">
-  <h2 th:text="${orderName}">주문명</h2>
-  <p>주문번호: <span th:text="${orderId}"></span></p>
-  <p>원가: <span th:text="${amount} + '원'"></span></p>
-  <p>할인: <span th:text="${couponDiscount} + '원'"></span></p>
-  <p><strong>최종 금액: <span id="final-amount" th:text="${amount - couponDiscount} + '원'"></span></strong></p>
-</div>
-
-<div>
-  <input type="checkbox" id="coupon-box" />
-  <label for="coupon-box" th:text="${couponDiscount} + '원 쿠폰 적용'">쿠폰 적용</label>
+  <p><strong>주문번호: <span th:text="${orderId}"></span></strong></p>
+  <p><strong>최종금액: <span id="final-amount" th:text="${amount} + '원'"></span></strong></p>
 </div>
 
 <div id="payment-method"></div>
@@ -54,7 +46,6 @@
 
   async function main() {
     const button = document.getElementById("payment-button");
-    const coupon = document.getElementById("coupon-box");
 
     // 서버에서 전달받은 모든 변수 (타임리프 변수 치환)
     const clientKey = /*[[${clientKey}]]*/ '';
@@ -62,7 +53,6 @@
     const initialOrderId = /*[[${orderId}]]*/ '';
     const initialOrderName = /*[[${orderName}]]*/ '';
     const customerKey = /*[[${customerKey}]]*/ '';
-    const couponDiscount = /*[[${couponDiscount}]]*/ 0;
     const customerEmail = /*[[${customerEmail}]]*/ '';
     const customerName = /*[[${customerName}]]*/ '';
     const customerMobilePhone = /*[[${customerMobilePhone}]]*/ '';
@@ -88,30 +78,14 @@
       }),
     ]);
 
-    // 쿠폰 체크박스 이벤트
-    coupon.addEventListener("change", async function () {
-      let finalAmount = initialAmount;
-      if (coupon.checked) {
-        finalAmount = initialAmount - couponDiscount;
-      }
-
-      await widgets.setAmount({
-        currency: "KRW",
-        value: finalAmount,
-      });
-
-      // UI 업데이트
-      document.getElementById("final-amount").textContent = finalAmount + '원';
-    });
-
     // 결제하기 버튼 클릭
     button.addEventListener("click", async function () {
       try {
         await widgets.requestPayment({
           orderId: initialOrderId,
           orderName: initialOrderName,
-          successUrl: window.location.origin + "/tosspayments/success",
-          failUrl: window.location.origin + "/tosspayments/fail",
+          successUrl: window.location.origin + "/v1/payments/tosspayments/success",
+          failUrl: window.location.origin + "/v1/payments/tosspayments/fail",
           customerEmail: customerEmail,
           customerName: customerName,
           customerMobilePhone: customerMobilePhone,

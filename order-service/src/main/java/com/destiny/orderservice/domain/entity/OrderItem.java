@@ -40,6 +40,21 @@ public class OrderItem extends BaseEntity {
     @JoinColumn(name = "order_id")
     private Order order;
 
+    public void updateItemInfo(
+        UUID brandId,
+        Integer unitPrice,
+        Integer finalPrice,
+        Integer itemDiscountAmount,
+        Integer stock
+    ) {
+        this.brandId = brandId;
+        this.unitPrice = unitPrice;
+        this.finalPrice = finalPrice;
+        this.itemDiscountAmount = itemDiscountAmount;
+        this.stock = stock;
+    }
+
+
     public void updateStatus(OrderItemStatus status) {
         this.status = status;
     }

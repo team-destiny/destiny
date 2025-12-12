@@ -59,6 +59,7 @@ public class IssuedCoupon extends BaseEntity {
         this.status = IssuedCouponStatus.USED;
     }
 
+
     public void expire(LocalDateTime now) {
         this.status = IssuedCouponStatus.EXPIRED;
         this.expiredAt = now;
@@ -73,6 +74,12 @@ public class IssuedCoupon extends BaseEntity {
         this.status = IssuedCouponStatus.AVAILABLE;
         this.orderId = null;
         this.usedAt = null;
+    }
+
+    public void updateStatus(IssuedCouponStatus status, LocalDateTime usedAt) {
+        this.status = status;
+        this.usedAt = usedAt;
+
     }
 
 }
