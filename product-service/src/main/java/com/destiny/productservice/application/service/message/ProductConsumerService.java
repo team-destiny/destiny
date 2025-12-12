@@ -31,7 +31,7 @@ public class ProductConsumerService {
 
     @SneakyThrows
     @KafkaListener(groupId = "product-group", topics = "product.after.create")
-    @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeCreateProductMessage(
         String productMessage,
@@ -56,7 +56,7 @@ public class ProductConsumerService {
 
     @SneakyThrows
     @KafkaListener(groupId = "product-group", topics = "product.after.update")
-    @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeUpdateProductMessage(String productMessage,
         @Header(name = RetryTopicHeaders.DEFAULT_HEADER_ATTEMPTS, required = false) Integer attempt
@@ -86,12 +86,13 @@ public class ProductConsumerService {
     }
 
     @KafkaListener(groupId = "product-group", topics = "product.after.delete")
-    @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional
     public void consumeDeleteProductMessage(ProductMessage message) {
 
     }
 
+    // @RetryableTopic 시도 횟수만큼 실패하면 자동으로 호출
     @DltHandler
     public void handleProductDlt(
         @Payload String payload,
