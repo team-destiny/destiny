@@ -38,7 +38,7 @@ public class PaymentViewController {
         String pgPath = "/" + mainPgType.name().toLowerCase();
 
         // 3. 쿼리 파라미터를 유지하면서 해당 PG사의 전용 checkout 페이지로 리다이렉트 경로 생성
-        String redirectUrl = "/payments" + pgPath + "/checkout";
+        String redirectUrl = "/v1/payments" + pgPath + "/checkout";
         if (orderId != null && !orderId.isEmpty()) {
             redirectUrl += "?orderId=" + orderId;
         }

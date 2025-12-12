@@ -12,37 +12,37 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PaymentProducer {
+public class PaymentCreateProducer {
 
-    private static final String SUCCESS_TOPIC = "payment-confirm-success";
-    private static final String FAIL_TOPIC = "payment-confirm-fail";
+    private static final String CREATE_SUCCESS_TOPIC = "payment-create-success";
+    private static final String CREATE_FAIL_TOPIC = "payment-create-fail";
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    public void sendSuccess(PaymentSuccessEvent event) {
+    public void sendCreateSuccess(PaymentSuccessEvent event) {
         try {
             String json = objectMapper.writeValueAsString(event);
 
-            kafkaTemplate.send(SUCCESS_TOPIC, json).get(5, TimeUnit.SECONDS);
+            kafkaTemplate.send(CREATE_SUCCESS_TOPIC, json).get(5, TimeUnit.SECONDS);
 
             log.info("[PaymentProducer] success: {}", json);
         } catch (Exception e) {
             log.error("Failed to send payment-confirm-success: {}", e.getMessage(), e);
-            throw new RuntimeException("Kafka 전송 실패 - payment-confirm-success", e);
+            throw new RuntimeException("Kafka 전송 실패 - payment-create-success", e);
 
         }
     }
 
-    public void sendFail(PaymentFailEvent event) {
+    public void sendCreateFail(PaymentFailEvent event) {
         try {
             String json = objectMapper.writeValueAsString(event);
 
-            kafkaTemplate.send(FAIL_TOPIC, json).get(5, TimeUnit.SECONDS);
+            kafkaTemplate.send(CREATE_FAIL_TOPIC, json).get(5, TimeUnit.SECONDS);
 
             log.info("[PaymentProducer] fail: {}", json);
         } catch (Exception e) {
-            log.error("Failed to send payment-confirm-fail: {}", e.getMessage(), e);
+            log.error("Failed to send payment-create-fail: {}", e.getMessage(), e);
             throw new RuntimeException("Kafka 전송 실패 - payment-confirm-fail", e);
         }
     }

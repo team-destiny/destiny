@@ -17,7 +17,7 @@ public class PaymentConsumer {
     private final ObjectMapper objectMapper;
     private final PaymentService paymentService;
 
-    @KafkaListener(topics = "payment-confirm-request", groupId = "payment-service")
+    @KafkaListener(topics = "payment-create-request", groupId = "payment-service")
     public void onPayment(String message) {
         try {
             log.info("[PaymentConsumer] Received: {}", message);
