@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Getter;
 
@@ -36,6 +37,8 @@ public class User extends BaseEntity {
     private UserRole userRole;
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus;
+
+    private LocalDateTime logoutTime;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
     private UserInfo userInfo;
@@ -98,5 +101,9 @@ public class User extends BaseEntity {
 
     public void changeEmail(String newEmail) {
         this.email = newEmail;
+    }
+
+    public void logout() {
+        this.logoutTime = LocalDateTime.now();;
     }
 }
