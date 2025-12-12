@@ -149,15 +149,14 @@ public class SagaService {
         saga.updateStatus(SagaStatus.PROGRESS);
         saga.updateFinalAmount(saga.getOriginalAmount());
 
-        if (saga.getCouponId() != null) {
+        if (saga.getCouponId() == null) {
+            sagaProducer.sendPaymentRequest(
+                new PaymentCreateCommand(saga.getOrderId(), saga.getUserId(), saga.getFinalAmount()));
+        } else {
             sagaProducer.sendCouponValidate(
                 new CouponValidateCommand(saga.getOrderId(), saga.getCouponId(),
                     saga.getOriginalAmount()));
         }
-
-        sagaProducer.sendPaymentRequest(
-            new PaymentCreateCommand(saga.getOrderId(), saga.getUserId(), saga.getFinalAmount()));
-
     }
 
     @Transactional
