@@ -90,7 +90,7 @@ public class SagaService {
             ProductValidationResult update = new ProductValidationResult(
                 old.orderId(),
                 old.productId(),
-                old.orderedQuantity(),
+                old.stock(),
                 msg.brandId(),
                 msg.price()
             );
@@ -99,14 +99,14 @@ public class SagaService {
         }
 
         Integer totalAmount = saga.getProductResults().values().stream()
-            .mapToInt(item -> item.price() * item.orderedQuantity()).sum();
+            .mapToInt(item -> item.price() * item.stock()).sum();
 
         saga.updateOriginalAmount(totalAmount);
 
         List<StockReduceItem> items = saga.getProductResults().values().stream()
             .map(result -> new StockReduceItem(
                 result.productId(),
-                result.orderedQuantity()
+                result.stock()
             )).toList();
 
         sagaProducer.sendStockReduce(new StockReduceCommand(
@@ -216,7 +216,7 @@ public class SagaService {
                     .map(r -> new SuccessSendCommand.OrderItem(
                         r.productId(),
                         r.brandId(),
-                        r.orderedQuantity(),
+                        r.stock(),
                         r.price()
                     )).toList();
 
@@ -231,7 +231,7 @@ public class SagaService {
                 r.productId(),
                 r.brandId(),
                 r.price(),
-                r.orderedQuantity()
+                r.stock()
             )).toList();
 
         sagaProducer.sendOrderSuccess(new OrderCreateSuccessEvent(
