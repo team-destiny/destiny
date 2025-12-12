@@ -57,7 +57,7 @@ public class PaymentServiceImpl implements PaymentService {
                 }
                 if (findPayment.get().getPaymentStatus().equals(PaymentStatus.PAID)) {
                     // PAID 상태: 이미 최종 결제 완료 (중복 결제 시도 방지)
-                    throw new BizException(PaymentErrorCode.PAYMENT_ALREADY_APPROVED);
+                    return PaymentResponse.fromEntity(findPayment.get());
                 }
             }
 

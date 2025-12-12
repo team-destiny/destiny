@@ -3,6 +3,7 @@ package com.destiny.paymentservice.presentation.controller;
 import com.destiny.global.response.ApiResponse;
 import com.destiny.global.response.PageResponseDto;
 import com.destiny.paymentservice.application.service.PaymentService;
+import com.destiny.paymentservice.domain.vo.PaymentStatus;
 import com.destiny.paymentservice.infrastructure.messaging.event.command.PaymentCommand;
 import com.destiny.paymentservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.paymentservice.presentation.code.PaymentSuccessCode;
@@ -34,6 +35,9 @@ public class PaymentController {
     @PostMapping("/request")
     public ResponseEntity<ApiResponse<PaymentResponse>> requestPayment(@Valid @RequestBody PaymentCommand request) {
         PaymentResponse response = paymentService.requestPayment(request);
+        if (response.paymentStatus().equals(PaymentStatus.PAID)) {
+            return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_ALREADY_COMPLETED, response));
+        }
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_REQUEST_SUCCESS, response));
     }
 
