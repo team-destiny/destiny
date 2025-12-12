@@ -35,7 +35,7 @@ public class PaymentController {
     @PostMapping("/request")
     public ResponseEntity<ApiResponse<PaymentResponse>> requestPayment(@Valid @RequestBody PaymentCommand request) {
         PaymentResponse response = paymentService.requestPayment(request);
-        if (response.paymentStatus().equals(PaymentStatus.PAID)) {
+        if (response.paymentStatus() == PaymentStatus.PAID) {
             return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_ALREADY_COMPLETED, response));
         }
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_REQUEST_SUCCESS, response));
