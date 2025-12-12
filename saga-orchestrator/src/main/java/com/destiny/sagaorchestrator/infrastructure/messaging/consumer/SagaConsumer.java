@@ -31,15 +31,15 @@ public class SagaConsumer {
     public void onOrderCreate(String message) {
 
         try {
-            log.info("Join Saga Service : order-create-request");
+            log.info("[⭐️ JOIN SAGA SUCCESS] - ORDER CREATE : {}", message);
+
             OrderCreateRequestEvent event = objectMapper.readValue(
                 message, OrderCreateRequestEvent.class);
-
             orderCreateService.createSaga(event);
-            log.info("Saga Service : order-create-request has been created");
+
         } catch (JsonProcessingException e) {
 
-            log.error("Saga Service : order-create-request json processing error", e);
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - ORDER CREATE : {}", e.getMessage());
         }
     }
 
@@ -47,14 +47,15 @@ public class SagaConsumer {
     public void onProductValidateSuccess(String message) {
 
         try {
-            log.info("Join Saga Service : product-validate-success");
+            log.info("[⭐️ JOIN SAGA SUCCESS] - PRODUCT VALIDATE SUCCESS : {}", message);
 
             ProductValidationSuccessResult event = objectMapper.readValue(
                 message, ProductValidationSuccessResult.class);
             orderCreateService.productValidateSuccess(event);
+
         } catch (JsonProcessingException e) {
 
-            log.error("Saga Service : product-validate-success json processing error", e);
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - PRODUCT VALIDATE SUCCESS : {}", e.getMessage());
         }
     }
 
@@ -62,14 +63,15 @@ public class SagaConsumer {
     public void onProductValidateFail(String message) {
 
         try {
-            log.info("Join Saga Service : product-validate-fail");
+            log.info("[❌ JOIN SAGA SUCCESS] - PRODUCT VALIDATE FAIL : {}", message);
 
             ProductValidateFailResult event = objectMapper.readValue(
                 message, ProductValidateFailResult.class);
             orderCreateService.productValidateFailure(event);
+
         } catch (JsonProcessingException e) {
 
-            log.error("Saga Service : product-validate-fail json processing error", e);
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - PRODUCT VALIDATE FAIL : {}", e.getMessage());
         }
     }
 
@@ -77,14 +79,15 @@ public class SagaConsumer {
     public void onStockReduceSuccess(String message) {
 
         try {
-            log.info("Join Saga Service : stock-reduce-success");
+            log.info("[⭐️ JOIN SAGA SUCCESS] - STOCK REDUCE SUCCESS : {}", message);
 
             StockReduceSuccessResult event = objectMapper.readValue(
                 message, StockReduceSuccessResult.class);
             orderCreateService.stockReduceSuccess(event);
+
         } catch (JsonProcessingException e) {
 
-            log.error("Saga Service : stock-reduce-success json processing error", e);
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - STOCK REDUCE SUCCESS : {}", e.getMessage());
         }
     }
 
@@ -92,61 +95,63 @@ public class SagaConsumer {
     public void onStockReduceFail(String message) {
 
         try {
-            log.info("Join Saga Service : stock-reduce-fail");
+            log.info("[❌ JOIN SAGA SUCCESS] - STOCK REDUCE FAIL : {}", message);
+
             StockReduceFailResult event = objectMapper.readValue(
                 message, StockReduceFailResult.class);
             orderCreateService.stockReduceFailure(event);
 
         } catch (JsonProcessingException e) {
 
-            log.error("Saga Service : stock-reduce-fail json processing error", e);
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - STOCK REDUCE FAIL : {}", e.getMessage());
         }
-
     }
 
     @KafkaListener(topics = "coupon-use-success", groupId = "saga-orchestrator")
     public void onCouponUseSuccess(String message) {
 
         try {
-            log.info("Join Saga Service : coupon-use-success");
+            log.info("[⭐️ JOIN SAGA SUCCESS] - COUPON USE SUCCESS : {}", message);
+
             CouponUseSuccessResult event = objectMapper.readValue(
                 message, CouponUseSuccessResult.class);
-
             orderCreateService.couponUseSuccess(event);
+
         } catch (JsonProcessingException e) {
 
-            log.error("Saga Service : coupon-use-success json processing error", e);
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - COUPON USE SUCCESS : {}", e.getMessage());
         }
-
     }
 
     @KafkaListener(topics = "coupon-use-fail", groupId = "saga-orchestrator")
     public void onCouponUseFail(String message) {
 
         try {
+            log.info("[❌ JOIN SAGA SUCCESS] - COUPON USE FAIL : {}", message);
 
-            log.info("Join Saga Service : coupon-use-fail");
             CouponUseFailResult event = objectMapper.readValue(
                 message, CouponUseFailResult.class);
             orderCreateService.couponUseFailure(event);
+
         } catch (JsonProcessingException e) {
 
-            log.error("Saga Service : coupon-use-fail json processing error", e);
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - COUPON USE FAIL : {}", e.getMessage());
          }
-
     }
 
     @KafkaListener(topics = "payment-create-success", groupId = "saga-orchestrator")
     public void onPaymentConfirmSuccess(String message) {
 
         try {
-            log.info("Join Saga Service : payment-create-success");
+            log.info("[⭐️ JOIN SAGA SUCCESS] - PAYMENT CREATE SUCCESS : {}", message);
+
             PaymentConfirmSuccessResult event = objectMapper.readValue(
                 message, PaymentConfirmSuccessResult.class);
-
             orderCreateService.paymentCreateSuccess(event);
+
         } catch (JsonProcessingException e) {
-            log.error("Saga Service : payment-create-success json processing error", e);
+
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - PAYMENT CREATE SUCCESS : {}", e.getMessage());
         }
 
     }
@@ -155,13 +160,15 @@ public class SagaConsumer {
     public void onPaymentConfirmFail(String message) {
 
         try {
-            log.info("Join Saga Service : payment-create-fail");
+            log.info("[❌ JOIN SAGA SUCCESS] - PAYMENT CREATE FAIL : {}", message);
+
             PaymentConfirmFailResult event = objectMapper.readValue(
                 message, PaymentConfirmFailResult.class);
-
             orderCreateService.paymentCreateFailure(event);
+
         } catch (JsonProcessingException e){
-            log.error("Saga Service : payment-create-fail json processing error", e);
+
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - PAYMENT CREATE FAIL : {}", e.getMessage());
         }
     }
 
@@ -169,14 +176,15 @@ public class SagaConsumer {
     public void onPaymentSuccess(String message) {
 
         try {
-            log.info("Join Saga Service : payment-success");
+            log.info("[⭐️ JOIN SAGA SUCCESS] - PAYMENT SUCCESS : {}", message);
+
             PaymentSuccess event = objectMapper.readValue(
                 message, PaymentSuccess.class);
             orderCreateService.paymentSuccess(event);
 
         } catch (JsonProcessingException e) {
 
-            log.error("Saga Service : payment-success json processing error", e);
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - PAYMENT SUCCESS : {}", e.getMessage());
         }
     }
 
@@ -184,17 +192,15 @@ public class SagaConsumer {
     public void onPaymentFail(String message) {
 
         try {
-            log.info("Join Saga Service : payment-fail");
+            log.info("[❌ JOIN SAGA SUCCESS] - PAYMENT FAIL : {}", message);
+
             PaymentFail event = objectMapper.readValue(
                 message, PaymentFail.class);
             orderCreateService.paymentFailed(event);
 
         } catch (JsonProcessingException e) {
 
-            log.error("Saga Service : payment-fail json processing error", e);
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - PAYMENT FAIL : {}", e.getMessage());
         }
     }
-
-
-
 }
