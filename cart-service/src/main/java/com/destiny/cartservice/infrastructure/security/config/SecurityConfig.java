@@ -46,6 +46,10 @@ public class SecurityConfig {
         httpSecurity.addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
 
         httpSecurity.authorizeHttpRequests(authorize -> {
+            // 최소 공개(필요 시 liveness/readiness만 추가)
+            authorize.requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll();
+            // 메트릭/기타 엔드포인트는 인증 필요
+            authorize.requestMatchers("/actuator/**").authenticated();
             authorize.requestMatchers("/v1/carts/**").authenticated();
             authorize.anyRequest().authenticated();
         });
