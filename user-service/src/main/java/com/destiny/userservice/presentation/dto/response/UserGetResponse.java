@@ -16,6 +16,6 @@ public record UserGetResponse(
             , user.getUserRole()
             , user.getUsername()
             , user.getEmail()
-            , com.destiny.userservice.presentation.dto.response.UserInfoResponse.from(user.getUserInfo()));
+            , UserInfoResponse.from(user.getUserInfo()));
     }
 }
