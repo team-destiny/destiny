@@ -4,6 +4,7 @@ import com.destiny.global.exception.BizException;
 import com.destiny.userservice.domain.entity.QUser;
 import com.destiny.userservice.domain.entity.User;
 import com.destiny.userservice.domain.entity.UserRole;
+import com.destiny.userservice.domain.repository.SearchType;
 import com.destiny.userservice.domain.repository.UserRepository;
 import com.destiny.userservice.presentation.advice.UserErrorCode;
 import com.querydsl.core.BooleanBuilder;
@@ -70,11 +71,12 @@ public class UserJpaRepositoryAdaptor implements UserRepository {
 
         // search (username / email / nickname / phone)
         if (StringUtils.hasText(keyword) && StringUtils.hasText(searchType)) {
-            switch (searchType) {
-                case "USERNAME" -> builder.and(user.username.containsIgnoreCase(keyword));
-                case "EMAIL"    -> builder.and(user.email.containsIgnoreCase(keyword));
-                case "NICKNAME" -> builder.and(user.userInfo.nickname.containsIgnoreCase(keyword));
-                case "PHONE"    -> builder.and(user.userInfo.phone.contains(keyword));
+            SearchType type = SearchType.fromValue(searchType);
+            switch (type) {
+                case USERNAME -> builder.and(user.username.containsIgnoreCase(keyword));
+                case EMAIL   -> builder.and(user.email.containsIgnoreCase(keyword));
+                case NICKNAME -> builder.and(user.userInfo.nickname.containsIgnoreCase(keyword));
+                case PHONE    -> builder.and(user.userInfo.phone.contains(keyword));
                 default -> { /* 알 수 없는 searchType 이면 검색 조건 추가 안함 */ }
             }
         }
