@@ -4,6 +4,7 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CartC
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailSendCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
@@ -151,6 +152,7 @@ public class SagaProducer {
             log.info("[🍏 SAGA-SERVICE -> NOTIFICATION-SERVICE SUCCESS] - ORDER CREATE SUCCESS SEND : {}", message);
 
         } catch (JsonProcessingException e) {
+
             log.error("[❌ SAGA-SERVICE -> NOTIFICATION-SERVICE FAIL JSON EXCEPTION] - ORDER CREATE SUCCESS SEND: {}", e.getMessage());
         }
     }
@@ -163,8 +165,21 @@ public class SagaProducer {
             log.info("[🍏 SAGA-SERVICE -> NOTIFICATION-SERVICE SUCCESS] - ORDER CREATE FAIL SEND : {}", message);
 
         } catch (JsonProcessingException e) {
+
             log.error("[❌ SAGA-SERVICE -> NOTIFICATION-SERVICE FAIL JSON EXCEPTION] - ORDER CREATE FAIL: {}", e.getMessage());
         }
     }
 
+    public void cancelPayment(PaymentCancelCommand event) {
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("payment-cancel-request", message);
+            log.info("[🍎 SAGA-SERVICE -> PAYMENT-SERVICE SUCCESS] - PAYMENT CANCEL : {}", message);
+
+        } catch (JsonProcessingException e) {
+
+            log.info("[❌ SAGA-SERVICE -> PAYMENT-SERVICE FAIL JSON EXCEPTION] - PAYMENT CANCEL: {}", e.getMessage());
+        }
+    }
 }
