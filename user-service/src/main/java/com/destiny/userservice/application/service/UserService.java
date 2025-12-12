@@ -2,6 +2,7 @@ package com.destiny.userservice.application.service;
 
 import com.destiny.global.code.CommonErrorCode;
 import com.destiny.global.exception.BizException;
+import com.destiny.userservice.application.cache.AuthCache;
 import com.destiny.userservice.domain.entity.User;
 import com.destiny.userservice.domain.entity.UserInfo;
 import com.destiny.userservice.domain.entity.UserRole;
@@ -10,6 +11,7 @@ import com.destiny.userservice.presentation.advice.UserErrorCode;
 import com.destiny.userservice.presentation.dto.request.UserPasswordUpdateRequest;
 import com.destiny.userservice.presentation.dto.request.UserUpdateRequest;
 import com.destiny.userservice.presentation.dto.response.UserGetResponse;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthCache authCache;
 
     public UserGetResponse getUser(UUID authUserId, UserRole authUserRole, UUID targetUserId) {
         validateAccess(authUserId, authUserRole, targetUserId);
@@ -103,6 +106,9 @@ public class UserService {
         if (userInfo != null) {
             userInfo.markDeleted(userId);
         }
+
+        // 탈퇴 사용자 토큰 만료
+        authCache.storeToken(user.getUserId().toString(), Instant.now().toEpochMilli());
     }
 
 }
