@@ -10,3 +10,7 @@ spring:
       discovery:
         enabled: true
         service-id: config-server
+
+logging:
+  level:
+    org.springframework.security: DEBUG
