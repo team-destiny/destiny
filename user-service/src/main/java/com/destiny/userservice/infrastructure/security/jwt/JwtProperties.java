@@ -22,7 +22,7 @@ public class JwtProperties {
         @Value("${jwt.access-expiration-millis}") long accessExpirationMillis,
         @Value("${jwt.refresh-expiration-millis}") long refreshExpirationMillis,
         @Value("${jwt.access-header-name}") String accessHeaderName,
-        @Value("${jwt.refresh-cookie-name}") String refreshHeaderName,
+        @Value("${jwt.refresh-header-name}") String refreshHeaderName,
         @Value("${jwt.header-prefix}") String headerPrefix,
         @Value("${jwt.access-subject}") String accessSubject,
         @Value("${jwt.refresh-subject}") String refreshSubject,
