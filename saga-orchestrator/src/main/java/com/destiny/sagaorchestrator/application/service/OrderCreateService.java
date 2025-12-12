@@ -42,7 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class SagaService {
+public class OrderCreateService {
 
     private final SagaRepository sagaRepository;
     private final SagaProducer sagaProducer;
