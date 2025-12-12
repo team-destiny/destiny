@@ -111,7 +111,7 @@ public class UserJpaRepositoryAdaptor implements UserRepository {
     @Override
     public User findByUserIdAndDeletedAtIsNull(UUID userId) {
         return userJpaRepository.findByUserIdAndDeletedAtIsNull(userId)
-            .orElseThrow(() -> new BizException(UserErrorCode.USER_NOT_FOUND));
+            .orElseThrow(() -> new BizException(UserErrorCode.INVALID_LOGIN_CREDENTIALS));
     }
 
 
