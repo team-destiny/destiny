@@ -25,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 @Slf4j
@@ -84,7 +85,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         String logMessage = sanitizeForLog(message);
 
-        String targetUrl = (channel != null && channel.isActive() && channel.getSlackUrl() != null)
+        String targetUrl = (channel != null && channel.isActive() && StringUtils.hasText(channel.getSlackUrl()))
             ? channel.getSlackUrl()
             : this.adminSlackUrl;
 
