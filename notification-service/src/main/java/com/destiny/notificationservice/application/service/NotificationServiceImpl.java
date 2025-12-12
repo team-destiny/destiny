@@ -84,27 +84,27 @@ public class NotificationServiceImpl implements NotificationService {
 
         String logMessage = sanitizeForLog(message);
 
-        if (channel == null || !channel.isActive()) {
+        String targetUrl = (channel != null && channel.isActive() && channel.getSlackUrl() != null)
+            ? channel.getSlackUrl()
+            : this.adminSlackUrl;
+
+        if (targetUrl == null || targetUrl.isBlank()) {
             saveLog(
                 brandId,
                 logMessage,
                 STATUS_FAIL,
-                404,
-                "Channel not found or inactive",
-                "CHANNEL_NOT_AVAILABLE",
-                "No active notification channel for brand: " + brandId
-            );
-            return new NotificationResultResponse(
-                STATUS_FAIL,
-                "Slack channel not found."
-            );
+                500,
+                "Env Var is empty",
+                "ENV_ERR",
+                "No webhook url");
+            return new NotificationResultResponse(STATUS_FAIL, "No Slack URL configured.");
         }
 
         try {
             Map<String, String> payload = Collections.singletonMap("text", logMessage);
 
             ResponseEntity<String> response = restTemplate.postForEntity(
-                channel.getSlackUrl(),
+                targetUrl,
                 payload,
                 String.class
             );
