@@ -1,9 +1,18 @@
 server:
   port: 18140
 
+slack:
+  webhook:
+    admin-url: ${SLACK_WEBHOOK_URL}
+
 spring:
   application:
     name: notification-service
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification-service
 
   datasource:
     driver-class-name: org.postgresql.Driver
