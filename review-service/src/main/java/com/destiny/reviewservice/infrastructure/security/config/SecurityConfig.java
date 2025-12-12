@@ -6,6 +6,7 @@ import com.destiny.reviewservice.infrastructure.security.filter.JwtAuthorization
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -44,6 +45,7 @@ public class SecurityConfig {
 
         httpSecurity.authorizeHttpRequests(authorize -> {
             // TODO : 접근 권한 부여
+            authorize.requestMatchers(HttpMethod.GET, "/v1/reviews").permitAll();
             authorize.requestMatchers("/actuator/**").permitAll();
             authorize.anyRequest().authenticated();
         });
