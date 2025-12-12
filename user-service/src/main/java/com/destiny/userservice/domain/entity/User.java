@@ -104,6 +104,6 @@ public class User extends BaseEntity {
     }
 
     public void logout() {
-        this.logoutTime = LocalDateTime.now();;
+        this.logoutTime = LocalDateTime.now();
     }
 }
