@@ -1,6 +1,8 @@
 package com.destiny.sagaorchestrator.infrastructure.messaging.consumer;
 
+import com.destiny.sagaorchestrator.application.service.OrderCancelService;
 import com.destiny.sagaorchestrator.application.service.OrderCreateService;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCancelRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.PaymentFail;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.PaymentSuccess;
@@ -26,6 +28,7 @@ public class SagaConsumer {
 
     private final ObjectMapper objectMapper;
     private final OrderCreateService orderCreateService;
+    private final OrderCancelService orderCancelService;
 
     @KafkaListener(topics = "order-create-request", groupId = "saga-orchestrator")
     public void onOrderCreate(String message) {
@@ -201,6 +204,22 @@ public class SagaConsumer {
         } catch (JsonProcessingException e) {
 
             log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - PAYMENT FAIL : {}", e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = "order-cancel-request", groupId = "saga-orchestrator")
+    public void onOrderCancel(String message) {
+
+        try {
+            log.info("[⭐️ JOIN SAGA SUCCESS] - ORDER CANCEL : {}", message);
+
+            OrderCancelRequestEvent event = objectMapper.readValue(
+                message, OrderCancelRequestEvent.class);
+            orderCancelService.cancelOrder(event);
+
+        } catch (JsonProcessingException e) {
+
+            log.info("[🔥 JOIN SAGA FAIL JSON EXCEPTION] - ORDER CANCEL : {}", e.getMessage());
         }
     }
 }

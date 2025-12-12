@@ -125,7 +125,6 @@ public class OrderCreateService {
         saga.updateStatus(SagaStatus.FAILED);
         saga.updateFailureReason(event.message());
 
-        // TODO : (주문 실패) 슬랙 서비스 쪽으로 메시지 발행 (주문 아이디, 주문자 아이디, 주문 실패한 이유등)
         sendOrderCreateFailMessage(
             event,
             saga,
