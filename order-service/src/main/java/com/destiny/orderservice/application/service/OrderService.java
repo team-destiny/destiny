@@ -10,6 +10,7 @@ import com.destiny.orderservice.domain.repository.OrderItemRepository;
 import com.destiny.orderservice.domain.repository.OrderRepository;
 import com.destiny.orderservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.orderservice.infrastructure.exception.OrderError;
+import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCancelRequestEvent;
 import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCreateRequestEvent;
 import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateFailedEvent;
 import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateSuccessEvent;
@@ -19,10 +20,10 @@ import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.Orde
 import com.destiny.orderservice.presentation.dto.request.OrderStatusRequest;
 import com.destiny.orderservice.presentation.dto.response.OrderDetailResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderForBrandResponse;
-import com.destiny.orderservice.presentation.dto.response.OrderItemForBrandResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderListResponse;
 import com.destiny.orderservice.presentation.dto.response.OrderProcessingResponse;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -63,7 +64,7 @@ public class OrderService {
         UUID orderId = orderRepository.createOrder(order).getOrderId();
 
         OrderCreateRequestEvent event = OrderCreateRequestEvent.from(order, req.cartId());
-        orderProducer.send(event);
+        orderProducer.sendOrderCreate(event);
 
         return orderId;
     }
@@ -103,19 +104,20 @@ public class OrderService {
 
         validateOrderUser(order, customUserDetails.getUserId());
 
-        boolean isAllPending = order.getItems().stream()
-            .allMatch(item -> item.getStatus() == OrderItemStatus.PENDING);
+        Set<OrderItemStatus> cancelableStatus =
+            Set.of(OrderItemStatus.PENDING, OrderItemStatus.PREPARING);
 
-        if (!isAllPending) {
+        boolean isAllCancelable = order.getItems().stream()
+                .allMatch(item -> cancelableStatus.contains(item.getStatus()));
+
+        if (!isAllCancelable) {
             throw new BizException(OrderError.ORDER_CANCEL_NOT_ALLOWED);
         }
 
-        order.getItems().forEach(item -> item.updateStatus(OrderItemStatus.CANCELED));
-        order.updateStatus(OrderStatus.CANCELED);
+        OrderCancelRequestEvent event = OrderCancelRequestEvent.from(order);
+        orderProducer.sendOrderCancel(event);
 
-        Order updateOrder = orderRepository.updateOrder(order);
-
-        return updateOrder.getOrderId();
+        return order.getOrderId();
     }
 
     @Transactional(readOnly = true)
