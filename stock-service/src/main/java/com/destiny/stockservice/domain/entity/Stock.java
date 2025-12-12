@@ -26,24 +26,61 @@ public class Stock extends BaseEntity {
     private UUID productId;
 
     @Column(nullable = false)
-    private Integer quantity;
+    private Integer totalQuantity;
+
+    private Integer reservedQuantity;
 
     @Version
     private Long version;
 
     public Stock(UUID productId, Integer quantity) {
         this.productId = productId;
-        this.quantity = quantity;
+        this.totalQuantity = quantity;
+        this.reservedQuantity = 0;
     }
 
     public void tryReduceQuantity(Integer amount) {
-        if (quantity < amount) {
+        if (totalQuantity < amount) {
             return;
         }
-        quantity -= amount;
+        totalQuantity -= amount;
     }
 
     public void addQuantity(Integer amount) {
-        quantity += amount;
+        totalQuantity += amount;
+    }
+
+    public int getAvailableQuantity() {
+        return totalQuantity - reservedQuantity;
+    }
+
+    public boolean reserve(int amount) {
+        if (getAvailableQuantity() < amount) {
+            return false;
+        }
+
+        reservedQuantity += amount;
+
+        return true;
+    }
+
+    public void cancelReservation(int amount) {
+        if (reservedQuantity < amount) {
+            throw new IllegalStateException("Invalid reservation cancel");
+        }
+        reservedQuantity -= amount;
+    }
+
+    public void commit(int amount) {
+        if (reservedQuantity < amount) {
+            throw new IllegalStateException("Not enough reserved stock");
+        }
+
+        reservedQuantity -= amount;
+        totalQuantity -= amount;
+
+        if (totalQuantity < 0) {
+            throw new IllegalStateException("Stock became negative");
+        }
     }
 }

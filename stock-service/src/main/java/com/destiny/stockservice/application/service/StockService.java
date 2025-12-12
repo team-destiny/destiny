@@ -53,7 +53,7 @@ public class StockService {
             return true;
         }
 
-        if (stock.getQuantity() == null) {
+        if (stock.getTotalQuantity() == null) {
             return true;
         }
 
@@ -61,7 +61,7 @@ public class StockService {
             return true;
         }
 
-        return stock.getQuantity() < item.orderedQuantity();
+        return stock.getTotalQuantity() < item.orderedQuantity();
     }
 
     @Transactional
