@@ -19,6 +19,8 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.Order
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent.OrderItem;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent.OrderItemCreateRequestEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.PaymentFail;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.PaymentSuccess;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentConfirmFailResult;
@@ -220,6 +222,39 @@ public class SagaService {
     @Transactional
     public void paymentCreateSuccess(PaymentConfirmSuccessResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.PAYMENT_CREATE_SUCCESS);
+        saga.updateStatus(SagaStatus.PROGRESS);
+    }
+
+    @Transactional
+    public void paymentCreateFailure(PaymentConfirmFailResult event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
+        saga.updateStep(SagaStep.PAYMENT_CREATE_FAIL);
+        saga.updateStatus(SagaStatus.FAILED);
+        saga.updateFailureReason(event.errorMessage());
+
+        sendCouponRollback(saga);
+
+        sendStockRollback(saga);
+
+        sendOrderCreateFailMessage(
+            event,
+            saga,
+            "결제 생성 요청 실패하였습니다.",
+            "SAM-001",
+            "PAYMENT-SERVICE"
+        );
+
+        sendSlackFailMessage(
+            saga,
+            "SAM-001",
+            "결제 요청이 실패하였습니다.",
+            "PAYMENT-SERVICE");
+    }
+
+    @Transactional
+    public void paymentSuccess(PaymentSuccess event) {
+        SagaState saga = sagaRepository.findByOrderId(event.orderId());
         saga.updateStep(SagaStep.PAYMENT_SUCCESS);
         saga.updateStatus(SagaStatus.COMPLETED);
 
@@ -229,12 +264,12 @@ public class SagaService {
 
         List<SuccessSendCommand.OrderItem> slackItems =
             saga.getProductResults().values().stream()
-                    .map(r -> new SuccessSendCommand.OrderItem(
-                        r.productId(),
-                        r.brandId(),
-                        r.stock(),
-                        r.price()
-                    )).toList();
+                .map(r -> new SuccessSendCommand.OrderItem(
+                    r.productId(),
+                    r.brandId(),
+                    r.stock(),
+                    r.price()
+                )).toList();
 
         sagaProducer.sendSuccessMessage(new SuccessSendCommand(
             saga.getOrderId(),
@@ -262,10 +297,11 @@ public class SagaService {
     }
 
     @Transactional
-    public void paymentCreateFailure(PaymentConfirmFailResult event) {
+    public void paymentFailed(PaymentFail event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
         saga.updateStep(SagaStep.PAYMENT_FAIL);
         saga.updateStatus(SagaStatus.FAILED);
+
         saga.updateFailureReason(event.errorMessage());
 
         sendCouponRollback(saga);
@@ -275,15 +311,15 @@ public class SagaService {
         sendOrderCreateFailMessage(
             event,
             saga,
-            "결제 생성 요청 실패하였습니다.",
-            "SAM-001",
+            "결제 실패하였습니다.",
+            "PMS-001",
             "PAYMENT-SERVICE"
         );
 
         sendSlackFailMessage(
             saga,
-            "SAM-001",
-            "결제 요청이 실패하였습니다.",
+            "PMS-001",
+            "결제 실패였습니다.",
             "PAYMENT-SERVICE");
     }
 
