@@ -2,6 +2,7 @@ package com.destiny.sagaorchestrator.domain.entity;
 
 public enum SagaStep {
     ORDER_CREATED_REQUEST,
+    ORDER_CANCEL_REQUEST,
 
     USER_VALIDATE_SUCCESS,
     USER_VALIDATE_FAIL,

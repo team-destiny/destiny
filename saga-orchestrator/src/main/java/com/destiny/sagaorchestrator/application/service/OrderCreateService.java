@@ -255,6 +255,7 @@ public class OrderCreateService {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
         saga.updateStep(SagaStep.PAYMENT_SUCCESS);
         saga.updateStatus(SagaStatus.COMPLETED);
+        saga.updatePaymentValid(true);
 
         if (saga.getCartId() != null) {
             sagaProducer.sendCartClear(new CartClearCommand(saga.getCartId()));
