@@ -34,9 +34,10 @@ public class ProductValidationService {
 
     @SneakyThrows
     @KafkaListener(groupId= "orchestrator", topics = "product-validate-request")
-    @RetryableTopic(backoff = @Backoff(delay = 1000, multiplier = 2))
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
     @Transactional(readOnly = true)
     public void consumeProductValidateRequest(String message) {
+
         ProductValidationCommand event = objectMapper.readValue(message,
             ProductValidationCommand.class);
 

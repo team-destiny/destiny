@@ -16,6 +16,7 @@ import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -30,7 +31,7 @@ public class StockConsumerService {
     private final ObjectMapper objectMapper;
 
     @SneakyThrows
-    @RetryableTopic
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
     @KafkaListener(groupId = "orchestrator", topics = "stock-reduce-request")
     public void consumeStockMessage(String message) {
 
@@ -51,7 +52,7 @@ public class StockConsumerService {
     }
 
     @SneakyThrows
-    @RetryableTopic
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
     @KafkaListener(groupId = "orchestrator", topics = "stock-reduce-rollback")
     public void consumeStockRollbackMessage(String stockRollbackCommand) {
 
