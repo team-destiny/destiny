@@ -28,7 +28,7 @@ public class PaymentCreateProducer {
 
             log.info("[PaymentProducer] success: {}", json);
         } catch (Exception e) {
-            log.error("Failed to send payment-confirm-success: {}", e.getMessage(), e);
+            log.error("Failed to send payment-create-success: {}", e.getMessage(), e);
             throw new RuntimeException("Kafka 전송 실패 - payment-create-success", e);
 
         }
@@ -43,7 +43,7 @@ public class PaymentCreateProducer {
             log.info("[PaymentProducer] fail: {}", json);
         } catch (Exception e) {
             log.error("Failed to send payment-create-fail: {}", e.getMessage(), e);
-            throw new RuntimeException("Kafka 전송 실패 - payment-confirm-fail", e);
+            throw new RuntimeException("Kafka 전송 실패 - payment-create-fail", e);
         }
     }
 }
