@@ -148,7 +148,7 @@ public class SagaProducer {
 
         try {
             String message = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("fail-send-message", null);
+            kafkaTemplate.send("success-send-message", message);
             log.info("send success -> success send message {}", message);
 
         } catch (JsonProcessingException e) {
