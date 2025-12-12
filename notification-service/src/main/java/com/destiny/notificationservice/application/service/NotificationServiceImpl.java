@@ -36,7 +36,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String STATUS_SUCCESS = "SUCCESS";
     private static final String STATUS_FAIL = "FAIL";
 
-    @Value("${slack.webhook.admin-url}")
+    @Value("${slack.webhook.admin-url:}")
     private String adminSlackUrl;
 
     private final NotificationChannelRepository notificationChannelRepository;
@@ -286,24 +286,61 @@ public class NotificationServiceImpl implements NotificationService {
             event.detailMessage()
         );
 
-        sendToSlack(
+        sendAdminToSlack(
             adminSlackUrl,
             message,
             event.errorCode(),
             event.failReason());
     }
 
-    private void sendToSlack(String adminSlackUrl, String message, String errorCode,
+    private void sendAdminToSlack(String adminSlackUrl, String message, String errorCode,
         String errorMessage) {
+
+        if (adminSlackUrl == null || adminSlackUrl.isBlank()) {
+            log.warn("Slack url is null or empty");
+            saveLog(
+                null,
+                sanitizeForLog(message),
+                STATUS_FAIL,
+                500,
+                "Admin Slack url not configured",
+                errorCode,
+                errorMessage);
+
+            return;
+
+        }
+
+        String logMessage = sanitizeForLog(message);
 
         try {
             Map<String, String> payload = Collections.singletonMap("text", message);
-            restTemplate.postForEntity(adminSlackUrl, payload, String.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(adminSlackUrl, payload,
+                String.class);
 
-            saveLog(null, message, "SUCCESS", 200, "Sent to Admin", errorCode, errorMessage);
+            int statusCode = response.getStatusCode().value();
+            boolean success = response.getStatusCode().is2xxSuccessful();
+
+            saveLog(
+                null,
+                logMessage,
+                success ? STATUS_SUCCESS : STATUS_FAIL,
+                statusCode,
+                response.getBody(),
+                errorCode,
+                errorMessage);
+
         } catch (Exception e) {
-            log.error("Failed to send slack message", e);
-            saveLog(null, message, "FAIL", 500, e.getMessage(), errorCode, errorMessage);
+            log.error("Failed to send admin slack message", e);
+            saveLog(
+                null,
+                logMessage,
+                STATUS_FAIL,
+                500,
+                "Slack request failed",
+                "SLACK_SEND_FAILED",
+                e.getMessage()
+            );
         }
     }
 
