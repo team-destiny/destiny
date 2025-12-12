@@ -22,14 +22,14 @@ public class OrderConsumer {
     public void createOrderSuccess(String message) {
 
         try {
-            log.info("[🍏 ORDER CREATE SUCCESS] : {}", message);
+            log.info("[⭐️ JOIN ORDER SUCCESS] : ORDER CREATE SUCCESS {}", message);
             OrderCreateSuccessEvent event = objectMapper.readValue(
                 message, OrderCreateSuccessEvent.class);
 
             orderService.successOrder(event);
         } catch (JsonProcessingException e) {
 
-            log.info("[🍏 ORDER CREATE SUCCESS] JSON EXCEPTION : {}", e.getMessage());
+            log.info("🔥 JOIN ORDER FAIL JSON EXCEPTION] ORDER CREATE SUCCESS : {}", e.getMessage());
         }
 
     }
@@ -38,14 +38,14 @@ public class OrderConsumer {
     public void createOrderFailed(String message) {
 
         try {
-            log.info("[🍏 ORDER CREATE FAILED] : {}", message);
+            log.info("[❌ JOIN ORDER SUCCESS] ORDER CREATE FAILED : {}", message);
             OrderCreateFailedEvent event = objectMapper.readValue(
                 message, OrderCreateFailedEvent.class);
 
             orderService.failOrder(event);
         } catch (JsonProcessingException e) {
 
-            log.info("[🍏 ORDER CREATE FAILED] JSON EXCEPTION : {}", e.getMessage());
+            log.info("[🔥 JOIN ORDER FAIL JSON EXCEPTION] ORDER CREATE FAILED : {}", e.getMessage());
         }
     }
 
