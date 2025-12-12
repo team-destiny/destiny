@@ -2,6 +2,8 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.consumer;
 
 import com.destiny.sagaorchestrator.application.service.SagaService;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.PaymentFail;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.PaymentSuccess;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentConfirmFailResult;
@@ -162,5 +164,37 @@ public class SagaConsumer {
             log.error("Saga Service : payment-confirm-fail json processing error", e);
         }
     }
+
+    @KafkaListener(topics = "payment-success", groupId = "saga-orchestrator")
+    public void onPaymentSuccess(String message) {
+
+        try {
+            log.info("Join Saga Service : payment-success");
+            PaymentSuccess event = objectMapper.readValue(
+                message, PaymentSuccess.class);
+            sagaService.paymentSuccess(event);
+
+        } catch (JsonProcessingException e) {
+
+            log.error("Saga Service : payment-success json processing error", e);
+        }
+    }
+
+    @KafkaListener(topics = "payment-fail", groupId = "saga-orchestrator")
+    public void onPaymentFail(String message) {
+
+        try {
+            log.info("Join Saga Service : payment-fail");
+            PaymentFail event = objectMapper.readValue(
+                message, PaymentFail.class);
+            sagaService.paymentFailed(event);
+
+        } catch (JsonProcessingException e) {
+
+            log.error("Saga Service : payment-fail json processing error", e);
+        }
+    }
+
+
 
 }
