@@ -43,12 +43,3 @@ jwt:
   access-subject: AccessToken
   refresh-subject: RefreshToken
   is-refresh-cookie-secure: false
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, info, prometheus
-  endpoint:
-    health:
-      show-details: when_authorized
