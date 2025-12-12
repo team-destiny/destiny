@@ -43,7 +43,11 @@ public class SecurityConfig {
         httpSecurity.addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
 
         httpSecurity.authorizeHttpRequests(authorize -> {
-            // TODO : 접근 권한 부여
+            authorize.requestMatchers("/v1/payments/checkout").permitAll();
+            authorize.requestMatchers("/v1/payments/tosspayments/**").permitAll();
+            authorize.requestMatchers("/v1/payments/portone/**").permitAll();
+            authorize.requestMatchers("/v1/payments/bootpay/**").permitAll();
+            authorize.requestMatchers("/actuator/**").permitAll();
             authorize.anyRequest().authenticated();
         });
 

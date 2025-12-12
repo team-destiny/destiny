@@ -41,12 +41,6 @@ public class TossPaymentsController {
         model.addAttribute("orderId", finalOrderId);
         model.addAttribute("customerKey", "CUSTOMER-" + System.currentTimeMillis()); // 실제로는 사용자 ID 기반 생성
         model.addAttribute("amount", 50000); // Integer로 통일
-        model.addAttribute("orderName", "운명팀 티셔츠");
-        model.addAttribute("couponDiscount", 5000); // Integer로 통일
-        model.addAttribute("customerEmail", "customer@destiny.com");
-        model.addAttribute("customerName", "김토스");
-        model.addAttribute("customerMobilePhone", "01012341234");
-
         return "/tosspayments/checkout"; // Thymeleaf 템플릿 경로
     }
 
