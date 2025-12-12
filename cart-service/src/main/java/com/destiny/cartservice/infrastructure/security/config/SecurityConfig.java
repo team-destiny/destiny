@@ -46,6 +46,7 @@ public class SecurityConfig {
         httpSecurity.addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
 
         httpSecurity.authorizeHttpRequests(authorize -> {
+            authorize.requestMatchers("/actuator/**").permitAll();
             authorize.requestMatchers("/v1/carts/**").authenticated();
             authorize.anyRequest().authenticated();
         });
