@@ -1,0 +1,17 @@
+server:
+  port: 18090
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5433/product_db
+    username: root
+    password: 1234
+
+  kafka:
+    bootstrap-servers: localhost:9092
+  data:
+    elasticsearch:
+      host: localhost:9200
+      repositories:
+        enabled: true
