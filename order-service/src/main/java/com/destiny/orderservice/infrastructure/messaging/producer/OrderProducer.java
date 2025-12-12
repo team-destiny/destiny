@@ -25,7 +25,7 @@ public class OrderProducer {
             log.info("[🍏 ORDER-SERVICE -> SAGA-SERVICE SUCCESS] - ORDER CREATE : {}", payload);
 
         } catch (JsonProcessingException e) {
-            log.error("[❌ ORDER-SERVICE -> SAGA-SERVICE FAIL] - ORDER CREATE : {}", e.getMessage());
+            log.error("[❌ ORDER-SERVICE -> SAGA-SERVICE FAIL JSON EXCEPTION] - ORDER CREATE : {}", e.getMessage());
         }
     }
 
@@ -38,7 +38,7 @@ public class OrderProducer {
 
         } catch (JsonProcessingException e) {
 
-            log.info("🍎 ORDER-SERVICE -> SAGA-SERVICE FAIL] - ORDER CANCEL : {}", e.getMessage());
+            log.info("❌ ORDER-SERVICE -> SAGA-SERVICE FAIL JSON EXCEPTION] - ORDER CANCEL : {}", e.getMessage());
         }
     }
 }

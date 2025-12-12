@@ -6,7 +6,7 @@ import com.destiny.sagaorchestrator.domain.entity.SagaStep;
 import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CartClearCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseRollbackCommand;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponValidateCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailSendCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
@@ -154,7 +154,7 @@ public class OrderCreateService {
                 new PaymentCreateCommand(saga.getOrderId(), saga.getUserId(), saga.getFinalAmount()));
         } else {
             sagaProducer.sendCouponValidate(
-                new CouponValidateCommand(saga.getOrderId(), saga.getCouponId(),
+                new CouponUseCommand(saga.getOrderId(), saga.getCouponId(),
                     saga.getOriginalAmount()));
         }
     }
