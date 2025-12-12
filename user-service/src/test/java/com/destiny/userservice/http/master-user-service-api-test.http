@@ -1,0 +1,86 @@
+@baseUrl = http://localhost:8080
+
+### 회원가입 (관리자)
+POST {{baseUrl}}/v1/auths/signup/master
+Content-Type: application/json
+
+{
+  "username": "admin001",
+  "password": "Admin1234!",
+  "userRole": "MASTER",
+  "adminToken": "my-super-secret-admin-token",
+  "email": "admin@example.com"
+}
+
+### 로그인 성공 - 관리자
+POST {{baseUrl}}/v1/auths/login
+Content-Type: application/json
+
+{
+  "username": "admin001",
+  "password": "Admin1234!"
+}
+
+> {%
+  // 응답 헤더 값 가져오기
+  const authorization = response.headers.valueOf("Authorization");
+  const refreshCookie = response.headers.valueOf("Set-Cookie").split(";")[0].split("=")[1];
+
+  // 전역 변수 저장
+  client.global.set("ADMIN_ACCESS_TOKEN", authorization);
+  client.global.set("ADMIN_REFRESH_TOKEN", refreshCookie);
+  client.global.set("ADMIN_USER_ID", userId);
+%}
+
+### 로그인 성공 - 일반사용자
+POST {{baseUrl}}/v1/auths/login
+Content-Type: application/json
+
+{
+  "username": "user999",
+  "password": "Test1234!"
+}
+
+> {%
+  // 응답 헤더 값 가져오기
+  const authorization = response.headers.valueOf("Authorization");
+  const refreshCookie = response.headers.valueOf("Set-Cookie").split(";")[0].split("=")[1];
+  const userId = response.body.data.userId;
+
+  // 전역 변수 저장
+  client.global.set("user999_ACCESS_TOKEN", authorization);
+  client.global.set("user999", userId);
+  client.global.set("user001", "e813e191-8395-4b25-b9f1-a61b08b68371");
+%}
+
+### 로그아웃 - 다른 사용자 (customer 계정으로 접근)
+POST {{baseUrl}}/v1/auths/logout?userId={{user001}}
+Content-Type: application/json
+Authorization: {{user999_ACCESS_TOKEN}}
+
+### 로그아웃 - 다른 사용자 (성공)
+POST {{baseUrl}}/v1/auths/logout?userId={{user001}}
+Content-Type: application/json
+Authorization: {{ADMIN_ACCESS_TOKEN}}
+
+### 회원 개별 조회
+GET {{baseUrl}}/v1/users/{{user001}}
+Content-Type: application/json
+Authorization: {{ADMIN_ACCESS_TOKEN}}
+
+### 전체 목록 조회
+GET {{baseUrl}}/v1/users
+Authorization: {{ADMIN_ACCESS_TOKEN}}
+Accept: application/json
+
+### 기본 목록 조회 (삭제 안된 user, 최신순)
+GET {{baseUrl}}/v1/users?deleted=false&userRole=CUSTOMER&size=10&isDescending=true
+Authorization: {{ADMIN_ACCESS_TOKEN}}
+Accept: application/json
+
+
+
+### 로그아웃 - 본인
+POST {{baseUrl}}/v1/auths/logout
+Content-Type: application/json
+Authorization: {{ACCESS_TOKEN}}
