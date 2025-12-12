@@ -27,7 +27,7 @@ jwt:
   access-expiration-millis: 1209600000 # 14일
   refresh-expiration-millis: 1209600000 # 14일
   access-header-name: Authorization
-  refresh-cookie-name: X-Refresh-Token
+  refresh-header-name: X-Refresh-Token
   header-prefix: Bearer
   access-subject: AccessToken
   refresh-subject: RefreshToken

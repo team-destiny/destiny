@@ -11,7 +11,7 @@ public class JwtProperties {
     private final long accessExpirationMillis;
     private final long refreshExpirationMillis;
     private final String accessHeaderName;
-    private final String refreshCookieName;
+    private final String refreshHeaderName;
     private final String headerPrefix;
     private final String accessSubject;
     private final String refreshSubject;
@@ -22,7 +22,7 @@ public class JwtProperties {
         @Value("${jwt.access-expiration-millis}") long accessExpirationMillis,
         @Value("${jwt.refresh-expiration-millis}") long refreshExpirationMillis,
         @Value("${jwt.access-header-name}") String accessHeaderName,
-        @Value("${jwt.refresh-cookie-name}") String refreshCookieName,
+        @Value("${jwt.refresh-cookie-name}") String refreshHeaderName,
         @Value("${jwt.header-prefix}") String headerPrefix,
         @Value("${jwt.access-subject}") String accessSubject,
         @Value("${jwt.refresh-subject}") String refreshSubject,
@@ -32,7 +32,7 @@ public class JwtProperties {
         this.accessExpirationMillis = accessExpirationMillis;
         this.refreshExpirationMillis = refreshExpirationMillis;
         this.accessHeaderName = accessHeaderName;
-        this.refreshCookieName = refreshCookieName;
+        this.refreshHeaderName = refreshHeaderName;
         this.headerPrefix = headerPrefix;
         this.accessSubject = accessSubject;
         this.refreshSubject = refreshSubject;
