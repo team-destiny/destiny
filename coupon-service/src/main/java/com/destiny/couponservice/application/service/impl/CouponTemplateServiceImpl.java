@@ -9,7 +9,8 @@ import com.destiny.couponservice.presentation.dto.request.CouponTemplateCreateRe
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateSearchRequest;
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateUpdateRequest;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateResponse;
-import com.destiny.couponservice.presentation.dto.response.CouponTemplateGetResponse;
+import com.destiny.couponservice.presentation.dto.response.CouponTemplateDetailResponse;
+import com.destiny.couponservice.presentation.dto.response.CouponTemplateListItemResponse;
 import com.destiny.global.exception.BizException;
 import jakarta.transaction.Transactional;
 import java.util.UUID;
@@ -83,15 +84,15 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
     }
 
 
-    // 쿠폰템플릿 단건조회
+    // 쿠폰템플릿 상세조회
     @Override
     @Transactional
-    public CouponTemplateGetResponse getTemplate(UUID templateId) {
+    public CouponTemplateDetailResponse getTemplate(UUID templateId) {
 
         CouponTemplate template = couponTemplateRepository.findById(templateId)
             .orElseThrow(() -> new BizException(CouponTemplateErrorCode.TEMPLATE_NOT_FOUND));
 
-        return CouponTemplateGetResponse.builder()
+        return CouponTemplateDetailResponse.builder()
             .id(template.getId())
             .code(template.getCode())
             .name(template.getName())
@@ -110,18 +111,16 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
     // 쿠폰템플릿 목록 조회
     @Override
     @Transactional
-    public Page<CouponTemplateGetResponse> search(CouponTemplateSearchRequest req,
-        Pageable pageable) {
-
+    public Page<CouponTemplateListItemResponse> search(CouponTemplateSearchRequest req, Pageable pageable) {
         return couponTemplateRepository.search(req, pageable)
-            .map(CouponTemplateGetResponse::from);
+            .map(CouponTemplateListItemResponse::from);
     }
 
 
     //쿠폰 템플릿 수정
     @Override
     @Transactional
-    public CouponTemplateGetResponse update(UUID templateId, CouponTemplateUpdateRequest req) {
+    public CouponTemplateDetailResponse update(UUID templateId, CouponTemplateUpdateRequest req) {
 
         CouponTemplate template = couponTemplateRepository.findById(templateId)
             .orElseThrow(() -> new BizException(CouponTemplateErrorCode.TEMPLATE_NOT_FOUND));
@@ -151,7 +150,7 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
             req.getAvailableTo()
         );
 
-        return CouponTemplateGetResponse.from(template);
+        return CouponTemplateDetailResponse.from(template);
     }
 
     @Override
