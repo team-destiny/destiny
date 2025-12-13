@@ -29,9 +29,8 @@ public class IssuedCouponResponseDto {
     private DiscountType discountType;
     private Integer discountValue;
     private Integer minOrderAmount;
-    private Boolean isDuplicateUsable;
     private Integer maxDiscountAmount;
-    private Integer dailyIssueLimit;
+    private Integer issueLimit;
     private Integer perUserTotalLimit;
     private LocalDateTime availableFrom;
     private LocalDateTime availableTo;
@@ -56,10 +55,8 @@ public class IssuedCouponResponseDto {
             .discountType(couponTemplate.getDiscountType())
             .discountValue(couponTemplate.getDiscountValue())
             .minOrderAmount(couponTemplate.getMinOrderAmount())
-            .isDuplicateUsable(couponTemplate.getIsDuplicateUsable())
             .maxDiscountAmount(couponTemplate.getMaxDiscountAmount())
-            .dailyIssueLimit(couponTemplate.getDailyIssueLimit())
-            .perUserTotalLimit(couponTemplate.getPerUserTotalLimit())
+            .issueLimit(couponTemplate.getIssueLimit())
             .availableFrom(couponTemplate.getAvailableFrom())
             .availableTo(couponTemplate.getAvailableTo())
             .build();
