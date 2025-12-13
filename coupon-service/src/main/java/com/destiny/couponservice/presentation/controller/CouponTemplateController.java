@@ -5,7 +5,9 @@ import com.destiny.couponservice.presentation.dto.request.CouponTemplateCreateRe
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateSearchRequest;
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateUpdateRequest;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateResponse;
-import com.destiny.couponservice.presentation.dto.response.CouponTemplateGetResponse;
+import com.destiny.couponservice.presentation.dto.response.CouponTemplateDetailResponse;
+import com.destiny.couponservice.presentation.dto.response.CouponTemplateListItemResponse;
+import com.destiny.couponservice.presentation.dto.response.CouponTemplateSearchResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -41,28 +43,30 @@ public class CouponTemplateController {
 
 
     @GetMapping("/{templateId}")
-    public ResponseEntity<CouponTemplateGetResponse> getTemplate(
+    public ResponseEntity<CouponTemplateDetailResponse> getTemplate(
         @PathVariable UUID templateId
     ) {
-        CouponTemplateGetResponse response = couponTemplateService.getTemplate(templateId);
+        CouponTemplateDetailResponse response = couponTemplateService.getTemplate(templateId);
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public ResponseEntity<Page<CouponTemplateGetResponse>> searchTemplates(
+    public ResponseEntity<CouponTemplateSearchResponse> searchTemplates(
         @ModelAttribute CouponTemplateSearchRequest req,
         Pageable pageable
     ) {
-        return ResponseEntity.ok(couponTemplateService.search(req, pageable));
+        Page<CouponTemplateListItemResponse> page = couponTemplateService.search(req, pageable);
+        return ResponseEntity.ok(CouponTemplateSearchResponse.from(page));
     }
 
+
     @PutMapping("/{templateId}")
-    public ResponseEntity<CouponTemplateGetResponse> updateTemplate(
+    public ResponseEntity<CouponTemplateDetailResponse> updateTemplate(
         @PathVariable UUID templateId,
         @Valid @RequestBody CouponTemplateUpdateRequest request
     ) {
-        CouponTemplateGetResponse response = couponTemplateService.update(templateId, request);
+        CouponTemplateDetailResponse response = couponTemplateService.update(templateId, request);
         return ResponseEntity.ok(response);
     }
 

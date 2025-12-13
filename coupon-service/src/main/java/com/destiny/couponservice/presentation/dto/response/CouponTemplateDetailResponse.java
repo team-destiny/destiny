@@ -10,34 +10,23 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class CouponTemplateGetResponse {
+public class CouponTemplateDetailResponse {
 
     private UUID id;
-
     private String code;
-
     private String name;
-
     private DiscountType discountType;
-
     private Integer discountValue;
-
     private Integer minOrderAmount;
-
     private Integer maxDiscountAmount;
-
     private Integer issueLimit;
-
     private LocalDateTime availableFrom;
-
     private LocalDateTime availableTo;
-
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 
-    public static CouponTemplateGetResponse from(CouponTemplate template) {
-        return CouponTemplateGetResponse.builder()
+    public static CouponTemplateDetailResponse from(CouponTemplate template) {
+        return CouponTemplateDetailResponse.builder()
             .id(template.getId())
             .code(template.getCode())
             .name(template.getName())
