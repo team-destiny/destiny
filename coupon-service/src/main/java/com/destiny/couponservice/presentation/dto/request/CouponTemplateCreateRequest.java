@@ -41,11 +41,9 @@ public class CouponTemplateCreateRequest {
     @NotNull
     private LocalDateTime availableTo;   // 발급 종료
 
-    private Boolean isDuplicateUsable;   // 중복 사용 가능 여부
-
     private Integer maxDiscountAmount;   // 정률 할인 시 최대 금액
 
-    private Integer dailyIssueLimit;     // 하루 발급 제한
+    private Integer issueLimit;     // 발급가능한 쿠폰 개수
 
     private Integer perUserTotalLimit;   // 사용자별 발급 제한
 }

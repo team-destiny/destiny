@@ -59,12 +59,8 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
             .discountType(req.getDiscountType())
             .discountValue(req.getDiscountValue())
             .minOrderAmount(req.getMinOrderAmount())
-            .isDuplicateUsable(
-                req.getIsDuplicateUsable() != null ? req.getIsDuplicateUsable() : false
-            )
             .maxDiscountAmount(req.getMaxDiscountAmount())
-            .dailyIssueLimit(req.getDailyIssueLimit())
-            .perUserTotalLimit(req.getPerUserTotalLimit())
+            .issueLimit(req.getIssueLimit())
             .availableFrom(req.getAvailableFrom())
             .availableTo(req.getAvailableTo())
             .build();
@@ -80,10 +76,8 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
             .minOrderAmount(saved.getMinOrderAmount())
             .availableFrom(saved.getAvailableFrom())
             .availableTo(saved.getAvailableTo())
-            .isDuplicateUsable(saved.getIsDuplicateUsable())
             .maxDiscountAmount(saved.getMaxDiscountAmount())
-            .dailyIssueLimit(saved.getDailyIssueLimit())
-            .perUserTotalLimit(saved.getPerUserTotalLimit())
+            .issueLimit(saved.getIssueLimit())
             .createdAt(saved.getCreatedAt())
             .build();
     }
@@ -104,10 +98,8 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
             .discountType(template.getDiscountType())
             .discountValue(template.getDiscountValue())
             .minOrderAmount(template.getMinOrderAmount())
-            .isDuplicateUsable(template.getIsDuplicateUsable())
             .maxDiscountAmount(template.getMaxDiscountAmount())
-            .dailyIssueLimit(template.getDailyIssueLimit())
-            .perUserTotalLimit(template.getPerUserTotalLimit())
+            .issueLimit(template.getIssueLimit())
             .availableFrom(template.getAvailableFrom())
             .availableTo(template.getAvailableTo())
             .createdAt(template.getCreatedAt())
@@ -153,10 +145,8 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
             req.getDiscountType(),
             req.getDiscountValue(),
             req.getMinOrderAmount(),
-            req.getIsDuplicateUsable(),
             req.getMaxDiscountAmount(),
-            req.getDailyIssueLimit(),
-            req.getPerUserTotalLimit(),
+            req.getIssueLimit(),
             req.getAvailableFrom(),
             req.getAvailableTo()
         );

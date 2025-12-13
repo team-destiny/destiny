@@ -24,13 +24,9 @@ public class CouponTemplateGetResponse {
 
     private Integer minOrderAmount;
 
-    private Boolean isDuplicateUsable;
-
     private Integer maxDiscountAmount;
 
-    private Integer dailyIssueLimit;
-
-    private Integer perUserTotalLimit;
+    private Integer issueLimit;
 
     private LocalDateTime availableFrom;
 
@@ -48,10 +44,8 @@ public class CouponTemplateGetResponse {
             .discountType(template.getDiscountType())
             .discountValue(template.getDiscountValue())
             .minOrderAmount(template.getMinOrderAmount())
-            .isDuplicateUsable(template.getIsDuplicateUsable())
             .maxDiscountAmount(template.getMaxDiscountAmount())
-            .dailyIssueLimit(template.getDailyIssueLimit())
-            .perUserTotalLimit(template.getPerUserTotalLimit())
+            .issueLimit(template.getIssueLimit())
             .availableFrom(template.getAvailableFrom())
             .availableTo(template.getAvailableTo())
             .createdAt(template.getCreatedAt())

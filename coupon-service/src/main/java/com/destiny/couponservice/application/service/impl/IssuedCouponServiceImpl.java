@@ -59,8 +59,7 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
         }
 
         //  중복 발급 방지
-        if (Boolean.FALSE.equals(template.getIsDuplicateUsable())
-            && issuedCouponRepository.existsByUserIdAndCouponTemplateId(userId, couponTemplateId)) {
+        if (issuedCouponRepository.existsByUserIdAndCouponTemplateId(userId, couponTemplateId)) {
             throw new BizException(IssuedCouponErrorCode.ALREADY_ISSUED);
         }
 
