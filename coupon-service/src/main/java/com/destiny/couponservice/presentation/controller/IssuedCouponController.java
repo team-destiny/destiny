@@ -65,12 +65,12 @@ public class IssuedCouponController {
 
 
     @PostMapping("/issued-coupons/{issuedCouponId}/cancel")
-    public ResponseEntity<Void> cancelCouponUse(
+    public ResponseEntity<String> cancelCouponUse(
         @PathVariable UUID issuedCouponId,
         @Valid @RequestBody CouponCancelRequest request
     ) {
         UUID userId = SecurityUtils.getCurrentUserId();
         issuedCouponService.cancelCouponUse(userId, issuedCouponId, request.getOrderId());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("쿠폰이 사용이 취소되었습니다");
     }
 }
