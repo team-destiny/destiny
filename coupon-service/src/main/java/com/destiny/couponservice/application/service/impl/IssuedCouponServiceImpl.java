@@ -13,7 +13,8 @@ import com.destiny.couponservice.infrastructure.messaging.event.command.CouponVa
 import com.destiny.couponservice.infrastructure.messaging.event.result.CouponValidateFailEvent;
 import com.destiny.couponservice.infrastructure.messaging.event.result.CouponValidateSuccessEvent;
 import com.destiny.couponservice.infrastructure.messaging.producer.CouponValidateProducer;
-import com.destiny.couponservice.presentation.dto.response.IssuedCouponResponseDto;
+import com.destiny.couponservice.presentation.dto.response.IssuedCouponDetailResponse;
+import com.destiny.couponservice.presentation.dto.response.IssuedCouponListItemResponse;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponSearchResponse;
 import com.destiny.global.exception.BizException;
 import java.time.LocalDateTime;
@@ -46,7 +47,7 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
      */
     @Override
     @Transactional
-    public IssuedCouponResponseDto issueCoupon(UUID userId, UUID couponTemplateId) {
+    public IssuedCouponDetailResponse issueCoupon(UUID userId, UUID couponTemplateId) {
         //  템플릿 조회
         CouponTemplate template = couponTemplateRepository.findById(couponTemplateId)
             .orElseThrow(() -> new BizException(IssuedCouponErrorCode.TEMPLATE_NOT_FOUND));
@@ -73,7 +74,7 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
 
         try {
             IssuedCoupon saved = issuedCouponRepository.save(issuedCoupon);
-            return IssuedCouponResponseDto.from(saved, template);
+            return IssuedCouponDetailResponse.from(saved, template);
         } catch (DataIntegrityViolationException e) {
             throw new BizException(IssuedCouponErrorCode.ALREADY_ISSUED);
         }
@@ -82,7 +83,7 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
 
     // 내가 발급받은 쿠폰 단건 조회
     @Override
-    public IssuedCouponResponseDto getIssuedCoupon(UUID userId, UUID issuedCouponId) {
+    public IssuedCouponDetailResponse getIssuedCoupon(UUID userId, UUID issuedCouponId) {
         IssuedCoupon issuedCoupon = issuedCouponRepository.findById(issuedCouponId)
             .orElseThrow(() -> new BizException(IssuedCouponErrorCode.ISSUED_COUPON_NOT_FOUND));
 
@@ -95,35 +96,39 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
                 issuedCoupon.getCouponTemplateId())
             .orElseThrow(() -> new BizException(IssuedCouponErrorCode.TEMPLATE_NOT_FOUND));
 
-        return IssuedCouponResponseDto.from(issuedCoupon, template);
+        return IssuedCouponDetailResponse.from(issuedCoupon, template);
     }
 
-    //내가 발급받은 쿠폰 목록 조회
+    // 내가 받은 쿠폰 목록 조회
     @Override
+    @Transactional(readOnly = true)
     public IssuedCouponSearchResponse getIssuedCoupons(UUID userId, IssuedCouponStatus status,
         Pageable pageable) {
 
         Page<IssuedCoupon> page = issuedCouponRepository.findByUserIdAndStatus(userId, status,
             pageable);
 
-        List<UUID> templateIds = page.getContent().stream().map(IssuedCoupon::getCouponTemplateId)
-            .distinct().toList();
+        List<UUID> templateIds = page.getContent().stream()
+            .map(IssuedCoupon::getCouponTemplateId)
+            .distinct()
+            .toList();
 
         List<CouponTemplate> templates = couponTemplateRepository.findByIdIn(templateIds);
 
         Map<UUID, CouponTemplate> templateMap = templates.stream()
             .collect(Collectors.toMap(CouponTemplate::getId, Function.identity()));
 
-        Page<IssuedCouponResponseDto> dtoPage = page.map(issued -> {
+        Page<IssuedCouponListItemResponse> dtoPage = page.map(issued -> {
             CouponTemplate template = templateMap.get(issued.getCouponTemplateId());
             if (template == null) {
                 throw new BizException(IssuedCouponErrorCode.TEMPLATE_NOT_FOUND);
             }
-            return IssuedCouponResponseDto.from(issued, template);
+            return IssuedCouponListItemResponse.from(issued, template);
         });
 
         return IssuedCouponSearchResponse.from(dtoPage);
     }
+
 
     private int calculateDiscountAmount(int orderAmount, CouponTemplate template) {
         DiscountType type = template.getDiscountType();
