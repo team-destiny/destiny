@@ -46,17 +46,12 @@ public class CouponTemplate extends BaseEntity {
     @Column(nullable = false)
     private Integer minOrderAmount;
 
-    @Column(nullable = false)
-    private Boolean isDuplicateUsable;
-
     @Column
     private Integer maxDiscountAmount;
 
     @Column
-    private Integer dailyIssueLimit;
+    private Integer issueLimit;
 
-    @Column
-    private Integer perUserTotalLimit;
 
     @Column(nullable = false)
     private LocalDateTime availableFrom;
@@ -70,10 +65,8 @@ public class CouponTemplate extends BaseEntity {
         DiscountType discountType,
         Integer discountValue,
         Integer minOrderAmount,
-        Boolean isDuplicateUsable,
         Integer maxDiscountAmount,
-        Integer dailyIssueLimit,
-        Integer perUserTotalLimit,
+        Integer issueLimit,
         LocalDateTime availableFrom,
         LocalDateTime availableTo
     ) {
@@ -89,17 +82,11 @@ public class CouponTemplate extends BaseEntity {
         if (minOrderAmount != null) {
             this.minOrderAmount = minOrderAmount;
         }
-        if (isDuplicateUsable != null) {
-            this.isDuplicateUsable = isDuplicateUsable;
-        }
         if (maxDiscountAmount != null) {
             this.maxDiscountAmount = maxDiscountAmount;
         }
-        if (dailyIssueLimit != null) {
-            this.dailyIssueLimit = dailyIssueLimit;
-        }
-        if (perUserTotalLimit != null) {
-            this.perUserTotalLimit = perUserTotalLimit;
+        if (issueLimit != null) {
+            this.issueLimit = issueLimit;
         }
         if (availableFrom != null) {
             this.availableFrom = availableFrom;

@@ -4,7 +4,8 @@ import com.destiny.couponservice.presentation.dto.request.CouponTemplateCreateRe
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateSearchRequest;
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateUpdateRequest;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateResponse;
-import com.destiny.couponservice.presentation.dto.response.CouponTemplateGetResponse;
+import com.destiny.couponservice.presentation.dto.response.CouponTemplateDetailResponse;
+import com.destiny.couponservice.presentation.dto.response.CouponTemplateListItemResponse;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,11 +14,12 @@ public interface CouponTemplateService {
 
     CouponTemplateCreateResponse create(CouponTemplateCreateRequest request);
 
-    CouponTemplateGetResponse getTemplate(UUID templateId);
+    CouponTemplateDetailResponse getTemplate(UUID templateId);
 
-    Page<CouponTemplateGetResponse> search(CouponTemplateSearchRequest request, Pageable pageable);
+    Page<CouponTemplateListItemResponse> search(CouponTemplateSearchRequest request,
+        Pageable pageable);
 
-    CouponTemplateGetResponse update(UUID templateId, CouponTemplateUpdateRequest request);
+    CouponTemplateDetailResponse update(UUID templateId, CouponTemplateUpdateRequest request);
 
     void delete(UUID templateId);
 

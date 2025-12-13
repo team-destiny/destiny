@@ -9,13 +9,13 @@ import org.springframework.data.domain.Page;
 @Builder
 public class CouponTemplateSearchResponse {
 
-    private List<CouponTemplateGetResponse> contents;
+    private List<CouponTemplateListItemResponse> contents;
     private int page;
     private int size;
     private long totalElements;
     private int totalPages;
 
-    public static CouponTemplateSearchResponse from(Page<CouponTemplateGetResponse> page) {
+    public static CouponTemplateSearchResponse from(Page<CouponTemplateListItemResponse> page) {
         return CouponTemplateSearchResponse.builder()
             .contents(page.getContent())
             .page(page.getNumber())

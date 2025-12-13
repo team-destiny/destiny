@@ -10,13 +10,13 @@ import org.springframework.data.domain.Page;
 @Builder
 public class IssuedCouponSearchResponse {
 
-    private List<IssuedCouponResponseDto> contents;
+    private List<IssuedCouponListItemResponse> contents;
     private int page;
     private int size;
     private long totalElements;
     private int totalPages;
 
-    public static IssuedCouponSearchResponse from(Page<IssuedCouponResponseDto> page) {
+    public static IssuedCouponSearchResponse from(Page<IssuedCouponListItemResponse> page) {
         return IssuedCouponSearchResponse.builder()
             .contents(page.getContent())
             .page(page.getNumber())

@@ -28,17 +28,9 @@ public class CouponTemplateUpdateRequest {
     @PositiveOrZero
     private Integer minOrderAmount;
 
-    @NotNull
-    private Boolean isDuplicateUsable;
-
-    @NotNull
     private Integer maxDiscountAmount;
 
-    @NotNull
-    private Integer dailyIssueLimit;
-
-    @NotNull
-    private Integer perUserTotalLimit;
+    private Integer issueLimit;
 
     @NotNull
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
