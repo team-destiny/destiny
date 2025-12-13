@@ -11,54 +11,39 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class IssuedCouponResponseDto {
+public class IssuedCouponDetailResponse {
 
-    //  발급 쿠폰 자체 정보
     private UUID id;
     private UUID userId;
     private UUID couponTemplateId;
+    private UUID orderId;
     private IssuedCouponStatus status;
     private LocalDateTime issuedAt;
     private LocalDateTime expiredAt;
     private LocalDateTime usedAt;
-    private UUID orderId;
-
-    //  쿠폰 템플릿 정보
     private String code;
     private String name;
     private DiscountType discountType;
     private Integer discountValue;
     private Integer minOrderAmount;
     private Integer maxDiscountAmount;
-    private Integer issueLimit;
-    private Integer perUserTotalLimit;
-    private LocalDateTime availableFrom;
-    private LocalDateTime availableTo;
 
-    public static IssuedCouponResponseDto from(IssuedCoupon issuedCoupon,
-        CouponTemplate couponTemplate) {
-
-        return IssuedCouponResponseDto.builder()
-            // 발급 쿠폰 정보
+    public static IssuedCouponDetailResponse from(IssuedCoupon issuedCoupon, CouponTemplate template) {
+        return IssuedCouponDetailResponse.builder()
             .id(issuedCoupon.getId())
             .userId(issuedCoupon.getUserId())
+            .orderId(issuedCoupon.getOrderId())
             .couponTemplateId(issuedCoupon.getCouponTemplateId())
             .status(issuedCoupon.getStatus())
             .issuedAt(issuedCoupon.getIssuedAt())
             .expiredAt(issuedCoupon.getExpiredAt())
             .usedAt(issuedCoupon.getUsedAt())
-            .orderId(issuedCoupon.getOrderId())
-
-            // 템플릿 정보
-            .code(couponTemplate.getCode())
-            .name(couponTemplate.getName())
-            .discountType(couponTemplate.getDiscountType())
-            .discountValue(couponTemplate.getDiscountValue())
-            .minOrderAmount(couponTemplate.getMinOrderAmount())
-            .maxDiscountAmount(couponTemplate.getMaxDiscountAmount())
-            .issueLimit(couponTemplate.getIssueLimit())
-            .availableFrom(couponTemplate.getAvailableFrom())
-            .availableTo(couponTemplate.getAvailableTo())
+            .code(template.getCode())
+            .name(template.getName())
+            .discountType(template.getDiscountType())
+            .discountValue(template.getDiscountValue())
+            .minOrderAmount(template.getMinOrderAmount())
+            .maxDiscountAmount(template.getMaxDiscountAmount())
             .build();
     }
 }

@@ -4,7 +4,7 @@ import com.destiny.couponservice.application.service.IssuedCouponService;
 import com.destiny.couponservice.domain.enums.IssuedCouponStatus;
 import com.destiny.couponservice.infrastructure.security.util.SecurityUtils;
 import com.destiny.couponservice.presentation.dto.request.CouponCancelRequest;
-import com.destiny.couponservice.presentation.dto.response.IssuedCouponResponseDto;
+import com.destiny.couponservice.presentation.dto.response.IssuedCouponDetailResponse;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponSearchResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -29,36 +29,28 @@ public class IssuedCouponController {
 
     private final IssuedCouponService issuedCouponService;
 
-    /**
-     * 쿠폰 발급 POST /v1/coupons/{couponTemplateId}/issue
-     */
+
     @PostMapping("/coupons/{couponTemplateId}/issue")
-    public ResponseEntity<IssuedCouponResponseDto> issueCoupon(
+    public ResponseEntity<IssuedCouponDetailResponse> issueCoupon(
         @PathVariable UUID couponTemplateId
     ) {
         UUID userId = SecurityUtils.getCurrentUserId();
-        IssuedCouponResponseDto response = issuedCouponService.issueCoupon(userId,
+        IssuedCouponDetailResponse response = issuedCouponService.issueCoupon(userId,
             couponTemplateId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /**
-     * 내가 발급받은 쿠폰 단건 조회 GET /v1/issued-coupons/{issuedCouponId}
-     */
     @GetMapping("/issued-coupons/{issuedCouponId}")
-    public ResponseEntity<IssuedCouponResponseDto> getIssuedCoupon(
+    public ResponseEntity<IssuedCouponDetailResponse> getIssuedCoupon(
         @PathVariable UUID issuedCouponId
     ) {
         UUID userId = SecurityUtils.getCurrentUserId();
-        IssuedCouponResponseDto response = issuedCouponService.getIssuedCoupon(userId,
+        IssuedCouponDetailResponse response = issuedCouponService.getIssuedCoupon(userId,
             issuedCouponId);
         return ResponseEntity.ok(response);
     }
 
 
-    /**
-     * 내가 발급받은 쿠폰 목록 조회 GET /v1/issued-coupons?status=AVAILABLE
-     */
     @GetMapping("/issued-coupons")
     public ResponseEntity<IssuedCouponSearchResponse> getIssuedCoupons(
         @RequestParam(defaultValue = "AVAILABLE") IssuedCouponStatus status,
