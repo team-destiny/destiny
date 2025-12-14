@@ -45,5 +45,4 @@ public class CouponTemplateCreateRequest {
 
     private Integer issueLimit;     // 발급가능한 쿠폰 개수
 
-    private Integer perUserTotalLimit;   // 사용자별 발급 제한
 }
