@@ -361,8 +361,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .sum();
 
             int totalAmount = items.stream()
-                .mapToInt(item -> item.finalAmount() != null ? item.finalAmount() : 0)
+                .mapToInt(i -> (i.price() == null ? 0 : i.price()) * (i.stock() == null ? 0 : i.stock()))
                 .sum();
+
 
             String message = String.format(
                 "📢 *[신규 주문 알림]*\n" +
