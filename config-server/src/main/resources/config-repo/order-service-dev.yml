@@ -7,3 +7,14 @@ spring:
     url: jdbc:postgresql://localhost:5435/order_db
     username: root
     password: 1234
+
+logging:
+  level:
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    org.apache.kafka.clients.consumer: WARN
+    org.apache.kafka.clients: WARN
+    org.apache.kafka.common.utils: WARN
+    org.apache.kafka.common.network: WARN
+    org.apache.kafka.clients.FetchSessionHandler: WARN
+    org.apache.kafka.clients.Metadata: WARN
