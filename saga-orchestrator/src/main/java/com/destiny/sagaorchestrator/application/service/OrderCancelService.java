@@ -29,6 +29,7 @@ public class OrderCancelService {
         sagaProducer.cancelPayment(new PaymentCancelCommand(
             saga.getSagaId(),
             saga.getOrderId(),
+            saga.getUserId(),
             saga.getFinalAmount()
         ));
     }
