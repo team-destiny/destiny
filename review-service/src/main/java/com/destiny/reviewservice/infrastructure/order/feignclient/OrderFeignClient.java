@@ -1,6 +1,6 @@
-package com.destiny.reviewservice.infrastructure.client;
+package com.destiny.reviewservice.infrastructure.order.feignclient;
 
-import com.destiny.global.response.ApiResponse;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -9,13 +9,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(name = "order-service", path = "/v1/orders")
-public interface OrderClient {
+public interface OrderFeignClient {
 
     @GetMapping("/{orderId}")
-    ApiResponse<OrderDetailResponse> getOrderDetail(
+    OrderDetailResponse getOrderDetail(
         @RequestHeader("Authorization") String accessToken,
         @PathVariable("orderId") UUID orderId);
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     record OrderDetailResponse(
         UUID orderId,
         UUID userId,
