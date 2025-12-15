@@ -85,9 +85,10 @@ public class NotificationServiceImpl implements NotificationService {
 
         String logMessage = sanitizeForLog(message);
 
-        String targetUrl = (channel != null && channel.isActive() && StringUtils.hasText(channel.getSlackUrl()))
-            ? channel.getSlackUrl()
-            : this.adminSlackUrl;
+        String targetUrl =
+            (channel != null && channel.isActive() && StringUtils.hasText(channel.getSlackUrl()))
+                ? channel.getSlackUrl()
+                : this.adminSlackUrl;
 
         if (targetUrl == null || targetUrl.isBlank()) {
             saveLog(
@@ -361,9 +362,10 @@ public class NotificationServiceImpl implements NotificationService {
                 .sum();
 
             int totalAmount = items.stream()
-                .mapToInt(i -> (i.price() == null ? 0 : i.price()) * (i.stock() == null ? 0 : i.stock()))
+                .mapToInt(
+                    i -> (i.finalAmount() == null ? 0 : i.finalAmount()) * (i.stock() == null ? 0
+                        : i.stock()))
                 .sum();
-
 
             String message = String.format(
                 "📢 *[신규 주문 알림]*\n" +
