@@ -1,6 +1,7 @@
 package com.destiny.paymentservice.infrastructure.messaging.consumer;
 
-import com.destiny.paymentservice.application.service.PaymentService;
+import com.destiny.paymentservice.application.service.impl.PaymentServiceImpl;
+import com.destiny.paymentservice.application.service.inter.PaymentService;
 import com.destiny.paymentservice.infrastructure.messaging.event.command.PaymentCommand;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 public class PaymentConsumer {
 
     private final ObjectMapper objectMapper;
-    private final PaymentService paymentService;
+    private final PaymentServiceImpl paymentService;
 
     @KafkaListener(topics = "payment-create-request", groupId = "payment-service")
     public void onPayment(String message) {

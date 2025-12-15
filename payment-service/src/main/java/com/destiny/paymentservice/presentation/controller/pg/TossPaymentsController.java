@@ -1,4 +1,4 @@
-package com.destiny.paymentservice.presentation.controller;
+package com.destiny.paymentservice.presentation.controller.pg;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
