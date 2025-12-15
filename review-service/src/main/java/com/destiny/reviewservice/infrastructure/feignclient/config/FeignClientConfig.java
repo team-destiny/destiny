@@ -1,4 +1,4 @@
-package com.destiny.reviewservice.infrastructure.client.config;
+package com.destiny.reviewservice.infrastructure.feignclient.config;
 
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Configuration;

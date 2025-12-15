@@ -2,6 +2,7 @@ package com.destiny.reviewservice.application.service;
 
 import com.destiny.global.code.CommonErrorCode;
 import com.destiny.global.exception.BizException;
+import com.destiny.reviewservice.application.port.out.OrderReviewVerityPort;
 import com.destiny.reviewservice.domain.entity.Review;
 import com.destiny.reviewservice.domain.entity.UserRole;
 import com.destiny.reviewservice.domain.repository.ReviewRepository;
@@ -26,16 +27,16 @@ public class ReviewService {
 
     private final PageableArgumentResolver pageableArgumentResolver;
     private final ReviewRepository reviewRepository;
-    private final OrderClientService orderClientService;
+    private final OrderReviewVerityPort orderReviewVerityPort;
 
     @Transactional
     public ReviewResponse createReview(CustomUserDetails userDetails, ReviewCreateRequest reviewCreateRequest) {
         validateAccess(userDetails.getUserId(), UserRole.valueOf(userDetails.getUserRole()), reviewCreateRequest.userId());
-        orderClientService.verifyUserCanReview(
-            userDetails.getAccessJwt(),
-            userDetails.getUserId(),
-            reviewCreateRequest.orderId(),
-            reviewCreateRequest.productId());
+
+        orderReviewVerityPort.verifyUserCanReview(
+            userDetails,
+            reviewCreateRequest
+        );
 
         Review review = Review.createReview(
             reviewCreateRequest.userId(),

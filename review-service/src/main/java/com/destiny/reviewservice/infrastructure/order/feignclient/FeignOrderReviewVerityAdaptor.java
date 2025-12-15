@@ -1,31 +1,34 @@
-package com.destiny.reviewservice.application.service;
+package com.destiny.reviewservice.infrastructure.order.feignclient;
 
 import com.destiny.global.exception.BizException;
-import com.destiny.global.response.ApiResponse;
-import com.destiny.reviewservice.infrastructure.client.OrderClient;
-import com.destiny.reviewservice.infrastructure.client.OrderClient.OrderDetailResponse;
-import com.destiny.reviewservice.infrastructure.client.OrderClient.OrderItemResponse;
+import com.destiny.reviewservice.application.port.out.OrderReviewVerityPort;
+import com.destiny.reviewservice.infrastructure.order.feignclient.OrderFeignClient.OrderDetailResponse;
+import com.destiny.reviewservice.infrastructure.order.feignclient.OrderFeignClient.OrderItemResponse;
+import com.destiny.reviewservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.reviewservice.presentation.advice.ReviewErrorCode;
+import com.destiny.reviewservice.presentation.dto.request.ReviewCreateRequest;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class OrderClientService {
+public class FeignOrderReviewVerityAdaptor implements OrderReviewVerityPort {
 
-    private final OrderClient orderClient;
+    private final OrderFeignClient orderFeignClient;
 
+    @Override
     public void verifyUserCanReview(
-        String accessToken,
-        UUID authUserId,
-        UUID orderId,
-        UUID productId
-    ) {
-        ApiResponse<OrderDetailResponse> response =
-            orderClient.getOrderDetail(accessToken, orderId);
+        CustomUserDetails userDetails,
+        ReviewCreateRequest reviewCreateRequest) {
 
-        OrderDetailResponse order = response.getData();
+        String accessToken = "Bearer " +userDetails.getAccessJwt();
+        UUID authUserId = userDetails.getUserId();
+        UUID orderId = reviewCreateRequest.orderId();
+        UUID productId = reviewCreateRequest.productId();
+
+        OrderDetailResponse order =
+            orderFeignClient.getOrderDetail("Bearer " + accessToken, orderId);
 
         if(order == null) {
             throw new BizException(ReviewErrorCode.ORDER_INFO_NOT_FOUND);
@@ -46,6 +49,6 @@ public class OrderClientService {
         if (!item.status().isReviewable()) {
             throw new BizException(ReviewErrorCode.ORDER_NOT_REVIEWABLE);
         }
-    }
 
+    }
 }
