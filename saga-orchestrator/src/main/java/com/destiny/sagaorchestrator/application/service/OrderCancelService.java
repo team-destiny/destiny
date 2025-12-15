@@ -33,4 +33,24 @@ public class OrderCancelService {
             saga.getFinalAmount()
         ));
     }
+
+    @Transactional
+    public void cancelPaymentSuccess() {
+
+    }
+
+    @Transactional
+    public void cancelPaymentFail() {
+
+    }
+
+    @Transactional
+    public void cancelCouponSuccess() {
+
+    }
+
+    @Transactional
+    public void cancelCouponFail() {
+
+    }
 }
