@@ -42,32 +42,42 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
     private final CouponTemplateRepository couponTemplateRepository;
     private final CouponValidateProducer couponValidateProducer;
 
-    /**
-     * 쿠폰 발급
-     */
+    private static final int DEFAULT_EXPIRE_DAYS_AFTER_ISSUE = 7;
+
+
+    // 쿠폰 발급
     @Override
     @Transactional
     public IssuedCouponDetailResponse issueCoupon(UUID userId, UUID couponTemplateId) {
-        //  템플릿 조회
+
+        // 1) 템플릿 조회
         CouponTemplate template = couponTemplateRepository.findById(couponTemplateId)
             .orElseThrow(() -> new BizException(IssuedCouponErrorCode.TEMPLATE_NOT_FOUND));
 
         LocalDateTime now = LocalDateTime.now();
 
-        //   발급 가능 기간 검증
+        // 2) 발급 가능 기간 검증
         if (now.isBefore(template.getAvailableFrom()) || now.isAfter(template.getAvailableTo())) {
             throw new BizException(IssuedCouponErrorCode.ISSUE_PERIOD_INVALID);
         }
 
-        //  중복 발급 방지
+        // 3) 중복 발급 방지
         if (issuedCouponRepository.existsByUserIdAndCouponTemplateId(userId, couponTemplateId)) {
             throw new BizException(IssuedCouponErrorCode.ALREADY_ISSUED);
         }
 
-        // 만료 시각 계산 (현재 쿠폰템플릿의 availableTo 를 만료 시각으로 사용)
-        // TODO  "발급 후 N일" 등의 정책 추가 후 수정예정
-        LocalDateTime expiredAt = template.getAvailableTo();
+        // 4) issueLimit 감소
+        if (template.getIssueLimit() != null) {
+            int updated = couponTemplateRepository.decreaseIssueLimit(couponTemplateId);
+            if (updated == 0) {
+                throw new BizException(IssuedCouponErrorCode.ISSUE_LIMIT_EXHAUSTED);
+            }
+        }
 
+        // 5) 만료 시각 계산 (발급일로부터 7일 동안 사용가능)
+        LocalDateTime expiredAt = now.plusDays(DEFAULT_EXPIRE_DAYS_AFTER_ISSUE);
+
+        // 6) 발급 쿠폰 생성
         IssuedCoupon issuedCoupon = IssuedCoupon.builder().userId(userId)
             .couponTemplateId(template.getId()).status(IssuedCouponStatus.AVAILABLE).issuedAt(now)
             .expiredAt(expiredAt).build();
@@ -75,11 +85,12 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
         try {
             IssuedCoupon saved = issuedCouponRepository.save(issuedCoupon);
             return IssuedCouponDetailResponse.from(saved, template);
+
         } catch (DataIntegrityViolationException e) {
             throw new BizException(IssuedCouponErrorCode.ALREADY_ISSUED);
         }
-
     }
+
 
     // 내가 발급받은 쿠폰 단건 조회
     @Override
@@ -108,10 +119,8 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
         Page<IssuedCoupon> page = issuedCouponRepository.findByUserIdAndStatus(userId, status,
             pageable);
 
-        List<UUID> templateIds = page.getContent().stream()
-            .map(IssuedCoupon::getCouponTemplateId)
-            .distinct()
-            .toList();
+        List<UUID> templateIds = page.getContent().stream().map(IssuedCoupon::getCouponTemplateId)
+            .distinct().toList();
 
         List<CouponTemplate> templates = couponTemplateRepository.findByIdIn(templateIds);
 
@@ -213,10 +222,7 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
             }
 
             // 4) 할인 계산
-            int discountAmount = calculateDiscountAmount(
-                command.originalAmount(),
-                template
-            );
+            int discountAmount = calculateDiscountAmount(command.originalAmount(), template);
             int finalAmount = Math.max(0, command.originalAmount() - discountAmount);
 
             // 5) 사용 처리
@@ -224,10 +230,7 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
 
             // 6) 성공 이벤트 발행
             CouponValidateSuccessEvent event = CouponValidateSuccessEvent.builder()
-                .orderId(command.orderId())
-                .couponId(couponId)
-                .finalAmount(finalAmount)
-                .build();
+                .orderId(command.orderId()).couponId(couponId).finalAmount(finalAmount).build();
 
             couponValidateProducer.sendSuccess(event);
 
@@ -237,9 +240,7 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
                 command.orderId(), couponId, e);
 
             CouponValidateFailEvent failEvent = CouponValidateFailEvent.builder()
-                .orderId(command.orderId())
-                .couponId(couponId)
-                .errorMessage("쿠폰 사용에 실패하였습니다.")
+                .orderId(command.orderId()).couponId(couponId).errorMessage("쿠폰 사용에 실패하였습니다.")
                 .build();
 
             try {
