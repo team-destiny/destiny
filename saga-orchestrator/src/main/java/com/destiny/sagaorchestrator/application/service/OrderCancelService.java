@@ -6,12 +6,17 @@ import com.destiny.sagaorchestrator.domain.entity.SagaStep;
 import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCancelCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockCancelCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockCancelCommand.StockCancelItem;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCancelRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponCancelFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponCancelSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentCancelFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentCancelSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockCancelFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockCancelSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.producer.SagaProducer;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -65,12 +70,36 @@ public class OrderCancelService {
         SagaState saga = sagaRepository.findById(event.sagaId());
         saga.updateStep(SagaStep.COUPON_CANCEL_SUCCESS);
         saga.updateStatus(SagaStatus.CANCEL_PROGRESS);
+
+        List<StockCancelItem> items =
+            saga.getProductResults().values().stream()
+                .map(r -> new StockCancelItem(r.productId(), r.stock()))
+                .toList();
+
+        sagaProducer.cancelStock(new StockCancelCommand(
+            saga.getSagaId(),
+            items
+        ));
     }
 
     @Transactional
     public void cancelCouponFail(CouponCancelFailResult event) {
         SagaState saga = sagaRepository.findById(event.sagaId());
         saga.updateStep(SagaStep.COUPON_CANCEL_FAIL);
+        saga.updateStatus(SagaStatus.CANCEL_FAILED);
+    }
+
+    @Transactional
+    public void cancelStockSuccess(StockCancelSuccessResult event) {
+        SagaState saga = sagaRepository.findById(event.sagaId());
+        saga.updateStep(SagaStep.STOCK_REDUCE_SUCCESS);
+        saga.updateStatus(SagaStatus.CANCEL_PROGRESS);
+    }
+
+    @Transactional
+    public void cancelStockFail(StockCancelFailResult event) {
+        SagaState saga = sagaRepository.findById(event.sagaId());
+        saga.updateStep(SagaStep.STOCK_REDUCE_FAIL);
         saga.updateStatus(SagaStatus.CANCEL_FAILED);
     }
 }

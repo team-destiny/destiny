@@ -8,6 +8,7 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailS
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.SuccessSendCommand;
@@ -194,6 +195,19 @@ public class SagaProducer {
         } catch (JsonProcessingException e) {
 
             log.info("[❌ SAGA-SERVICE -> COUPON-SERVICE FAIL JSON EXCEPTION] - COUPON CANCEL: {}", e.getMessage());
+        }
+    }
+
+    public void cancelStock(StockCancelCommand event) {
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("stock-cancel-request", message);
+            log.info("[🍎 SAGA-SERVICE -> STOCK-SERVICE SUCCESS] - STOCK CANCEL : {}", message);
+
+        } catch (JsonProcessingException e) {
+
+            log.info("[❌ SAGA-SERVICE -> STOCK-SERVICE FAIL JSON EXCEPTION] - STOCK CANCEL: {}", e.getMessage());
         }
     }
 }
