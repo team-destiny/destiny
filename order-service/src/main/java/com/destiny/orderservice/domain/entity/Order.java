@@ -48,6 +48,8 @@ public class Order extends BaseEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<OrderItem> items = new ArrayList<>();
 
+    private String failureReason;
+
     public void updateAmounts(
         Integer originalAmount,
         Integer discountAmount,
@@ -64,6 +66,10 @@ public class Order extends BaseEntity {
 
     public void updateStatus(OrderStatus status) {
         this.orderStatus = status;
+    }
+
+    public void updateFailureReason(String failureReason) {
+        this.failureReason = failureReason;
     }
 
     public static Order of(
