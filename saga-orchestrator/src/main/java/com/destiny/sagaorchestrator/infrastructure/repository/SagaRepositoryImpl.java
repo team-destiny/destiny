@@ -23,4 +23,10 @@ public class SagaRepositoryImpl implements SagaRepository {
 
         return sagaJpaRepository.findByOrderId(orderId);
     }
+
+    @Override
+    public SagaState findById(UUID uuid) {
+
+        return sagaJpaRepository.findById(uuid).orElse(null);
+    }
 }

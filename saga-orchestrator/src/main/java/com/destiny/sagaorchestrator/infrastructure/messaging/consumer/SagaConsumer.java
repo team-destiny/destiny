@@ -8,6 +8,8 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.Payme
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.PaymentSuccess;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentCancelFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentCancelSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentConfirmFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentConfirmSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateFailResult;
@@ -226,11 +228,33 @@ public class SagaConsumer {
     @KafkaListener(topics = "payment-cancel-success", groupId = "saga-orchestrator")
     public void onPaymentRollbackSuccess(String message) {
 
+        try {
+            log.info("[⭐️ JOIN SAGA SUCCESS] - PAYMENT CANCEL SUCCESS : {}", message);
+
+            PaymentCancelSuccessResult event = objectMapper.readValue(
+                message, PaymentCancelSuccessResult.class);
+            orderCancelService.cancelPaymentSuccess(event);
+
+        } catch (JsonProcessingException e) {
+
+            log.info("[🔥 JOIN SAGA FAIL JSON EXCEPTION] - PAYMENT CANCEL SUCCESS : {}", e.getMessage());
+        }
     }
 
     @KafkaListener(topics = "payment-cancel-fail", groupId = "saga-orchestrator")
     public void onPaymentRollbackFail(String message) {
 
+        try {
+            log.info("[⭐️ JOIN SAGA SUCCESS] - PAYMENT CANCEL FAIL : {}", message);
+
+            PaymentCancelFailResult event = objectMapper.readValue(
+                message, PaymentCancelFailResult.class);
+            orderCancelService.cancelPaymentFail(event);
+
+        } catch (JsonProcessingException e) {
+
+            log.info("[🔥 JOIN SAGA FAIL JSON EXCEPTION] - PAYMENT CANCEL FAIL : {}", e.getMessage());
+        }
     }
 
     @KafkaListener(topics = "coupon-cancel-success", groupId = "saga-orchestrator")
