@@ -8,6 +8,8 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.Coupo
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockCancelCommand.StockCancelItem;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCancelFailEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCancelSuccessEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCancelRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponCancelFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponCancelSuccessResult;
@@ -56,6 +58,8 @@ public class OrderCancelService {
             saga.getUserId(),
             saga.getCouponId()
         ));
+
+        sagaProducer.cancelOrderSuccess(new OrderCancelSuccessEvent(saga.getOrderId()));
     }
 
     @Transactional
@@ -63,6 +67,8 @@ public class OrderCancelService {
         SagaState saga = sagaRepository.findById(event.sagaId());
         saga.updateStep(SagaStep.PAYMENT_CANCEL_FAIL);
         saga.updateStatus(SagaStatus.CANCEL_FAILED);
+
+        sagaProducer.cancelOrderFail(new OrderCancelFailEvent(saga.getOrderId(), event.message()));
     }
 
     @Transactional
