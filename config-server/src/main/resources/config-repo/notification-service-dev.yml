@@ -8,7 +8,7 @@ slack:
 kafka:
   topics:
     saga-failure: fail-send-message
-    order-success: order-create-success
+    order-success: success-send-message
 
 spring:
   kafka:
