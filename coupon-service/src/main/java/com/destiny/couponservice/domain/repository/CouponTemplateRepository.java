@@ -23,4 +23,6 @@ public interface CouponTemplateRepository {
 
     List<CouponTemplate> findByIdIn(Collection<UUID> ids);
 
+    int decreaseIssueLimit(UUID templateId);
+
 }
