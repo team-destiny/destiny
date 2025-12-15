@@ -22,7 +22,7 @@ public class FeignOrderReviewVerityAdaptor implements OrderReviewVerityPort {
         CustomUserDetails userDetails,
         ReviewCreateRequest reviewCreateRequest) {
 
-        String accessToken = "Bearer " +userDetails.getAccessJwt();
+        String accessToken = "Bearer " + userDetails.getAccessJwt();
         UUID authUserId = userDetails.getUserId();
         UUID orderId = reviewCreateRequest.orderId();
         UUID productId = reviewCreateRequest.productId();
