@@ -222,4 +222,17 @@ public class SagaConsumer {
             log.info("[🔥 JOIN SAGA FAIL JSON EXCEPTION] - ORDER CANCEL : {}", e.getMessage());
         }
     }
+
+    @KafkaListener(topics = "payment-cancel-success", groupId = "saga-orchestrator")
+    public void onPaymentRollbackSuccess(String message) {
+
+    }
+
+    @KafkaListener(topics = "payment-cancel-fail", groupId = "saga-orchestrator")
+    public void onPaymentRollbackFail(String message) {
+
+    }
+
+
+
 }
