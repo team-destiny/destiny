@@ -6,6 +6,8 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.Order
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCreateRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.PaymentFail;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.PaymentSuccess;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponCancelFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponCancelSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponUseSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentCancelFailResult;
@@ -260,11 +262,31 @@ public class SagaConsumer {
     @KafkaListener(topics = "coupon-cancel-success", groupId = "saga-orchestrator")
     public void onCouponCancelSuccess(String message) {
 
+        try {
+            log.info("[⭐️ JOIN SAGA SUCCESS] - COUPON CANCEL SUCCESS : {}", message);
+
+            CouponCancelSuccessResult event = objectMapper.readValue(
+                message, CouponCancelSuccessResult.class);
+            orderCancelService.cancelCouponSuccess(event);
+
+        } catch (JsonProcessingException e) {
+
+            log.info("[🔥 JOIN SAGA FAIL JSON EXCEPTION] - COUPON CANCEL SUCCESS : {}", e.getMessage());
+        }
     }
 
     @KafkaListener(topics = "coupon-cancel-fail", groupId = "saga-orchestrator")
     public void onCouponCancelFail(String message) {
 
+        try {
+            log.info("[⭐️ JOIN SAGA SUCCESS] - COUPON CANCEL FAIL : {}", message);
+            CouponCancelFailResult event = objectMapper.readValue(
+                message, CouponCancelFailResult.class);
+
+        } catch (JsonProcessingException e) {
+
+            log.info("[🔥 JOIN SAGA FAIL JSON EXCEPTION] - COUPON CANCEL FAIL : {}", e.getMessage());
+        }
     }
 
 

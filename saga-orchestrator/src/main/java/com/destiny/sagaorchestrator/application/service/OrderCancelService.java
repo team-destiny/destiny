@@ -7,6 +7,8 @@ import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCancelRequestEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponCancelFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponCancelSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentCancelFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentCancelSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.producer.SagaProducer;
@@ -59,12 +61,16 @@ public class OrderCancelService {
     }
 
     @Transactional
-    public void cancelCouponSuccess() {
-
+    public void cancelCouponSuccess(CouponCancelSuccessResult event) {
+        SagaState saga = sagaRepository.findById(event.sagaId());
+        saga.updateStep(SagaStep.COUPON_CANCEL_SUCCESS);
+        saga.updateStatus(SagaStatus.CANCEL_PROGRESS);
     }
 
     @Transactional
-    public void cancelCouponFail() {
-
+    public void cancelCouponFail(CouponCancelFailResult event) {
+        SagaState saga = sagaRepository.findById(event.sagaId());
+        saga.updateStep(SagaStep.COUPON_CANCEL_FAIL);
+        saga.updateStatus(SagaStatus.CANCEL_FAILED);
     }
 }
