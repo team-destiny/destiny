@@ -1,6 +1,7 @@
 package com.destiny.sagaorchestrator.infrastructure.messaging.producer;
 
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CartClearCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailSendCommand;
@@ -180,6 +181,19 @@ public class SagaProducer {
         } catch (JsonProcessingException e) {
 
             log.info("[❌ SAGA-SERVICE -> PAYMENT-SERVICE FAIL JSON EXCEPTION] - PAYMENT CANCEL: {}", e.getMessage());
+        }
+    }
+
+    public void cancelCoupon(CouponCancelCommand event) {
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("coupon-cancel-request", message);
+            log.info("[🍎 SAGA-SERVICE -> COUPON-SERVICE SUCCESS] - COUPON CANCEL : {}", message);
+
+        } catch (JsonProcessingException e) {
+
+            log.info("[❌ SAGA-SERVICE -> COUPON-SERVICE FAIL JSON EXCEPTION] - COUPON CANCEL: {}", e.getMessage());
         }
     }
 }

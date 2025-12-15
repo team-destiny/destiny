@@ -233,6 +233,16 @@ public class SagaConsumer {
 
     }
 
+    @KafkaListener(topics = "coupon-cancel-success", groupId = "saga-orchestrator")
+    public void onCouponCancelSuccess(String message) {
+
+    }
+
+    @KafkaListener(topics = "coupon-cancel-fail", groupId = "saga-orchestrator")
+    public void onCouponCancelFail(String message) {
+
+    }
+
 
 
 }
