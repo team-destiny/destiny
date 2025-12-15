@@ -4,8 +4,11 @@ import com.destiny.sagaorchestrator.domain.entity.SagaState;
 import com.destiny.sagaorchestrator.domain.entity.SagaStatus;
 import com.destiny.sagaorchestrator.domain.entity.SagaStep;
 import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCancelRequestEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentCancelFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentCancelSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.producer.SagaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,13 +38,24 @@ public class OrderCancelService {
     }
 
     @Transactional
-    public void cancelPaymentSuccess() {
+    public void cancelPaymentSuccess(PaymentCancelSuccessResult event) {
+        SagaState saga = sagaRepository.findById(event.sagaId());
+        saga.updateStep(SagaStep.PAYMENT_CANCEL_SUCCESS);
+        saga.updateStatus(SagaStatus.CANCEL_PROGRESS);
 
+        sagaProducer.cancelCoupon(new CouponCancelCommand(
+            saga.getSagaId(),
+            saga.getOrderId(),
+            saga.getUserId(),
+            saga.getCouponId()
+        ));
     }
 
     @Transactional
-    public void cancelPaymentFail() {
-
+    public void cancelPaymentFail(PaymentCancelFailResult event) {
+        SagaState saga = sagaRepository.findById(event.sagaId());
+        saga.updateStep(SagaStep.PAYMENT_CANCEL_FAIL);
+        saga.updateStatus(SagaStatus.CANCEL_FAILED);
     }
 
     @Transactional

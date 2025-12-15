@@ -9,5 +9,6 @@ public enum SagaStatus {
 
     CANCEL_REQUEST,
     CANCEL_PROGRESS,
+    CANCEL_FAILED,
     CANCEL_COMPLETED
 }
