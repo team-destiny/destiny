@@ -348,17 +348,20 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void sendOrderCreateSuccessNotification(OrderCreateSuccessEvent event) {
 
-        Map<UUID, List<OrderCreateSuccessEvent.OrderItem>> itemsByBrand = event.items().stream()
-            .collect(Collectors.groupingBy(OrderCreateSuccessEvent.OrderItem::brandId));
+        UUID unknownBrandId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+
+        Map<UUID, List<OrderCreateSuccessEvent.OrderItem>> itemsByBrand =
+            event.items().stream()
+                .collect(Collectors.groupingBy(item ->
+                    item.brandId() != null ? item.brandId() : unknownBrandId));
 
         itemsByBrand.forEach((brandId, items) -> {
-
             int totalQuantity = items.stream()
-                .mapToInt(OrderCreateSuccessEvent.OrderItem::stock)
+                .mapToInt(item -> item.stock() != null ? item.stock() : 0)
                 .sum();
 
             int totalAmount = items.stream()
-                .mapToInt(OrderCreateSuccessEvent.OrderItem::finalAmount)
+                .mapToInt(item -> item.finalAmount() != null ? item.finalAmount() : 0)
                 .sum();
 
             String message = String.format(
@@ -371,20 +374,18 @@ public class NotificationServiceImpl implements NotificationService {
                     "총 결제 금액: %d원",
                 event.orderId(),
                 event.userId(),
-                brandId,
+                brandId.equals(unknownBrandId) ? "알수없음(NULL)" : brandId,
                 items.size(),
                 totalQuantity,
                 totalAmount
             );
 
             sendToSlackAndLog(
-                brandId,
+                brandId.equals(unknownBrandId) ? null : brandId,
                 message,
                 null,
                 null
             );
         });
-
-
     }
 }
