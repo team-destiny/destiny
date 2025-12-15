@@ -8,14 +8,17 @@ import java.util.UUID;
 public record OrderCreateSuccessEvent(
     UUID orderId,
     UUID userId,
+    UUID couponId,
+    Integer originalAmount,
+    Integer discountAmount,
+    Integer finalAmount,
     List<OrderItem> items
 ) {
-
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record OrderItem(
         UUID productId,
         UUID brandId,
-        Integer stock,
-        Integer finalAmount
+        Integer price,
+        Integer stock
     ) {}
 }
