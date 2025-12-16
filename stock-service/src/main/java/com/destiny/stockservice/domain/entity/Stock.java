@@ -28,6 +28,7 @@ public class Stock extends BaseEntity {
     @Column(nullable = false)
     private Integer totalQuantity;
 
+    @Column(nullable = false)
     private Integer reservedQuantity;
 
     @Version
@@ -43,6 +44,7 @@ public class Stock extends BaseEntity {
         if (totalQuantity < amount) {
             return;
         }
+
         totalQuantity -= amount;
     }
 
@@ -54,33 +56,44 @@ public class Stock extends BaseEntity {
         return totalQuantity - reservedQuantity;
     }
 
-    public boolean reserve(int amount) {
-        if (getAvailableQuantity() < amount) {
-            return false;
+    public StockReservationResult reserve(int reservationQuantity) {
+
+        if (reservedQuantity <= 0) {
+            return StockReservationResult.INVALID_REQUEST;
         }
 
-        reservedQuantity += amount;
+        if (getAvailableQuantity() < reservationQuantity) {
+            return StockReservationResult.OUT_OF_STOCK;
+        }
 
-        return true;
+        reservedQuantity += reservationQuantity;
+
+        return StockReservationResult.RESERVED;
     }
 
     public void cancelReservation(int amount) {
         if (reservedQuantity < amount) {
             throw new IllegalStateException("Invalid reservation cancel");
         }
+
         reservedQuantity -= amount;
     }
 
-    public void commit(int amount) {
+    public void commitReservation(int amount) {
         if (reservedQuantity < amount) {
             throw new IllegalStateException("Not enough reserved stock");
         }
 
         reservedQuantity -= amount;
+
         totalQuantity -= amount;
 
         if (totalQuantity < 0) {
             throw new IllegalStateException("Stock became negative");
         }
+    }
+
+    public boolean isSoldOut() {
+        return totalQuantity == 0;
     }
 }

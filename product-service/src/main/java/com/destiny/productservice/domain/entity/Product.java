@@ -72,4 +72,16 @@ public class Product extends BaseEntity {
             this.size = size;
         }
     }
+
+    public void markOutOfStock() {
+        this.status = ProductStatus.OUT_OF_STOCK;
+    }
+
+    public void markAvailable() {
+        this.status = ProductStatus.AVAILABLE;
+    }
+
+    public void markHided() {
+        this.status = ProductStatus.HIDED;
+    }
 }

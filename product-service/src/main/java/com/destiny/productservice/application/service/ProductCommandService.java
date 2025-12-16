@@ -8,6 +8,7 @@ import com.destiny.productservice.domain.repository.ProductCommandRepository;
 import com.destiny.productservice.presentation.dto.request.CreateProductRequest;
 import com.destiny.productservice.presentation.dto.request.UpdateProductRequest;
 import com.destiny.productservice.presentation.dto.response.ProductResponse;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -108,5 +109,19 @@ public class ProductCommandService {
                 }
             }
         );
+    }
+
+    public void closeProducts(List<UUID> productIds) {
+
+        List<Product> products = productCommandRepository.findAllByIdIn(productIds);
+
+        products.forEach(Product::markOutOfStock);
+    }
+
+    public void reopenProducts(List<UUID> productIds) {
+
+        List<Product> products = productCommandRepository.findAllByIdIn(productIds);
+
+        products.forEach(Product::markAvailable);
     }
 }

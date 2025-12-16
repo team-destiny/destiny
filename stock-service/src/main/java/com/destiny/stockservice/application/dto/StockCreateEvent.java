@@ -3,7 +3,7 @@ package com.destiny.stockservice.application.dto;
 import com.destiny.stockservice.domain.entity.Stock;
 import java.util.UUID;
 
-public record StockCreateMessage(
+public record StockCreateEvent(
     UUID productId,
     Integer quantity
 ) {

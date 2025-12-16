@@ -1,6 +1,8 @@
 package com.destiny.productservice.application.service.message;
 
+import com.destiny.productservice.application.dto.ProductCloseEvent;
 import com.destiny.productservice.application.dto.ProductMessage;
+import com.destiny.productservice.application.service.ProductCommandService;
 import com.destiny.productservice.domain.entity.Product;
 import com.destiny.productservice.domain.entity.ProductView;
 import com.destiny.productservice.domain.repository.ProductCommandRepository;
@@ -28,6 +30,7 @@ public class ProductConsumerService {
     private final ProductCommandRepository productCommandRepository;
     private final ProductQueryRepository productQueryRepository;
     private final ObjectMapper objectMapper;
+    private final ProductCommandService productCommandService;
 
     @SneakyThrows
     @KafkaListener(groupId = "product-group", topics = "product.after.create")
@@ -90,6 +93,28 @@ public class ProductConsumerService {
     @Transactional
     public void consumeDeleteProductMessage(ProductMessage message) {
 
+    }
+
+    @SneakyThrows
+    @KafkaListener(groupId = "orchestrator", topics = "product-close-event")
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
+    @Transactional
+    public void consumeProductCloseEvent(String message) {
+
+         ProductCloseEvent event = objectMapper.readValue(message, ProductCloseEvent.class);
+
+         productCommandService.closeProducts(event.productIds());
+    }
+
+    @SneakyThrows
+    @KafkaListener(groupId = "orchestrator", topics = "product-reopen-event")
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
+    @Transactional
+    public void consumeProductReopenEvent(String message) {
+
+        ProductCloseEvent event = objectMapper.readValue(message, ProductCloseEvent.class);
+
+        productCommandService.reopenProducts(event.productIds());
     }
 
     // @RetryableTopic 시도 횟수만큼 실패하면 자동으로 호출

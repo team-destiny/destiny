@@ -3,8 +3,7 @@ package com.destiny.stockservice.application.dto;
 import java.util.List;
 import java.util.UUID;
 
-public record StockReservationCancelEvent(
-    UUID sagaId,
+public record StockReservationSuccessEvent(
     UUID orderId,
-    List<StockReservationCancelItem> items
+    List<StockReservationItem> items
 ) { }
