@@ -12,7 +12,7 @@ public class CartUpdateQuantityResponse {
 
     private final UUID cartId;
     private final UUID productId;
-    private final UUID optionId;
+    private final UUID brandId;
     private final int quantity;
     private final String productName;
     private final String optionName;

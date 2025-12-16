@@ -24,17 +24,13 @@ public class Cart extends BaseEntity {
     @Column(nullable = false)
     private UUID productId;
 
-    @Column
-    private UUID optionId; // null 가능
-
     @Column(nullable = false)
     private int quantity;
 
-    public static Cart of(UUID userId, UUID productId, UUID optionId, int quantity) {
+    public static Cart of(UUID userId, UUID productId, int quantity) {
         Cart cart = new Cart();
         cart.userId = userId;
         cart.productId = productId;
-        cart.optionId = optionId;
         cart.quantity = quantity;
         return cart;
     }
