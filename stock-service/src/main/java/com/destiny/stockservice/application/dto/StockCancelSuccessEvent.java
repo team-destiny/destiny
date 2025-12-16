@@ -2,7 +2,6 @@ package com.destiny.stockservice.application.dto;
 
 import java.util.UUID;
 
-public record StockReduceItem(
-    UUID productId,
-    Integer orderedQuantity
+public record StockCancelSuccessEvent(
+    UUID sagaId
 ) { }

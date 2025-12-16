@@ -25,7 +25,7 @@ public class StockRepositoryImpl implements StockRepository {
     }
 
     @Override
-    public List<Stock> findByProductIdIn(List<UUID> productIds) {
+    public List<Stock> findAllByProductIdIn(List<UUID> productIds) {
         return stockJpaRepository.findByProductIdIn(productIds);
     }
 }

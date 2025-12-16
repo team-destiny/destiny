@@ -8,5 +8,5 @@ import java.util.UUID;
 public interface StockRepository {
     Optional<Stock> findByProductId(UUID productId);
     Stock save(Stock entity);
-    List<Stock> findByProductIdIn(List<UUID> productIds);
+    List<Stock> findAllByProductIdIn(List<UUID> productIds);
 }

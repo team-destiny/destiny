@@ -1,13 +1,7 @@
 package com.destiny.stockservice.application.service;
 
-import com.destiny.stockservice.application.dto.StockCreateMessage;
-import com.destiny.stockservice.application.dto.StockReduceItem;
-import com.destiny.stockservice.domain.entity.Stock;
+import com.destiny.stockservice.application.dto.StockCreateEvent;
 import com.destiny.stockservice.domain.repository.StockRepository;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,84 +13,7 @@ public class StockService {
     private final StockRepository stockRepository;
 
     @Transactional
-    public boolean validateAndDecrease(List<StockReduceItem> items) {
-        List<UUID> productIds = items.stream()
-            .map(StockReduceItem::productId)
-            .toList();
-
-        Map<UUID, Stock> stockMap = stockRepository
-            .findByProductIdIn(productIds)
-            .stream()
-            .collect(Collectors.toMap(Stock::getProductId, s -> s));
-
-        for (StockReduceItem item : items) {
-            Stock stock = stockMap.get(item.productId());
-
-            if (isInvalidStock(item, stockMap)) {
-                return false;
-            }
-        }
-
-        for (StockReduceItem item : items) {
-            Stock stock = stockMap.get(item.productId());
-
-            stock.tryReduceQuantity(item.orderedQuantity());
-        }
-
-        return true;
-    }
-
-    private boolean isInvalidStock(StockReduceItem item, Map<UUID, Stock> stockMap) {
-        Stock stock = stockMap.get(item.productId());
-
-        if (stock == null) {
-            return true;
-        }
-
-        if (stock.getTotalQuantity() == null) {
-            return true;
-        }
-
-        if (item.orderedQuantity() == null) {
-            return true;
-        }
-
-        return stock.getTotalQuantity() < item.orderedQuantity();
-    }
-
-    @Transactional
-    public void rollbackQuantity(List<StockReduceItem> items) {
-
-        List<UUID> productIds = items.stream()
-            .map(StockReduceItem::productId)
-            .toList();
-
-        Map<UUID, Stock> stockMap = stockRepository
-            .findByProductIdIn(productIds).stream()
-            .collect(Collectors.toMap(Stock::getProductId, s -> s));
-
-        for (StockReduceItem item : items) {
-            Integer orderedQuantity = item.orderedQuantity();
-
-            if (orderedQuantity == null || orderedQuantity < 0) {
-                throw new IllegalArgumentException(
-                    "잘못된 주문 수량입니다. productId=" + item.productId()
-                        + ", orderedQuantity=" + orderedQuantity
-                );
-            }
-
-            Stock stock = stockMap.get(item.productId());
-
-            if (stock == null) {
-                throw new IllegalStateException("재고 정보가 없습니다. " + item.productId());
-            }
-
-            stock.addQuantity(orderedQuantity);
-        }
-    }
-
-    @Transactional
-    public void createStock(StockCreateMessage message) {
+    public void createStock(StockCreateEvent message) {
 
         if (stockRepository.findByProductId(message.productId()).isPresent()) {
             throw new IllegalStateException(

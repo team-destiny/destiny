@@ -1,12 +1,21 @@
 package com.destiny.stockservice.application.service.message;
 
-import com.destiny.stockservice.application.dto.StockCreateMessage;
-import com.destiny.stockservice.application.dto.StockReduceCommand;
-import com.destiny.stockservice.application.dto.StockReduceFailResult;
-import com.destiny.stockservice.application.dto.StockReduceSuccessResult;
-import com.destiny.stockservice.application.dto.StockRollbackCommand;
+import com.destiny.stockservice.application.dto.OrderCompletedEvent;
+import com.destiny.stockservice.application.dto.ProductSoldOutEvent;
+import com.destiny.stockservice.application.dto.StockCancelSuccessEvent;
+import com.destiny.stockservice.application.dto.StockCreateEvent;
+import com.destiny.stockservice.application.dto.StockReservationCancelEvent;
+import com.destiny.stockservice.application.dto.StockReservationCancelFailEvent;
+import com.destiny.stockservice.application.dto.StockReservationEvent;
+import com.destiny.stockservice.application.dto.StockReservationFailEvent;
+import com.destiny.stockservice.application.dto.StockReservationSuccessEvent;
+import com.destiny.stockservice.application.service.StockReservationService;
 import com.destiny.stockservice.application.service.StockService;
+import com.destiny.stockservice.domain.entity.StockReservationCancelResult;
+import com.destiny.stockservice.domain.entity.StockReservationResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +33,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class StockConsumerService {
 
+    private final StockReservationService stockReservationService;
+
     private final StockProducerService stockProducerService;
 
     private final StockService stockService;
@@ -31,49 +42,83 @@ public class StockConsumerService {
     private final ObjectMapper objectMapper;
 
     @SneakyThrows
-    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
-    @KafkaListener(groupId = "orchestrator", topics = "stock-reduce-request")
-    public void consumeStockMessage(String message) {
+    @KafkaListener(groupId = "orchestrator", topics = "stock-create-message")
+    public void consumeStockCreateMessage(String stockCreateMessage) {
 
-        StockReduceCommand command = objectMapper
-            .readValue(message, StockReduceCommand.class);
+        StockCreateEvent message = objectMapper
+            .readValue(stockCreateMessage, StockCreateEvent.class);
 
-        boolean success = stockService.validateAndDecrease(command.items());
+        stockService.createStock(message);
 
-        if (success) {
-            stockProducerService.sendStockReduceSuccess(
-                new StockReduceSuccessResult(command.orderId(), command.items())
-            );
-        } else {
-            stockProducerService.sendStockReduceFail(
-                new StockReduceFailResult(command.orderId())
-            );
+        log.info("상품 재고 정보를 생성했습니다. productId={}", message.productId());
+    }
+
+    @SneakyThrows
+    @KafkaListener(groupId = "orchestrator", topics = "stock-reservation-request")
+    public void consumeStockReserveMessage(String stockReservationMessage) {
+
+        StockReservationEvent event = objectMapper
+            .readValue(stockReservationMessage, StockReservationEvent.class);
+
+        StockReservationResult result = stockReservationService.reserveStock(event);
+
+        switch(result) {
+            case RESERVED, ALREADY_RESERVED -> {
+                stockProducerService.publishStockReservationSuccessEvent(
+                    new StockReservationSuccessEvent(event.orderId(), event.items())
+                );
+            }
+
+            case INVALID_REQUEST, OUT_OF_STOCK -> {
+                stockProducerService.publishStockReservationFailEvent(
+                    new StockReservationFailEvent(event.orderId())
+                );
+            }
         }
     }
 
     @SneakyThrows
     @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
-    @KafkaListener(groupId = "orchestrator", topics = "stock-reduce-rollback")
-    public void consumeStockRollbackMessage(String stockRollbackCommand) {
+    @KafkaListener(groupId = "orchestrator", topics = "stock-reservation-cancel")
+    public void consumeStockReservationCancelEvent(String stockReservationCancel) {
 
-        StockRollbackCommand command = objectMapper
-            .readValue(stockRollbackCommand, StockRollbackCommand.class);
+        StockReservationCancelEvent event = objectMapper
+            .readValue(stockReservationCancel, StockReservationCancelEvent.class);
 
-        stockService.rollbackQuantity(command.items());
+        StockReservationCancelResult result = stockReservationService.cancelStock(event);
 
-        log.info("상품 재고 정보를 롤백했습니다. orderId={}", command.orderId());
+        switch(result) {
+            case CANCEL_SUCCEEDED -> {
+                stockProducerService.publishStockCancelSuccessEvent(
+                    new StockCancelSuccessEvent(event.sagaId())
+                );
+            }
+
+            case NO_RESERVATION, ALREADY_CANCELED -> {
+                stockProducerService.publishStockCancelFailEvent(
+                    new StockReservationCancelFailEvent(event.sagaId(), result.getDescription())
+                );
+            }
+        }
     }
 
     @SneakyThrows
-    @KafkaListener(groupId = "orchestrator", topics = "stock-create-message")
-    public void consumeStockCreateMessage(String stockCreateMessage) {
+    @KafkaListener(groupId = "orchestrator", topics = "order-create-success")
+    public void consumeOrderCompletedEvent(String orderCompletedEvent) {
 
-        StockCreateMessage message = objectMapper
-            .readValue(stockCreateMessage, StockCreateMessage.class);
+        OrderCompletedEvent event = objectMapper
+            .readValue(orderCompletedEvent, OrderCompletedEvent.class);
 
-        stockService.createStock(message);
 
-        log.info("상품 재고 정보를 생성했습니다. productId={}", message.productId());
+        List<UUID> soldOutProductIds = stockReservationService.commitStock(event.orderId());
+
+        if (soldOutProductIds.isEmpty()) {
+            return;
+        }
+
+        stockProducerService.publishProductSoldOutEvent(
+            new ProductSoldOutEvent(soldOutProductIds)
+        );
     }
 
     @DltHandler
@@ -86,10 +131,10 @@ public class StockConsumerService {
         log.error("원본 메시지      : {}", payload);
         log.error("예외 메시지      : {}", exceptionMessage);
 
-        if (topic.contains("stock-reduce-request")) {
-            log.error("재고 차감 요청 처리 실패");
-        } else if (topic.contains("stock-reduce-rollback")) {
-            log.error("재고 롤백 처리 실패");
+        if (topic.contains("stock-reservation-request")) {
+            log.error("재고 예약 요청 처리 실패");
+        } else if (topic.contains("stock-reservation-cancel-request")) {
+            log.error("재고 예약 취소 처리 실패");
         } else if (topic.contains("stock-create-message")) {
             log.error("재고 생성 처리 실패");
         } else {
