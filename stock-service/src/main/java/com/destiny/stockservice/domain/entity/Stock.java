@@ -58,7 +58,7 @@ public class Stock extends BaseEntity {
 
     public StockReservationResult reserve(int reservationQuantity) {
 
-        if (reservedQuantity <= 0) {
+        if (reservationQuantity <= 0) {
             return StockReservationResult.INVALID_REQUEST;
         }
 
