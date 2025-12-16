@@ -43,8 +43,6 @@ public class StockReservationService {
             .collect(Collectors.toMap(Stock::getProductId, s -> s));
 
         for (StockReservationItem item : reservationItems) {
-            Stock stock = stockMap.get(item.productId());
-
             if (isInvalidStock(item, stockMap)) {
                 return StockReservationResult.INVALID_REQUEST;
             }
