@@ -63,7 +63,7 @@ public class StockConsumerService {
         StockReservationResult result = stockReservationService.reserveStock(event);
 
         switch(result) {
-            case RESERVED, ALREADY_RESERVED -> {
+            case RESERVED -> {
                 stockProducerService.publishStockReservationSuccessEvent(
                     new StockReservationSuccessEvent(event.orderId(), event.items())
                 );
