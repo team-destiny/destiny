@@ -73,7 +73,7 @@ public class ProductValidationService {
         List<UUID> productIds,
         List<Product> availableProducts
     ) {
-        List<Product> allProducts = productCommandRepository.findByIdIn(productIds);
+        List<Product> allProducts = productCommandRepository.findAllByIdIn(productIds);
 
         Map<UUID, Product> productMap = allProducts.stream()
             .collect(Collectors.toMap(Product::getId, p -> p));

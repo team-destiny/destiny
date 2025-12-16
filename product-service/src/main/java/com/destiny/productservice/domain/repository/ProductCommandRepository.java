@@ -18,7 +18,5 @@ public interface ProductCommandRepository {
 
     List<Product> findByIdInAndStatus(List<UUID> ids, ProductStatus status);
 
-    List<Product> findByIdIn(List<UUID> productIds);
-
     List<Product> findAllByIdIn(List<UUID> productIds);
 }
