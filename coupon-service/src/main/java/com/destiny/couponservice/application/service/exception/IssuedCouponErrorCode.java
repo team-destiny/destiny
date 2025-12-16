@@ -19,7 +19,10 @@ public enum IssuedCouponErrorCode implements ResponseCode {
     MIN_ORDER_AMOUNT_NOT_MET(HttpStatus.BAD_REQUEST, "ISSUED-008", "최소 주문 금액을 충족하지 않아 쿠폰을 사용할 수 없습니다."),
     INVALID_CANCEL_TARGET(HttpStatus.BAD_REQUEST, "ISSUED-009", "취소할 수 없는 쿠폰 상태입니다."),
 
-    ISSUE_LIMIT_EXHAUSTED(HttpStatus.BAD_REQUEST, "ISSUED-010", "쿠폰이 모두 소진되었습니다");
+    ISSUE_LIMIT_EXHAUSTED(HttpStatus.BAD_REQUEST, "ISSUED-010", "쿠폰이 모두 소진되었습니다"),
+
+    ALREADY_USED_COUPON(HttpStatus.BAD_REQUEST, "ISSUED-011", "이미 사용된 쿠폰입니다.");
+
 
 
 

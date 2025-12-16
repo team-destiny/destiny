@@ -1,6 +1,7 @@
 package com.destiny.couponservice.infrastructure.messaging.consumer;
 
 import com.destiny.couponservice.application.service.IssuedCouponService;
+import com.destiny.couponservice.infrastructure.messaging.event.command.CouponCancelRequestEvent;
 import com.destiny.couponservice.infrastructure.messaging.event.command.CouponRollbackRequestEvent;
 import com.destiny.couponservice.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,5 +45,21 @@ public class CouponConsumer {
 
         issuedCouponService.couponRollback(event);
     }
+
+    @KafkaListener(topics = "coupon-cancel-request", groupId = "coupon-service")
+    public void onCouponCancel(String message) {
+        CouponCancelRequestEvent event;
+        try {
+            log.info("[CouponCancelRequestEvent] Received: {}", message);
+            event = objectMapper.readValue(message, CouponCancelRequestEvent.class);
+        } catch (Exception e) {
+            log.error("[CouponCancelRequestEvent] JSON 파싱 오류 - 메시지 무시: {}", message, e);
+            return;
+        }
+
+        issuedCouponService.couponCancel(event);
+    }
+    
+    
 
 }

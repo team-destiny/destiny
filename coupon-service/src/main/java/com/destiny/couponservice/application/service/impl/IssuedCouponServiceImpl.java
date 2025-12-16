@@ -8,10 +8,14 @@ import com.destiny.couponservice.domain.enums.DiscountType;
 import com.destiny.couponservice.domain.enums.IssuedCouponStatus;
 import com.destiny.couponservice.domain.repository.CouponTemplateRepository;
 import com.destiny.couponservice.domain.repository.IssuedCouponRepository;
+import com.destiny.couponservice.infrastructure.messaging.event.command.CouponCancelFailEvent;
+import com.destiny.couponservice.infrastructure.messaging.event.command.CouponCancelRequestEvent;
+import com.destiny.couponservice.infrastructure.messaging.event.command.CouponCancelSuccessEvent;
 import com.destiny.couponservice.infrastructure.messaging.event.command.CouponRollbackRequestEvent;
 import com.destiny.couponservice.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.destiny.couponservice.infrastructure.messaging.event.result.CouponValidateFailEvent;
 import com.destiny.couponservice.infrastructure.messaging.event.result.CouponValidateSuccessEvent;
+import com.destiny.couponservice.infrastructure.messaging.producer.CouponCancelProducer;
 import com.destiny.couponservice.infrastructure.messaging.producer.CouponValidateProducer;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponDetailResponse;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponListItemResponse;
@@ -41,6 +45,7 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
     private final IssuedCouponRepository issuedCouponRepository;
     private final CouponTemplateRepository couponTemplateRepository;
     private final CouponValidateProducer couponValidateProducer;
+    private final CouponCancelProducer couponCancelProducer;
 
     private static final int DEFAULT_EXPIRE_DAYS_AFTER_ISSUE = 7;
 
@@ -200,37 +205,45 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
 
             LocalDateTime now = LocalDateTime.now();
 
-            // 1) 상태/만료 검증
-            if (!coupon.isUsable(now)) {
-                if (now.isAfter(coupon.getExpiredAt())) {
-                    // 만료된 경우는 도메인 상태만 EXPIRED로 바꾸고
-                    coupon.expire(now);
-                    // 예외 던져서 아래 catch 블록에서 fail 이벤트 발행
-                    throw new BizException(IssuedCouponErrorCode.COUPON_EXPIRED);
-                }
+            //  1) 이미 사용된 쿠폰이면 명확한 에러로 분기
+            if (coupon.getStatus() == IssuedCouponStatus.USED) {
+                throw new BizException(IssuedCouponErrorCode.ALREADY_USED_COUPON);
+            }
+
+            // 2) 만료된 쿠폰이면 상태 업데이트 후 만료 예외
+            if (now.isAfter(coupon.getExpiredAt())) {
+                coupon.expire(now);
+                throw new BizException(IssuedCouponErrorCode.COUPON_EXPIRED);
+            }
+
+            //  3) 그 외 사용 불가 상태 (AVAILABLE이 아니면 사용 불가)
+            if (coupon.getStatus() != IssuedCouponStatus.AVAILABLE) {
                 throw new BizException(IssuedCouponErrorCode.INVALID_COUPON_STATUS);
             }
 
-            // 2) 템플릿 조회
+            // 4) 템플릿 조회
             CouponTemplate template = couponTemplateRepository.findById(
                     coupon.getCouponTemplateId())
                 .orElseThrow(() -> new BizException(IssuedCouponErrorCode.TEMPLATE_NOT_FOUND));
 
-            // 3) 최소 주문 금액 검증
+            // 5) 최소 주문 금액 검증
             if (command.originalAmount() < template.getMinOrderAmount()) {
                 throw new BizException(IssuedCouponErrorCode.MIN_ORDER_AMOUNT_NOT_MET);
             }
 
-            // 4) 할인 계산
+            // 6) 할인 계산
             int discountAmount = calculateDiscountAmount(command.originalAmount(), template);
             int finalAmount = Math.max(0, command.originalAmount() - discountAmount);
 
-            // 5) 사용 처리
+            // 7) 사용 처리
             coupon.use(command.orderId(), now);
 
-            // 6) 성공 이벤트 발행
+            // 8) 성공 이벤트 발행
             CouponValidateSuccessEvent event = CouponValidateSuccessEvent.builder()
-                .orderId(command.orderId()).couponId(couponId).finalAmount(finalAmount).build();
+                .orderId(command.orderId())
+                .couponId(couponId)
+                .finalAmount(finalAmount)
+                .build();
 
             couponValidateProducer.sendSuccess(event);
 
@@ -239,8 +252,17 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
             log.error("[handleCouponValidate] 쿠폰 검증 처리 중 예외 발생 - orderId={}, couponId={}",
                 command.orderId(), couponId, e);
 
+            // ✅ BizException이면 그 메시지를 그대로 사가에 전달 (원하는 failReason)
+            String errorMessage = "쿠폰 사용에 실패하였습니다.";
+            if (e instanceof BizException biz && biz.getMessage() != null && !biz.getMessage()
+                .isBlank()) {
+                errorMessage = biz.getMessage();
+            }
+
             CouponValidateFailEvent failEvent = CouponValidateFailEvent.builder()
-                .orderId(command.orderId()).couponId(couponId).errorMessage("쿠폰 사용에 실패하였습니다.")
+                .orderId(command.orderId())
+                .couponId(couponId)
+                .errorMessage(errorMessage)
                 .build();
 
             try {
@@ -253,14 +275,64 @@ public class IssuedCouponServiceImpl implements IssuedCouponService {
         }
     }
 
-
     @Override
     @Transactional
     public void couponRollback(CouponRollbackRequestEvent event) {
         IssuedCoupon coupon = issuedCouponRepository.findById(event.couponId()).orElse(null);
 
-        coupon.updateStatus(IssuedCouponStatus.AVAILABLE, LocalDateTime.now());
+        if (coupon == null) {
+            log.warn("[couponRollback] coupon not found - couponId={}", event.couponId());
+            return;
+        }
 
+        coupon.updateStatus(IssuedCouponStatus.AVAILABLE, LocalDateTime.now());
     }
 
+    @Override
+    @Transactional
+    public void couponCancel(CouponCancelRequestEvent event) {
+        UUID sagaId = event.sagaId();
+        UUID couponId = event.couponId();
+
+        try {
+            IssuedCoupon coupon = issuedCouponRepository.findById(couponId)
+                .orElseThrow(() -> new BizException(IssuedCouponErrorCode.ISSUED_COUPON_NOT_FOUND));
+
+            if (coupon.getStatus() == IssuedCouponStatus.AVAILABLE) {
+                log.info("[couponCancel] already available - sagaId={}, couponId={}", sagaId,
+                    couponId);
+                couponCancelProducer.sendSuccess(new CouponCancelSuccessEvent(sagaId));
+                return;
+            }
+
+            if (coupon.getStatus() == IssuedCouponStatus.USED) {
+                coupon.cancelUse();
+                couponCancelProducer.sendSuccess(new CouponCancelSuccessEvent(sagaId));
+
+                log.info("[couponCancel] success - sagaId={}, couponId={}", sagaId, couponId);
+                return;
+            }
+
+            sendCancelFail(sagaId, "취소할 수 없는 쿠폰 상태입니다.");
+
+            log.warn("[couponCancel] fail - invalid status. sagaId={}, couponId={}, status={}",
+                sagaId, couponId, coupon.getStatus());
+
+        } catch (BizException e) {
+            sendCancelFail(sagaId, e.getMessage());
+        } catch (Exception e) {
+            log.error("[couponCancel] system error - sagaId={}, couponId={}", sagaId, couponId, e);
+            sendCancelFail(sagaId, "쿠폰 사용 취소 처리 중 시스템 오류가 발생했습니다.");
+        }
+    }
+
+    private void sendCancelFail(UUID sagaId, String message) {
+        try {
+            couponCancelProducer.sendFail(new CouponCancelFailEvent(sagaId, message));
+        } catch (Exception sendEx) {
+            log.error("[couponCancel] coupon-cancel-fail 전송 실패 - 수동 개입 필요. sagaId={}", sagaId,
+                sendEx);
+        }
+    }
 }
+
