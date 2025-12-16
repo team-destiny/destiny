@@ -1,6 +1,7 @@
 package com.destiny.couponservice.application.service;
 
 import com.destiny.couponservice.domain.enums.IssuedCouponStatus;
+import com.destiny.couponservice.infrastructure.messaging.event.command.CouponCancelRequestEvent;
 import com.destiny.couponservice.infrastructure.messaging.event.command.CouponRollbackRequestEvent;
 import com.destiny.couponservice.infrastructure.messaging.event.command.CouponValidateCommand;
 import com.destiny.couponservice.presentation.dto.response.IssuedCouponDetailResponse;
@@ -22,4 +23,6 @@ public interface IssuedCouponService {
     void handleCouponValidate(CouponValidateCommand command);
 
     void couponRollback(CouponRollbackRequestEvent event);
+
+    void couponCancel(CouponCancelRequestEvent event);
 }
