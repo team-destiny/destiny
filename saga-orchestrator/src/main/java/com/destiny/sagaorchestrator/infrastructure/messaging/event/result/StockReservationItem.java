@@ -2,9 +2,9 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.event.result;
 
 import java.util.UUID;
 
-public record StockCancelFailResult(
-    UUID sagaId,
-    String message
+public record StockReservationItem(
+    UUID productId,
+    Integer orderedQuantity
 ) {
 
 }

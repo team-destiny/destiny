@@ -29,8 +29,8 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.Produc
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationMessageResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationSuccessResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.producer.SagaProducer;
 import java.util.List;
 import java.util.UUID;
@@ -142,7 +142,7 @@ public class OrderCreateService {
     }
 
     @Transactional
-    public void stockReduceSuccess(StockReduceSuccessResult event) {
+    public void stockReservationSuccess(StockReservationSuccessResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
         saga.updateStep(SagaStep.STOCK_RESERVATION_SUCCESS);
         saga.updateStatus(SagaStatus.PROGRESS);
@@ -159,11 +159,11 @@ public class OrderCreateService {
     }
 
     @Transactional
-    public void stockReduceFailure(StockReservationFailResult event) {
+    public void stockReservationFailure(StockReservationFailResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
         saga.updateStep(SagaStep.STOCK_RESERVATION_FAIL);
         saga.updateStatus(SagaStatus.FAILED);
-        saga.updateFailureReason("재고 차감 실패(재고 부족)");
+        saga.updateFailureReason("재고 예약 실패(재고 부족)");
 
         sendOrderCreateFailMessage(
             event,

@@ -16,10 +16,10 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.Paymen
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentConfirmSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationSuccessResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockCancelFailResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockCancelSuccessResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationCancelFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationCancelSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationSuccessResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -90,9 +90,9 @@ public class SagaConsumer {
         try {
             log.info("[⭐️ JOIN SAGA SUCCESS] - STOCK RESERVATION SUCCESS : {}", message);
 
-            StockReduceSuccessResult event = objectMapper.readValue(
-                message, StockReduceSuccessResult.class);
-            orderCreateService.stockReduceSuccess(event);
+            StockReservationSuccessResult event = objectMapper.readValue(
+                message, StockReservationSuccessResult.class);
+            orderCreateService.stockReservationSuccess(event);
 
         } catch (JsonProcessingException e) {
 
@@ -108,7 +108,7 @@ public class SagaConsumer {
 
             StockReservationFailResult event = objectMapper.readValue(
                 message, StockReservationFailResult.class);
-            orderCreateService.stockReduceFailure(event);
+            orderCreateService.stockReservationFailure(event);
 
         } catch (JsonProcessingException e) {
 
@@ -299,8 +299,8 @@ public class SagaConsumer {
         try {
             log.info("[⭐️ JOIN SAGA SUCCESS] - STOCK CANCEL SUCCESS : {}", message);
 
-            StockCancelSuccessResult event = objectMapper.readValue(
-                message, StockCancelSuccessResult.class);
+            StockReservationCancelSuccessResult event = objectMapper.readValue(
+                message, StockReservationCancelSuccessResult.class);
             orderCancelService.cancelStockSuccess(event);
 
         } catch (JsonProcessingException e) {
@@ -315,8 +315,8 @@ public class SagaConsumer {
         try {
             log.info("[⭐️ JOIN SAGA SUCCESS] - STOCK CANCEL FAIL : {}", message);
 
-            StockCancelFailResult event = objectMapper.readValue(
-                message, StockCancelFailResult.class);
+            StockReservationCancelFailResult event = objectMapper.readValue(
+                message, StockReservationCancelFailResult.class);
             orderCancelService.cancelStockFail(event);
 
         } catch (JsonProcessingException e) {
