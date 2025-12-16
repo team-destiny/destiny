@@ -111,6 +111,7 @@ public class ProductCommandService {
         );
     }
 
+    @Transactional
     public void closeProducts(List<UUID> productIds) {
 
         List<Product> products = productCommandRepository.findAllByIdIn(productIds);
@@ -118,6 +119,7 @@ public class ProductCommandService {
         products.forEach(Product::markOutOfStock);
     }
 
+    @Transactional
     public void reopenProducts(List<UUID> productIds) {
 
         List<Product> products = productCommandRepository.findAllByIdIn(productIds);
