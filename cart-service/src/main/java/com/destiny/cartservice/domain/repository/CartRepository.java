@@ -15,7 +15,7 @@ public interface CartRepository {
 
     void deleteAllByIdIn(List<UUID> cartIds);
 
-    // 장바구니 담기 시 동일한 상품/옵션이 있으면 수량을 합치기 위해 조회
+    // 장바구니 담기 시 동일한 상품이 있으면 수량을 합치기 위해 조회
     Optional<Cart> findExistingCart(UUID userId, UUID productId);
 
     void deleteAllByUserId(UUID userId);
