@@ -3,7 +3,8 @@ package com.destiny.stockservice.application.dto;
 import java.util.List;
 import java.util.UUID;
 
-public record StockRollbackCommand(
+public record StockReservationCancelEvent(
+    UUID sagaId,
     UUID orderId,
-    List<StockReduceItem> items
+    List<StockCancelItem> items
 ) { }

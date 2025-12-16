@@ -3,7 +3,7 @@ package com.destiny.stockservice.application.dto;
 import java.util.List;
 import java.util.UUID;
 
-public record StockReduceCommand(
+public record StockReservationEvent(
     UUID orderId,
-    List<StockReduceItem> items
+    List<StockReservationItem> items
 ) { }

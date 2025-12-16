@@ -92,14 +92,14 @@ public class OrderCancelService {
     @Transactional
     public void cancelStockSuccess(StockCancelSuccessResult event) {
         SagaState saga = sagaRepository.findById(event.sagaId());
-        saga.updateStep(SagaStep.STOCK_REDUCE_SUCCESS);
+        saga.updateStep(SagaStep.STOCK_RESERVATION_SUCCESS);
         saga.updateStatus(SagaStatus.CANCEL_PROGRESS);
     }
 
     @Transactional
     public void cancelStockFail(StockCancelFailResult event) {
         SagaState saga = sagaRepository.findById(event.sagaId());
-        saga.updateStep(SagaStep.STOCK_REDUCE_FAIL);
+        saga.updateStep(SagaStep.STOCK_RESERVATION_FAIL);
         saga.updateStatus(SagaStatus.CANCEL_FAILED);
     }
 }

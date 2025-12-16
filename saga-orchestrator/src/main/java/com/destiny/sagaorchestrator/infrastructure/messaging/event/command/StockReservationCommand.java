@@ -3,9 +3,9 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.event.command;
 import java.util.List;
 import java.util.UUID;
 
-public record StockRollbackCommand(
+public record StockReservationCommand(
     UUID orderId,
-    List<StockReduceItem> items
+    List<StockReservationItem> items
 ) {
 
 }
