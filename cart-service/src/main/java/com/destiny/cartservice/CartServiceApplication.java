@@ -7,7 +7,10 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @EnableFeignClients
 @EnableDiscoveryClient
-@SpringBootApplication(scanBasePackages = "com.destiny")
+@SpringBootApplication(scanBasePackages = {
+    "com.destiny.cartservice",
+    "com.destiny.global"
+})
 public class CartServiceApplication {
 
     public static void main(String[] args) {
