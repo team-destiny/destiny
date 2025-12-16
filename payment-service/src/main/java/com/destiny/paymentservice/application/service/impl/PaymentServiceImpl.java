@@ -8,13 +8,15 @@ import com.destiny.paymentservice.domain.repository.PaymentRepository;
 import com.destiny.paymentservice.domain.vo.PaymentMethod;
 import com.destiny.paymentservice.domain.vo.PaymentProvider;
 import com.destiny.paymentservice.domain.vo.PaymentStatus;
+import com.destiny.paymentservice.infrastructure.messaging.event.command.PaymentCancelCommand;
 import com.destiny.paymentservice.infrastructure.messaging.event.command.PaymentCommand;
+import com.destiny.paymentservice.infrastructure.messaging.event.result.PaymentCancelFailEvent;
+import com.destiny.paymentservice.infrastructure.messaging.event.result.PaymentCancelSuccessEvent;
 import com.destiny.paymentservice.infrastructure.messaging.event.result.PaymentFailEvent;
 import com.destiny.paymentservice.infrastructure.messaging.event.result.PaymentSuccessEvent;
+import com.destiny.paymentservice.infrastructure.messaging.producer.PaymentCancelProducer;
 import com.destiny.paymentservice.infrastructure.messaging.producer.PaymentConfirmProducer;
 import com.destiny.paymentservice.infrastructure.messaging.producer.PaymentCreateProducer;
-import com.destiny.paymentservice.infrastructure.security.auth.CustomUserDetails;
-import com.destiny.paymentservice.presentation.dto.request.PaymentCancelRequest;
 import com.destiny.paymentservice.presentation.dto.request.PaymentConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 import java.util.Optional;
@@ -32,6 +34,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentCreateProducer paymentCreateProducer;
     private final PaymentConfirmProducer paymentConfirmProducer;
+    private final PaymentCancelProducer paymentCancelProducer;
 
     @Override
     public PaymentProvider supports() {
@@ -70,18 +73,7 @@ public class PaymentServiceImpl implements PaymentService {
             return PaymentResponse.fromEntity(savedPayment);
 
         } catch (BizException e) {
-            PaymentFailEvent failEvent = PaymentFailEvent.builder()
-                .orderId(request.orderId())
-                .errorCode(e.getResponseCode().getCode())
-                .errorMessage(e.getMessage())
-                .build();
-
-            try {
-                paymentCreateProducer.sendCreateFail(failEvent);
-            } catch (Exception sendEx) {
-                log.error("[handlePaymentValidate] sendFail 실패 - 수동 개입 필요: orderId={}", request.orderId(), sendEx);
-            }
-
+            paymentCreateProducer.sendCreateFail(new PaymentFailEvent(request.orderId(), e.getResponseCode().getCode(), e.getMessage()));
             throw e;
         }
     }
@@ -94,11 +86,6 @@ public class PaymentServiceImpl implements PaymentService {
             // [1] 결제 내역 조회 (PENDING 상태만 승인 가능)
             Payment payment = paymentRepository.findByOrderId(request.orderId())
                 .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-
-            // TODO: 파라미터로 userDetails를 받을지 결정
-//            if (!payment.getUserId().equals(userDetails.getUserId())) {
-//                throw new BizException(PaymentErrorCode.PAYMENT_OWNER_MISMATCH);
-//            }
 
             // [2] PENDING 상태인지 확인
             if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
@@ -133,27 +120,34 @@ public class PaymentServiceImpl implements PaymentService {
     // 결제 취소 (PAID -> CANCELED)
     @Override
     @Transactional
-    public PaymentResponse cancelPayment(PaymentCancelRequest request, CustomUserDetails userDetails) {
-        // [1] 결제 내역 조회 (PAID 상태여야 취소 가능)
-        Payment payment = paymentRepository.findByOrderId(request.orderId())
-            .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+    public PaymentResponse cancelPayment(PaymentCancelCommand request) {
 
-//        log.info("payment.userId={}, login.userId={}", payment.getUserId(), userDetails.getUserId());
+        try {
+            // [1] 결제 내역 조회
+            Payment payment = paymentRepository.findByOrderId(request.orderId())
+                .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
-        if (!payment.getUserId().equals(userDetails.getUserId())) {
-            throw new BizException(PaymentErrorCode.PAYMENT_OWNER_MISMATCH);
+            // [2] 사용자 검증
+            if (!payment.getUserId().equals(request.userId())) {
+                throw new BizException(PaymentErrorCode.FORBIDDEN_ACCESS);
+            }
+
+            // [3] PAID 상태인지 확인
+            if (payment.getPaymentStatus() != PaymentStatus.PAID) {
+                throw new BizException(PaymentErrorCode.PAYMENT_NOT_PAID);
+            }
+
+            // [4] 상태 변경
+            payment.cancel();
+
+            // [5] 성공 이벤트 발행
+            paymentCancelProducer.sendCancelSuccess(new PaymentCancelSuccessEvent(request.sagaId(), request.orderId()));
+
+            return PaymentResponse.fromEntity(payment);
+
+        } catch (BizException e) {
+            paymentCancelProducer.sendCancelFail(new PaymentCancelFailEvent(request.sagaId(), request.orderId(), e.getMessage()));
+            throw e;
         }
-
-        // [2] PAID 상태인지 확인
-        if (payment.getPaymentStatus() != PaymentStatus.PAID) {
-            throw new BizException(PaymentErrorCode.PAYMENT_NOT_PAID);
-        }
-
-        // [3] 실제 PG 연동 로직
-
-        // [4] 도메인 행위 호출 (상태 변경: PAID -> CANCELED)
-        payment.cancel();
-
-        return PaymentResponse.fromEntity(payment);
     }
 }

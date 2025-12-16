@@ -4,13 +4,12 @@ import com.destiny.global.response.ApiResponse;
 import com.destiny.global.response.PageResponseDto;
 import com.destiny.paymentservice.application.service.inter.PaymentQueryService;
 import com.destiny.paymentservice.application.service.impl.PaymentServiceImpl;
-import com.destiny.paymentservice.application.service.inter.PaymentService;
 import com.destiny.paymentservice.application.service.router.PaymentRouter;
 import com.destiny.paymentservice.domain.vo.PaymentStatus;
+import com.destiny.paymentservice.infrastructure.messaging.event.command.PaymentCancelCommand;
 import com.destiny.paymentservice.infrastructure.messaging.event.command.PaymentCommand;
 import com.destiny.paymentservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.paymentservice.presentation.code.PaymentSuccessCode;
-import com.destiny.paymentservice.presentation.dto.request.PaymentCancelRequest;
 import com.destiny.paymentservice.presentation.dto.request.PaymentConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 
@@ -62,8 +61,8 @@ public class PaymentController {
      * POST /payments/cancel : 결제 전액 취소 (PAID -> CANCELED)
      */
     @PostMapping("/cancel")
-    public ResponseEntity<ApiResponse<PaymentResponse>> cancelPayment(@Valid @RequestBody PaymentCancelRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PaymentResponse response = paymentRouter.route().cancelPayment(request, userDetails);
+    public ResponseEntity<ApiResponse<PaymentResponse>> cancelPayment(@Valid @RequestBody PaymentCancelCommand request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        PaymentResponse response = paymentRouter.route().cancelPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CANCEL_SUCCESS, response));
     }
 
