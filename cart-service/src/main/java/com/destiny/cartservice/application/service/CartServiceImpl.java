@@ -14,6 +14,7 @@ import com.destiny.cartservice.presentation.dto.response.CartFindItemResponse;
 import com.destiny.cartservice.presentation.dto.response.CartSaveResponse;
 import com.destiny.cartservice.presentation.dto.response.CartUpdateQuantityResponse;
 import com.destiny.global.exception.BizException;
+import feign.FeignException;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -46,9 +47,20 @@ public class CartServiceImpl implements CartService {
 
     private CartFindItemResponse toItemResponse(Cart cart) {
 
-        ProductResponse product = productClient.getProductById(cart.getProductId());
+        ProductResponse product;
 
-        if (product.name() == null) {
+        try {
+            product = productClient.getProductById(cart.getProductId());
+        } catch (FeignException.NotFound e) {
+            throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
+        } catch (FeignException e) {
+            throw new BizException(CartErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
+        }
+
+        if (product == null || product.name() == null ||
+            product.color() == null || product.size() == null ||
+            product.price() == null || product.brandId() == null) {
+
             throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
         }
 
@@ -90,9 +102,20 @@ public class CartServiceImpl implements CartService {
 
     private CartSaveResponse toSaveResponse(Cart cart) {
 
-        ProductResponse product = productClient.getProductById(cart.getProductId());
+        ProductResponse product;
 
-        if (product.name() == null) {
+        try {
+            product = productClient.getProductById(cart.getProductId());
+        } catch (FeignException.NotFound e) {
+            throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
+        } catch (FeignException e) {
+            throw new BizException(CartErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
+        }
+
+        if (product == null || product.name() == null ||
+            product.color() == null || product.size() == null ||
+            product.price() == null || product.brandId() == null) {
+
             throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
         }
 
@@ -132,9 +155,20 @@ public class CartServiceImpl implements CartService {
 
     private CartUpdateQuantityResponse toUpdateQuantityResponse(Cart cart) {
 
-        ProductResponse product = productClient.getProductById(cart.getProductId());
+        ProductResponse product;
 
-        if (product.name() == null) {
+        try {
+            product = productClient.getProductById(cart.getProductId());
+        } catch (FeignException.NotFound e) {
+            throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
+        } catch (FeignException e) {
+            throw new BizException(CartErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
+        }
+
+        if (product == null || product.name() == null ||
+            product.color() == null || product.size() == null ||
+            product.price() == null || product.brandId() == null) {
+
             throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
         }
 
