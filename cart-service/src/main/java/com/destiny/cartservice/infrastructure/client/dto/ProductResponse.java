@@ -16,7 +16,7 @@ public record ProductResponse(
     @NotNull
     UUID brandId,
 
-    String status,
+    @NotNull ProductStatus status,
 
     @NotNull
     String color,

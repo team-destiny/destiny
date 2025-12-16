@@ -6,6 +6,7 @@ import com.destiny.cartservice.domain.model.Cart;
 import com.destiny.cartservice.domain.repository.CartRepository;
 import com.destiny.cartservice.infrastructure.client.ProductClient;
 import com.destiny.cartservice.infrastructure.client.dto.ProductResponse;
+import com.destiny.cartservice.infrastructure.client.dto.ProductStatus;
 import com.destiny.cartservice.presentation.dto.request.CartDeleteRequest;
 import com.destiny.cartservice.presentation.dto.request.CartSaveRequest;
 import com.destiny.cartservice.presentation.dto.request.CartUpdateQuantityRequest;
@@ -45,12 +46,10 @@ public class CartServiceImpl implements CartService {
         return CartFindAllResponse.from(items);
     }
 
-    private CartFindItemResponse toItemResponse(Cart cart) {
-
+    private ProductResponse fetchProduct(UUID productId) {
         ProductResponse product;
-
         try {
-            product = productClient.getProductById(cart.getProductId());
+            product = productClient.getProductById(productId);
         } catch (FeignException.NotFound e) {
             throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
         } catch (FeignException e) {
@@ -59,10 +58,27 @@ public class CartServiceImpl implements CartService {
 
         if (product == null || product.name() == null ||
             product.color() == null || product.size() == null ||
-            product.price() == null || product.brandId() == null) {
-
+            product.price() == null || product.brandId() == null ||
+            product.status() == null) {
             throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
         }
+
+        return product;
+    }
+
+    private ProductResponse fetchProductForAction(UUID productId) {
+        ProductResponse product = fetchProduct(productId);
+
+        if (product.status() == ProductStatus.HIDED || product.status() == ProductStatus.OUT_OF_STOCK) {
+            throw new BizException(CartErrorCode.CANNOT_ADD_UNAVAILABLE_PRODUCT);
+        }
+
+        return product;
+    }
+
+    private CartFindItemResponse toItemResponse(Cart cart) {
+
+        ProductResponse product = fetchProduct(cart.getProductId());
 
         String optionInfo = product.color() + " / " + product.size();
 
@@ -84,6 +100,8 @@ public class CartServiceImpl implements CartService {
     @Override
     public CartSaveResponse saveCartItem(UUID userId, CartSaveRequest request) {
 
+        fetchProductForAction(request.getProductId());
+
         Cart cart = cartRepository.findExistingCart(userId, request.getProductId())
             .map(existing -> {
                 existing.updateQuantity(existing.getQuantity() + request.getQuantity());
@@ -102,22 +120,7 @@ public class CartServiceImpl implements CartService {
 
     private CartSaveResponse toSaveResponse(Cart cart) {
 
-        ProductResponse product;
-
-        try {
-            product = productClient.getProductById(cart.getProductId());
-        } catch (FeignException.NotFound e) {
-            throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
-        } catch (FeignException e) {
-            throw new BizException(CartErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
-        }
-
-        if (product == null || product.name() == null ||
-            product.color() == null || product.size() == null ||
-            product.price() == null || product.brandId() == null) {
-
-            throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
-        }
+        ProductResponse product = fetchProduct(cart.getProductId());
 
         String optionInfo = product.color() + " / " + product.size();
 
@@ -146,6 +149,8 @@ public class CartServiceImpl implements CartService {
             throw new BizException(CartErrorCode.INVALID_OWNER);
         }
 
+        fetchProductForAction(cart.getProductId());
+
         cart.updateQuantity(request.getQuantity());
         Cart updated = cartRepository.save(cart);
 
@@ -155,22 +160,7 @@ public class CartServiceImpl implements CartService {
 
     private CartUpdateQuantityResponse toUpdateQuantityResponse(Cart cart) {
 
-        ProductResponse product;
-
-        try {
-            product = productClient.getProductById(cart.getProductId());
-        } catch (FeignException.NotFound e) {
-            throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
-        } catch (FeignException e) {
-            throw new BizException(CartErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
-        }
-
-        if (product == null || product.name() == null ||
-            product.color() == null || product.size() == null ||
-            product.price() == null || product.brandId() == null) {
-
-            throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
-        }
+        ProductResponse product = fetchProduct(cart.getProductId());
 
         String optionInfo = product.color() + " / " + product.size();
 
