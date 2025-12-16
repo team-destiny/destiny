@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StockReservationJpaRepository extends JpaRepository<StockReservation, UUID> {
 
-    List<StockReservation> findALlByOrderId(UUID orderId);
+    List<StockReservation> findAllByOrderId(UUID orderId);
 }
