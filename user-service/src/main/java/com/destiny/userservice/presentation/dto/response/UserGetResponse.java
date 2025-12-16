@@ -8,12 +8,14 @@ public record UserGetResponse(
     UUID userId,
     UserRole userRole,
     String username,
+    String email,
     UserInfoResponse userInfo
 ) {
     public static UserGetResponse of(User user) {
         return new UserGetResponse(user.getUserId()
             , user.getUserRole()
             , user.getUsername()
+            , user.getEmail()
             , UserInfoResponse.from(user.getUserInfo()));
     }
 }

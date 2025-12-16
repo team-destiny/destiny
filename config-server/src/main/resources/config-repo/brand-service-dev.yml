@@ -1,0 +1,9 @@
+server:
+  port: 18120
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5436/brand_db
+    username: root
+    password: 1234

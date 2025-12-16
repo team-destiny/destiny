@@ -95,12 +95,12 @@ public class UserController {
         @RequestParam(required = false) UserRole userRole,
         @RequestParam(required = false) String searchType,
         @RequestParam(required = false) String keyword,
+        @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size,
-        @RequestParam(required = false) String sortBy,          // "createdAt" / "updatedAt"
         @RequestParam(defaultValue = "true") boolean isDescending
     ) {
 
-        Pageable pageable = PageingUtils.createPageable(size, sortBy, isDescending);
+        Pageable pageable = PageingUtils.createPageable(page, size, isDescending);
 
         List<UserGetResponse> responses =
             userService.getUsers(deleted, userRole, searchType, keyword, pageable);

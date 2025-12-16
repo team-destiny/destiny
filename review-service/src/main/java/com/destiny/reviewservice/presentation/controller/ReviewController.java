@@ -17,7 +17,6 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,7 +44,6 @@ public class ReviewController {
         return ApiResponse.success(CommonSuccessCode.CREATED, body);
     }
 
-    @PreAuthorize("isAuthenticated()")
     @PatchMapping("/{reviewId}")
     public ApiResponse<ReviewResponse> updateReview(
         @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -58,7 +56,6 @@ public class ReviewController {
         return ApiResponse.success(CommonSuccessCode.OK, body);
     }
 
-    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{reviewId}")
     public ApiResponse<Void> deleteReview(
         @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -85,11 +82,16 @@ public class ReviewController {
             throw new BizException(ReviewErrorCode.INVALID_SEARCH_CONDITION);
         }
 
+        if (productId == null && userId == null) {
+            // 전체 조회 or 예외 처리
+            throw new BizException(ReviewErrorCode.INVALID_SEARCH_CONDITION);
+        }
+
         Pageable pageable = PageingUtils.createPageable(page, size, sortBy, isDescending);
 
         Page<ReviewResponse> body = null;
-        if ((productId == null && userId == null) || (productId != null && userId != null)) {
-          body = reviewService.getByProduct(productId, pageable);
+        if(productId != null && userId == null) {
+            body = reviewService.getByProduct(productId, pageable);
         }
 
         if (userId != null && productId == null) {

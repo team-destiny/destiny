@@ -55,4 +55,9 @@ public class CouponTemplateRepositoryImpl implements CouponTemplateRepository {
         return couponTemplateJpaRepository.findByIdIn(ids);
     }
 
+    @Override
+    public int decreaseIssueLimit(UUID templateId) {
+        return couponTemplateJpaRepository.decreaseIssueLimit(templateId);
+    }
+
 }

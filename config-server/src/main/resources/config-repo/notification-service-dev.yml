@@ -1,0 +1,31 @@
+server:
+  port: 18140
+
+slack:
+  webhook:
+    admin-url: ${SLACK_WEBHOOK_URL}
+
+kafka:
+  topics:
+    saga-failure: fail-send-message
+    order-success: success-send-message
+
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:notification-service}
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5438/notification_db
+    username: root
+    password: 1234
+
+jwt:
+  secretKey: XVFkQby3tnqMa8MUDANspAtarbl1VZyT
+  access-expiration-millis: 1800000 # 30분
+  refresh-expiration-millis: 1209600000 # 14일
+  refresh-cookie-name: X-Refresh-Token
+  refresh-subject: RefreshToken
+  is-refresh-cookie-secure: false

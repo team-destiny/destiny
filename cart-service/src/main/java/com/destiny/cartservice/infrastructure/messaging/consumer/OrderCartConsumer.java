@@ -17,7 +17,7 @@ public class OrderCartConsumer {
     private final CartService cartService;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "cart-clear-request", groupId = "saga-orchestrator")
+    @KafkaListener(topics = "${kafka.topics.cart-clear-request}")
     public void handleCartClearEvent(String message) {
 
         try{

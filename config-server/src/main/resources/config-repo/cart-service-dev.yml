@@ -1,0 +1,29 @@
+server:
+  port: 18170
+
+kafka:
+  topics:
+    cart-clear-request: cart-clear-request
+
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:cart-service}
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5441/cart_db
+    username: root
+    password: 1234
+
+jwt:
+  secretKey: ${JWT_SECRET_KEY:XVFkQby3tnqMa8MUDANspAtarbl1VZyT}
+  access-expiration-millis: 1800000
+  refresh-expiration-millis: 1209600000
+  access-header-name: Authorization
+  refresh-cookie-name: X-Refresh-Token
+  header-prefix: Bearer
+  access-subject: AccessToken
+  refresh-subject: RefreshToken
+  is-refresh-cookie-secure: false

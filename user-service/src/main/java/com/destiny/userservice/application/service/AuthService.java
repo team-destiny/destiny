@@ -12,12 +12,16 @@ import com.destiny.userservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.userservice.infrastructure.security.jwt.JwtUtil;
 import com.destiny.userservice.presentation.advice.UserErrorCode;
 import com.destiny.userservice.presentation.aop.TokenContextHolder;
+import com.destiny.userservice.presentation.dto.request.MasterSignUpRequest;
 import com.destiny.userservice.presentation.dto.request.UserLoginRequest;
 import com.destiny.userservice.presentation.dto.request.UserSignUpRequest;
 import com.destiny.userservice.presentation.dto.response.UserLoginResponse;
 import com.destiny.userservice.presentation.dto.response.UserSignUpResponse;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,27 +45,47 @@ public class AuthService {
     private String masterAdminToken;   // 설정에서 주입
 
     @Transactional
-    public UserSignUpResponse signUp(UserSignUpRequest userSignUpRequest) {
+    public UserSignUpResponse userSignUp(UserSignUpRequest userSignUpRequest) {
         if(userRepository.existsByUsernameAndDeletedAtIsNull(userSignUpRequest.username())){
             throw new BizException(UserErrorCode.USER_ALREADY_EXISTS);
-        }
-
-        UserRole userRole = userSignUpRequest.userRole();
-        if(userRole == UserRole.MASTER){
-            validationAdminToken(userSignUpRequest.adminToken());
         }
 
         User user = User.createUser(
             userSignUpRequest.username()
             , passwordEncoder.encode(userSignUpRequest.password())
             , userSignUpRequest.email()
-            , userRole
+            , userSignUpRequest.userRole()
             , userSignUpRequest.nickname()
             , userSignUpRequest.phone()
             , userSignUpRequest.zipcode()
             , userSignUpRequest.address1()
             , userSignUpRequest.address2()
             , userSignUpRequest.birth()
+        );
+
+        User savedUser = userRepository.save(user);
+
+        log.info("회원가입 성공 - userId={}, username={}, role={}",
+            savedUser.getUserId(), savedUser.getUsername(), savedUser.getUserRole());
+
+        return UserSignUpResponse.of(savedUser);
+    }
+
+    @Transactional
+    public UserSignUpResponse masterSignUp(MasterSignUpRequest masterSignUpRequest) {
+        if(userRepository.existsByUsernameAndDeletedAtIsNull(masterSignUpRequest.username())){
+            throw new BizException(UserErrorCode.USER_ALREADY_EXISTS);
+        }
+
+        UserRole userRole = masterSignUpRequest.userRole();
+        if(userRole == UserRole.MASTER){
+            validationAdminToken(masterSignUpRequest.adminToken());
+        }
+
+        User user = User.createMaster(
+            masterSignUpRequest.username()
+            , passwordEncoder.encode(masterSignUpRequest.password())
+            , masterSignUpRequest.email()
         );
 
         User savedUser = userRepository.save(user);
@@ -80,7 +104,7 @@ public class AuthService {
     }
 
     public UserLoginResponse login(UserLoginRequest userLoginRequest) {
-        User user = userRepository.findByUsername(userLoginRequest.username());
+        User user = userRepository.findByUsernameAndDeletedAtIsNull(userLoginRequest.username());
 
         if(!passwordEncoder.matches(userLoginRequest.password(), user.getPassword())){
             throw new BizException(UserErrorCode.INVALID_LOGIN_CREDENTIALS);
@@ -106,8 +130,9 @@ public class AuthService {
         validateAccess(authUserId, authUserRole, logoutUserId);
 
          User logoutUser = userRepository.findById(logoutUserId);
+         logoutUser.logout();
 
-        // 실제 로그아웃 처리
+        // 로그아웃 토큰 저장
         authCache.storeToken(logoutUserId.toString(), logoutMillis);
     }
 
@@ -134,6 +159,13 @@ public class AuthService {
         UUID userId = UUID.fromString(decodedJwt.getClaim("userId").asString());
         User user = userRepository.findByUserIdAndDeletedAtIsNull(userId);
 
+        Date logoutTime = toDate(user.getLogoutTime());
+        if(logoutTime != null){
+            if(decodedJwt.getIssuedAt().before(logoutTime)){
+                throw new BizException(CommonErrorCode.ACCESS_DENIED);
+            }
+        }
+
         String accessToken = jwtUtil.generateAccessToken(user);
         String newRefreshToken = null;
         if(needRotate(decodedJwt)){
@@ -152,5 +184,14 @@ public class AuthService {
         long remainDays = remain.toDays();
 
         return remainDays <= 3;   // 남은 기간 3일 이하면 true
+    }
+
+    public Date toDate(LocalDateTime ldt) {
+        ZoneId ZONE = ZoneId.of("Asia/Seoul");
+
+        if(ldt == null){
+            return null;
+        }
+        return Date.from(ldt.atZone(ZONE).toInstant());
     }
 }

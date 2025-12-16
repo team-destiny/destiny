@@ -25,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 @Slf4j
@@ -84,27 +85,28 @@ public class NotificationServiceImpl implements NotificationService {
 
         String logMessage = sanitizeForLog(message);
 
-        if (channel == null || !channel.isActive()) {
+        String targetUrl =
+            (channel != null && channel.isActive() && StringUtils.hasText(channel.getSlackUrl()))
+                ? channel.getSlackUrl()
+                : this.adminSlackUrl;
+
+        if (targetUrl == null || targetUrl.isBlank()) {
             saveLog(
                 brandId,
                 logMessage,
                 STATUS_FAIL,
-                404,
-                "Channel not found or inactive",
-                "CHANNEL_NOT_AVAILABLE",
-                "No active notification channel for brand: " + brandId
-            );
-            return new NotificationResultResponse(
-                STATUS_FAIL,
-                "Slack channel not found."
-            );
+                500,
+                "Env Var is empty",
+                "ENV_ERR",
+                "No webhook url");
+            return new NotificationResultResponse(STATUS_FAIL, "No Slack URL configured.");
         }
 
         try {
             Map<String, String> payload = Collections.singletonMap("text", logMessage);
 
             ResponseEntity<String> response = restTemplate.postForEntity(
-                channel.getSlackUrl(),
+                targetUrl,
                 payload,
                 String.class
             );
@@ -347,17 +349,22 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void sendOrderCreateSuccessNotification(OrderCreateSuccessEvent event) {
 
-        Map<UUID, List<OrderCreateSuccessEvent.OrderItem>> itemsByBrand = event.items().stream()
-            .collect(Collectors.groupingBy(OrderCreateSuccessEvent.OrderItem::brandId));
+        UUID unknownBrandId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+
+        Map<UUID, List<OrderCreateSuccessEvent.OrderItem>> itemsByBrand =
+            event.items().stream()
+                .collect(Collectors.groupingBy(item ->
+                    item.brandId() != null ? item.brandId() : unknownBrandId));
 
         itemsByBrand.forEach((brandId, items) -> {
-
             int totalQuantity = items.stream()
-                .mapToInt(OrderCreateSuccessEvent.OrderItem::stock)
+                .mapToInt(item -> item.stock() != null ? item.stock() : 0)
                 .sum();
 
             int totalAmount = items.stream()
-                .mapToInt(OrderCreateSuccessEvent.OrderItem::finalAmount)
+                .mapToInt(
+                    i -> (i.finalAmount() == null ? 0 : i.finalAmount()) * (i.stock() == null ? 0
+                        : i.stock()))
                 .sum();
 
             String message = String.format(
@@ -370,20 +377,18 @@ public class NotificationServiceImpl implements NotificationService {
                     "총 결제 금액: %d원",
                 event.orderId(),
                 event.userId(),
-                brandId,
+                brandId.equals(unknownBrandId) ? "알수없음(NULL)" : brandId,
                 items.size(),
                 totalQuantity,
                 totalAmount
             );
 
             sendToSlackAndLog(
-                brandId,
+                brandId.equals(unknownBrandId) ? null : brandId,
                 message,
                 null,
                 null
             );
         });
-
-
     }
 }

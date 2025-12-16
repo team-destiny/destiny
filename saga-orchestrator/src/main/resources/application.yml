@@ -18,3 +18,14 @@ spring:
         format_sql: true
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+logging:
+  level:
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    org.apache.kafka.clients.consumer: WARN
+    org.apache.kafka.clients: WARN
+    org.apache.kafka.common.utils: WARN
+    org.apache.kafka.common.network: WARN
+    org.apache.kafka.clients.FetchSessionHandler: WARN
+    org.apache.kafka.clients.Metadata: WARN

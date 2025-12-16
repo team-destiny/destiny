@@ -21,17 +21,17 @@ public record UserSignUpRequest(
     @Email(message = "올바른 이메일 형식이 아닙니다.")
     String email,
     UserRole userRole,
+    @NotBlank(message = "닉네임은 필수입니다.")
     @Size(min = 2, max = 10, message = "닉네임은 2-10자 이내여야 합니다.")
     String nickname,
+    @NotBlank(message = "전화번호는 필수입니다.")
     @Pattern(regexp="\\d{3}-\\d{4}-\\d{4}")
     String phone,
 
     String zipcode,
     String address1,
     String address2,
-    LocalDate birth,
-
-    String adminToken
+    LocalDate birth
 ) {
 
 }

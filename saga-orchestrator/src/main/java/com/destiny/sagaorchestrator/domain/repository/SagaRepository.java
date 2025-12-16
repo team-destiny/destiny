@@ -9,4 +9,6 @@ public interface SagaRepository {
     void createSaga(SagaState saga);
 
     SagaState findByOrderId(UUID uuid);
+
+    SagaState findById(UUID uuid);
 }

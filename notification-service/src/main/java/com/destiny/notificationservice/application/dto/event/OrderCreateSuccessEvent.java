@@ -8,7 +8,6 @@ public record OrderCreateSuccessEvent(
     UUID userId,
     List<OrderItem> items
 ) {
-
     public record OrderItem(
         UUID productId,
         UUID brandId,

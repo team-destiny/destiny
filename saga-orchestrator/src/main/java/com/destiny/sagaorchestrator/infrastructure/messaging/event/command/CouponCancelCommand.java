@@ -2,10 +2,11 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.event.command;
 
 import java.util.UUID;
 
-public record CouponValidateCommand(
+public record CouponCancelCommand(
+    UUID sagaId,
     UUID orderId,
-    UUID couponId,
-    Integer originalAmount
+    UUID userId,
+    UUID couponId
 ) {
 
 }

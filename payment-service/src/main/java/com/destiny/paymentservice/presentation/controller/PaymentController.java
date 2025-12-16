@@ -2,7 +2,11 @@ package com.destiny.paymentservice.presentation.controller;
 
 import com.destiny.global.response.ApiResponse;
 import com.destiny.global.response.PageResponseDto;
-import com.destiny.paymentservice.application.service.PaymentService;
+import com.destiny.paymentservice.application.service.inter.PaymentQueryService;
+import com.destiny.paymentservice.application.service.impl.PaymentServiceImpl;
+import com.destiny.paymentservice.application.service.inter.PaymentService;
+import com.destiny.paymentservice.application.service.router.PaymentRouter;
+import com.destiny.paymentservice.domain.vo.PaymentStatus;
 import com.destiny.paymentservice.infrastructure.messaging.event.command.PaymentCommand;
 import com.destiny.paymentservice.infrastructure.security.auth.CustomUserDetails;
 import com.destiny.paymentservice.presentation.code.PaymentSuccessCode;
@@ -26,14 +30,21 @@ import java.util.UUID;
 @AllArgsConstructor
 public class PaymentController {
 
-    private final PaymentService paymentService;
+    private final PaymentRouter paymentRouter;
+    private final PaymentQueryService paymentQueryService;
+    // 테스트 편의 url 호출을 위한 서비스
+    private final PaymentServiceImpl paymentService;
 
     /**
      * POST /payments/request : 결제 요청 생성 (PENDING 상태)
+     * 테스트 편의 url
      */
     @PostMapping("/request")
     public ResponseEntity<ApiResponse<PaymentResponse>> requestPayment(@Valid @RequestBody PaymentCommand request) {
         PaymentResponse response = paymentService.requestPayment(request);
+        if (response.paymentStatus() == PaymentStatus.PAID) {
+            return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_ALREADY_COMPLETED, response));
+        }
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_REQUEST_SUCCESS, response));
     }
 
@@ -43,7 +54,7 @@ public class PaymentController {
      */
     @PostMapping("/confirm")
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmPayment(@Valid @RequestBody PaymentConfirmRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PaymentResponse response = paymentService.confirmPayment(request);
+        PaymentResponse response = paymentRouter.route().confirmPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRM_SUCCESS, response));
     }
 
@@ -52,7 +63,7 @@ public class PaymentController {
      */
     @PostMapping("/cancel")
     public ResponseEntity<ApiResponse<PaymentResponse>> cancelPayment(@Valid @RequestBody PaymentCancelRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PaymentResponse response = paymentService.cancelPayment(request, userDetails);
+        PaymentResponse response = paymentRouter.route().cancelPayment(request, userDetails);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CANCEL_SUCCESS, response));
     }
 
@@ -61,7 +72,7 @@ public class PaymentController {
      */
     @GetMapping("/{orderId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentByOrderId(@PathVariable UUID orderId, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PaymentResponse response = paymentService.getPaymentByOrderId(orderId, userDetails);
+        PaymentResponse response = paymentQueryService.getPaymentByOrderId(orderId, userDetails);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_INQUIRY_SUCCESS, response));
     }
 
@@ -76,7 +87,7 @@ public class PaymentController {
     ) {
         // Pageable 객체 생성 (기본 정렬: 생성일 기준 내림차순)
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        PageResponseDto<PaymentResponse> responsePageDto = paymentService.getAllPayments(pageable, userDetails);
+        PageResponseDto<PaymentResponse> responsePageDto = paymentQueryService.getAllPayments(pageable, userDetails);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_ALL_INQUIRY_SUCCESS, responsePageDto));
     }
 }

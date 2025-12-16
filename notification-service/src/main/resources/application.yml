@@ -1,54 +1,23 @@
-server:
-  port: 18140
-
-slack:
-  webhook:
-    admin-url: ${SLACK_WEBHOOK_URL}
-
-kafka:
-  topics:
-    saga-failure: fail-send-message
-    order-success: success-send-message
-
 spring:
   application:
     name: notification-service
+  profiles:
+    active: dev
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-server
 
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    consumer:
-      group-id: ${KAFKA_CONSUMER_GROUP_ID:notification-service}
-
-
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5438/notification_db
-    username: root
-    password: 1234
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 5443
+      password: systempass
 
 eureka:
   client:
-    register-with-eureka: true
-    fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
-
-
-jwt:
-  secretKey: XVFkQby3tnqMa8MUDANspAtarbl1VZyT
-  access-expiration-millis: 1800000 # 30분
-  refresh-expiration-millis: 1209600000 # 14일
-  access-header-name: Authorization
-  refresh-cookie-name: X-Refresh-Token
-  header-prefix: Bearer
-  access-subject: AccessToken
-  refresh-subject: RefreshToken
-  is-refresh-cookie-secure: false
