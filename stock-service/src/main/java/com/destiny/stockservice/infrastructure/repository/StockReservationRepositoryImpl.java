@@ -20,6 +20,6 @@ public class StockReservationRepositoryImpl implements StockReservationRepositor
 
     @Override
     public List<StockReservation> findAllByOrderId(UUID orderId) {
-        return stockReservationJpaRepository.findALlByOrderId(orderId);
+        return stockReservationJpaRepository.findAllByOrderId(orderId);
     }
 }
