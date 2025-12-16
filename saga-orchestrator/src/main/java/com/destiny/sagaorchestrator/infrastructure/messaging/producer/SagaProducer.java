@@ -2,15 +2,15 @@ package com.destiny.sagaorchestrator.infrastructure.messaging.producer;
 
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CartClearCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponCancelCommand;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailSendCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockCancelCommand;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockRollbackCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReservationCancelCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReservationCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.SuccessSendCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent;
@@ -42,16 +42,16 @@ public class SagaProducer {
         }
     }
 
-    public void sendStockReduce(StockReduceCommand event) {
+    public void sendStockReservation(StockReservationCommand event) {
 
         try {
             String message = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("stock-reduce-request", message);
-            log.info("[🍏 SAGA-SERVICE -> STOCK-SERVICE SUCCESS] - STOCK REDUCE : {}", message);
+            kafkaTemplate.send("stock-reservation-request", message);
+            log.info("[🍏 SAGA-SERVICE -> STOCK-SERVICE SUCCESS] - STOCK RESERVATION : {}", message);
 
         } catch (JsonProcessingException e){
 
-            log.error("[❌ SAGA-SERVICE -> STOCK-SERVICE FAIL JSON EXCEPTION] - STOCK REDUCE : {}", e.getMessage());
+            log.error("[❌ SAGA-SERVICE -> STOCK-SERVICE FAIL JSON EXCEPTION] - STOCK RESERVATION : {}", e.getMessage());
         }
     }
 
@@ -120,7 +120,7 @@ public class SagaProducer {
         }
     }
 
-    public void sendStockRollback(StockRollbackCommand event) {
+    public void sendStockRollback(StockReservationCancelCommand event) {
 
         try {
             String message = objectMapper.writeValueAsString(event);
@@ -202,7 +202,7 @@ public class SagaProducer {
 
         try {
             String message = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("stock-cancel-request", message);
+            kafkaTemplate.send("stock-reservation-cancel-request", message);
             log.info("[🍎 SAGA-SERVICE -> STOCK-SERVICE SUCCESS] - STOCK CANCEL : {}", message);
 
         } catch (JsonProcessingException e) {

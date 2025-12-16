@@ -18,8 +18,8 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.Produc
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockCancelFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockCancelSuccessResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationFailResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -84,11 +84,11 @@ public class SagaConsumer {
         }
     }
 
-    @KafkaListener(topics = "stock-reduce-success", groupId = "saga-orchestrator")
+    @KafkaListener(topics = "stock-reservation-success", groupId = "saga-orchestrator")
     public void onStockReduceSuccess(String message) {
 
         try {
-            log.info("[⭐️ JOIN SAGA SUCCESS] - STOCK REDUCE SUCCESS : {}", message);
+            log.info("[⭐️ JOIN SAGA SUCCESS] - STOCK RESERVATION SUCCESS : {}", message);
 
             StockReduceSuccessResult event = objectMapper.readValue(
                 message, StockReduceSuccessResult.class);
@@ -96,23 +96,23 @@ public class SagaConsumer {
 
         } catch (JsonProcessingException e) {
 
-            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - STOCK REDUCE SUCCESS : {}", e.getMessage());
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - STOCK RESERVATION SUCCESS : {}", e.getMessage());
         }
     }
 
-    @KafkaListener(topics = "stock-reduce-fail", groupId = "saga-orchestrator")
-    public void onStockReduceFail(String message) {
+    @KafkaListener(topics = "stock-reservation-fail", groupId = "saga-orchestrator")
+    public void onStockReservationFail(String message) {
 
         try {
-            log.info("[❌ JOIN SAGA SUCCESS] - STOCK REDUCE FAIL : {}", message);
+            log.info("[❌ JOIN SAGA SUCCESS] - STOCK RESERVATION FAIL : {}", message);
 
-            StockReduceFailResult event = objectMapper.readValue(
-                message, StockReduceFailResult.class);
+            StockReservationFailResult event = objectMapper.readValue(
+                message, StockReservationFailResult.class);
             orderCreateService.stockReduceFailure(event);
 
         } catch (JsonProcessingException e) {
 
-            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - STOCK REDUCE FAIL : {}", e.getMessage());
+            log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - STOCK RESERVATION FAIL : {}", e.getMessage());
         }
     }
 
@@ -293,7 +293,7 @@ public class SagaConsumer {
         }
     }
 
-    @KafkaListener(topics = "stock-cancel-success", groupId = "saga-orchestrator")
+    @KafkaListener(topics = "stock-reservation-cancel-success", groupId = "saga-orchestrator")
     public void onStockCancelSuccess(String message) {
 
         try {
@@ -309,7 +309,7 @@ public class SagaConsumer {
         }
     }
 
-    @KafkaListener(topics = "stock-cancel-fail", groupId = "saga-orchestrator")
+    @KafkaListener(topics = "stock-reservation-cancel-fail", groupId = "saga-orchestrator")
     public void onStockCancelFail(String message) {
 
         try {

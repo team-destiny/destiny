@@ -5,14 +5,14 @@ import com.destiny.sagaorchestrator.domain.entity.SagaStatus;
 import com.destiny.sagaorchestrator.domain.entity.SagaStep;
 import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CartClearCommand;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailSendCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceCommand;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReduceItem;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockRollbackCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReservationCancelCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReservationCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockReservationItem;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.SuccessSendCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateFailedEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCreateSuccessEvent;
@@ -29,8 +29,8 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.Produc
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationMessageResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationSuccessResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReduceSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.producer.SagaProducer;
 import java.util.List;
 import java.util.UUID;
@@ -106,13 +106,13 @@ public class OrderCreateService {
 
         saga.updateOriginalAmount(totalAmount);
 
-        List<StockReduceItem> items = saga.getProductResults().values().stream()
-            .map(result -> new StockReduceItem(
+        List<StockReservationItem> items = saga.getProductResults().values().stream()
+            .map(result -> new StockReservationItem(
                 result.productId(),
                 result.stock()
             )).toList();
 
-        sagaProducer.sendStockReduce(new StockReduceCommand(
+        sagaProducer.sendStockReservation(new StockReservationCommand(
             saga.getOrderId(),
             items
         ));
@@ -144,7 +144,7 @@ public class OrderCreateService {
     @Transactional
     public void stockReduceSuccess(StockReduceSuccessResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
-        saga.updateStep(SagaStep.STOCK_REDUCE_SUCCESS);
+        saga.updateStep(SagaStep.STOCK_RESERVATION_SUCCESS);
         saga.updateStatus(SagaStatus.PROGRESS);
         saga.updateFinalAmount(saga.getOriginalAmount());
 
@@ -159,9 +159,9 @@ public class OrderCreateService {
     }
 
     @Transactional
-    public void stockReduceFailure(StockReduceFailResult event) {
+    public void stockReduceFailure(StockReservationFailResult event) {
         SagaState saga = sagaRepository.findByOrderId(event.orderId());
-        saga.updateStep(SagaStep.STOCK_REDUCE_FAIL);
+        saga.updateStep(SagaStep.STOCK_RESERVATION_FAIL);
         saga.updateStatus(SagaStatus.FAILED);
         saga.updateFailureReason("재고 차감 실패(재고 부족)");
 
@@ -339,13 +339,13 @@ public class OrderCreateService {
     }
 
     private void sendStockRollback(SagaState saga) {
-        List<StockReduceItem> items = saga.getProductResults().values().stream()
-            .map(r -> new StockReduceItem(
+        List<StockReservationItem> items = saga.getProductResults().values().stream()
+            .map(r -> new StockReservationItem(
                 r.productId(),
                 r.stock()
             )).toList();
 
-        sagaProducer.sendStockRollback(new StockRollbackCommand(
+        sagaProducer.sendStockRollback(new StockReservationCancelCommand(
             saga.getOrderId(),
             items
         ));
