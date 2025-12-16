@@ -4,6 +4,8 @@ import com.destiny.cartservice.application.dto.event.CartClearEvent;
 import com.destiny.cartservice.application.service.exception.CartErrorCode;
 import com.destiny.cartservice.domain.model.Cart;
 import com.destiny.cartservice.domain.repository.CartRepository;
+import com.destiny.cartservice.infrastructure.client.ProductClient;
+import com.destiny.cartservice.infrastructure.client.dto.ProductResponse;
 import com.destiny.cartservice.presentation.dto.request.CartDeleteRequest;
 import com.destiny.cartservice.presentation.dto.request.CartSaveRequest;
 import com.destiny.cartservice.presentation.dto.request.CartUpdateQuantityRequest;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
+    private final ProductClient productClient;
 
     /*
     장바구니 전체 조회
@@ -42,15 +45,23 @@ public class CartServiceImpl implements CartService {
     }
 
     private CartFindItemResponse toItemResponse(Cart cart) {
-        // TODO: 상품/옵션/가격 조회 붙이면 적용
+
+        ProductResponse product = productClient.getProductById(cart.getProductId());
+
+        if (product.name() == null) {
+            throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
+        }
+
+        String optionInfo = product.color() + " / " + product.size();
+
         return CartFindItemResponse.builder()
             .cartId(cart.getId())
             .productId(cart.getProductId())
-            .optionId(cart.getOptionId())
+            .brandId(product.brandId())
             .quantity(cart.getQuantity())
-            .productName(null)
-            .optionName(null)
-            .price(0)
+            .productName(product.name())
+            .optionName(optionInfo)
+            .price(product.price())
             .build();
     }
 
@@ -61,8 +72,7 @@ public class CartServiceImpl implements CartService {
     @Override
     public CartSaveResponse saveCartItem(UUID userId, CartSaveRequest request) {
 
-        Cart cart = cartRepository.findExistingCart(userId, request.getProductId(),
-                request.getOptionId())
+        Cart cart = cartRepository.findExistingCart(userId, request.getProductId())
             .map(existing -> {
                 existing.updateQuantity(existing.getQuantity() + request.getQuantity());
                 return existing;
@@ -70,7 +80,6 @@ public class CartServiceImpl implements CartService {
             .orElseGet(() -> Cart.of(
                 userId,
                 request.getProductId(),
-                request.getOptionId(),
                 request.getQuantity()
             ));
 
@@ -80,15 +89,23 @@ public class CartServiceImpl implements CartService {
     }
 
     private CartSaveResponse toSaveResponse(Cart cart) {
-        // TODO: 상품 정보 붙이면 추가
+
+        ProductResponse product = productClient.getProductById(cart.getProductId());
+
+        if (product.name() == null) {
+            throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
+        }
+
+        String optionInfo = product.color() + " / " + product.size();
+
         return CartSaveResponse.builder()
             .cartId(cart.getId())
             .productId(cart.getProductId())
-            .optionId(cart.getOptionId())
+            .brandId(product.brandId())
             .quantity(cart.getQuantity())
-            .productName(null)
-            .optionName(null)
-            .price(0)
+            .productName(product.name())
+            .optionName(optionInfo)
+            .price(product.price())
             .build();
     }
 
@@ -114,15 +131,23 @@ public class CartServiceImpl implements CartService {
     }
 
     private CartUpdateQuantityResponse toUpdateQuantityResponse(Cart cart) {
-        // TODO: 상품 정보 붙이면 추가
+
+        ProductResponse product = productClient.getProductById(cart.getProductId());
+
+        if (product.name() == null) {
+            throw new BizException(CartErrorCode.NOT_FOUND_PRODUCT_DATA);
+        }
+
+        String optionInfo = product.color() + " / " + product.size();
+
         return CartUpdateQuantityResponse.builder()
             .cartId(cart.getId())
             .productId(cart.getProductId())
-            .optionId(cart.getOptionId())
+            .brandId(product.brandId())
             .quantity(cart.getQuantity())
-            .productName(null)
-            .optionName(null)
-            .price(0)
+            .productName(product.name())
+            .optionName(optionInfo)
+            .price(product.price())
             .build();
     }
 
@@ -154,6 +179,3 @@ public class CartServiceImpl implements CartService {
         cartRepository.deleteAllByIdIn(List.of(event.cartId()));
     }
 }
-
-
-

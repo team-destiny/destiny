@@ -13,8 +13,6 @@ public class CartSaveRequest {
     @NotNull(message = "상품 ID는 필수입니다")
     private UUID productId;
 
-    private UUID optionId; // nullable
-
     @Min(value = 1, message = "수량은 최소 1 이상이어야 합니다")
     private int quantity;
 

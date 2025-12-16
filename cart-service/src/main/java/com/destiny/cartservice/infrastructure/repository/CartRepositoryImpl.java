@@ -36,8 +36,8 @@ public class CartRepositoryImpl implements CartRepository {
     }
 
     @Override
-    public Optional<Cart> findExistingCart(UUID userId, UUID productId, UUID optionId) {
-        return cartJpaRepository.findByUserIdAndProductIdAndOptionId(userId, productId, optionId);
+    public Optional<Cart> findExistingCart(UUID userId, UUID productId) {
+        return cartJpaRepository.findByUserIdAndProductId(userId, productId);
     }
 
     @Override
