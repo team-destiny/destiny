@@ -124,12 +124,12 @@ public class SagaProducer {
 
         try {
             String message = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("stock-reduce-rollback", message);
-            log.info("[🍏 SAGA-SERVICE -> STOCK-SERVICE SUCCESS] - STOCK ROLLBACK : {}", message);
+            kafkaTemplate.send("stock-reservation-cancel", message);
+            log.info("[🍏 SAGA-SERVICE -> STOCK-SERVICE SUCCESS] - STOCK RESERVATION CANCEL : {}", message);
 
         } catch (JsonProcessingException e) {
 
-            log.error("[❌ SAGA-SERVICE -> STOCK-SERVICE FAIL JSON EXCEPTION] - STOCK ROLLBACK: {}", e.getMessage());
+            log.error("[❌ SAGA-SERVICE -> STOCK-SERVICE FAIL JSON EXCEPTION] - STOCK RESERVATION CANCEL: {}", e.getMessage());
         }
     }
 
@@ -203,11 +203,11 @@ public class SagaProducer {
         try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("stock-reservation-cancel-request", message);
-            log.info("[🍎 SAGA-SERVICE -> STOCK-SERVICE SUCCESS] - STOCK CANCEL : {}", message);
+            log.info("[🍎 SAGA-SERVICE -> STOCK-SERVICE SUCCESS] - STOCK RESERVATION CANCEL : {}", message);
 
         } catch (JsonProcessingException e) {
 
-            log.info("[❌ SAGA-SERVICE -> STOCK-SERVICE FAIL JSON EXCEPTION] - STOCK CANCEL: {}", e.getMessage());
+            log.info("[❌ SAGA-SERVICE -> STOCK-SERVICE FAIL JSON EXCEPTION] - STOCK RESERVATION CANCEL: {}", e.getMessage());
         }
     }
 }
