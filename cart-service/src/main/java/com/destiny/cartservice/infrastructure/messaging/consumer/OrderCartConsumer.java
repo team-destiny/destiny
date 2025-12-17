@@ -23,7 +23,12 @@ public class OrderCartConsumer {
         try{
             CartClearEvent event = objectMapper.readValue(message, CartClearEvent.class);
 
+            log.info("[Kafka] 장바구니 비우기 이벤트 수신. cartId: {}", event.cartId());
+
             cartService.clearCart(event);
+
+            log.info("[Kafka] 장바구니 비우기 및 캐시 무효화 완료. cartId: {}", event.cartId());
+
         } catch (JsonProcessingException e) {
 
             log.error("[Kafka] 장바구니 비우기 중 에러. 원본 메시지: {}", message, e);
