@@ -1,6 +1,7 @@
 package com.destiny.stockservice.domain.entity;
 
 import com.destiny.global.entity.BaseEntity;
+import com.destiny.stockservice.domain.result.StockReservationResult;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -79,6 +80,14 @@ public class Stock extends BaseEntity {
         if (totalQuantity < 0) {
             throw new IllegalStateException("Stock became negative");
         }
+    }
+
+    public void restoreConfirmed(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("cancel quantity must be positive");
+        }
+
+        this.totalQuantity += quantity;
     }
 
     public boolean isSoldOut() {

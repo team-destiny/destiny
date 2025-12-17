@@ -2,17 +2,21 @@ package com.destiny.stockservice.application.service.message;
 
 import com.destiny.stockservice.application.dto.OrderCompletedEvent;
 import com.destiny.stockservice.application.dto.ProductSoldOutEvent;
-import com.destiny.stockservice.application.dto.StockCancelSuccessEvent;
 import com.destiny.stockservice.application.dto.StockCreateEvent;
-import com.destiny.stockservice.application.dto.StockReservationCancelEvent;
-import com.destiny.stockservice.application.dto.StockReservationCancelFailEvent;
-import com.destiny.stockservice.application.dto.StockReservationEvent;
-import com.destiny.stockservice.application.dto.StockReservationFailEvent;
-import com.destiny.stockservice.application.dto.StockReservationSuccessEvent;
+import com.destiny.stockservice.application.dto.stock.cancel.ConfirmedStockCancelEvent;
+import com.destiny.stockservice.application.dto.stock.cancel.ConfirmedStockCancelFailEvent;
+import com.destiny.stockservice.application.dto.stock.cancel.ConfirmedStockCancelSuccessEvent;
+import com.destiny.stockservice.application.dto.stock.cancel.StockReservationCancelEvent;
+import com.destiny.stockservice.application.dto.stock.cancel.StockReservationCancelFailEvent;
+import com.destiny.stockservice.application.dto.stock.cancel.StockReservationCancelSuccessEvent;
+import com.destiny.stockservice.application.dto.stock.reservation.StockReservationEvent;
+import com.destiny.stockservice.application.dto.stock.reservation.StockReservationFailEvent;
+import com.destiny.stockservice.application.dto.stock.reservation.StockReservationSuccessEvent;
 import com.destiny.stockservice.application.service.StockReservationService;
 import com.destiny.stockservice.application.service.StockService;
-import com.destiny.stockservice.domain.entity.StockReservationCancelResult;
-import com.destiny.stockservice.domain.entity.StockReservationResult;
+import com.destiny.stockservice.domain.result.ConfirmedStockCancelResult;
+import com.destiny.stockservice.domain.result.StockReservationCancelResult;
+import com.destiny.stockservice.domain.result.StockReservationResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
@@ -79,28 +83,59 @@ public class StockConsumerService {
 
     @SneakyThrows
     @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
-    @KafkaListener(groupId = "orchestrator", topics = "stock-reservation-cancel")
+    @KafkaListener(
+        groupId = "orchestrator",
+        topics = {
+            "stock-reservation-cancel",
+        }
+    )
     public void consumeStockReservationCancelEvent(String stockReservationCancel) {
 
         StockReservationCancelEvent event = objectMapper
             .readValue(stockReservationCancel, StockReservationCancelEvent.class);
 
-        StockReservationCancelResult result = stockReservationService.cancelStock(event);
+        StockReservationCancelResult result = stockReservationService.cancelReservedStock(event);
 
         switch(result) {
             case CANCEL_SUCCEEDED -> {
-                stockProducerService.publishStockCancelSuccessEvent(
-                    new StockCancelSuccessEvent(event.sagaId())
+                stockProducerService.publishStockReservationCancelSuccessEvent(
+                    new StockReservationCancelSuccessEvent(event.sagaId())
                 );
             }
 
             case NO_RESERVATION, ALREADY_CANCELED -> {
-                stockProducerService.publishStockCancelFailEvent(
+                stockProducerService.publishStockReservationCancelFailEvent(
                     new StockReservationCancelFailEvent(event.sagaId(), result.getDescription())
                 );
             }
         }
     }
+
+    @SneakyThrows
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 1000, multiplier = 2))
+    @KafkaListener(groupId = "orchestrator", topics = "stock-cancel-request")
+    public void consumeConfirmedStockCancelAfterOrder(String stockCancelCommand) {
+
+        ConfirmedStockCancelEvent event = objectMapper
+            .readValue(stockCancelCommand, ConfirmedStockCancelEvent.class);
+
+        ConfirmedStockCancelResult result = stockReservationService.cancelConfirmedStock(event);
+
+        switch(result) {
+            case CANCEL_SUCCEEDED, NO_RESERVATION -> {
+                stockProducerService.publishConfirmedStockCancelSuccessEvent(
+                    new ConfirmedStockCancelSuccessEvent(event.sagaId())
+                );
+            }
+
+            case  CANCEL_FAILED, INVALID_REQUEST -> {
+                stockProducerService.publishConfirmedStockCancelFailEvent(
+                    new ConfirmedStockCancelFailEvent(event.sagaId(), result.getDescription())
+                );
+            }
+        }
+    }
+
 
     @SneakyThrows
     @KafkaListener(groupId = "orchestrator", topics = "order-create-success")
