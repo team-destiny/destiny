@@ -6,20 +6,20 @@ import java.io.Serializable;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-@NoArgsConstructor
 public class CartFindItemResponse implements Serializable {
 
-    private UUID cartId;
-    private UUID productId;
-    private UUID brandId;
-    private int quantity;
-    private String productName;
-    private String optionName;
-    private int price;
+    private static final long serialVersionUID = 1L;
+
+    private final UUID cartId;
+    private final UUID productId;
+    private final UUID brandId;
+    private final int quantity;
+    private final String productName;
+    private final String optionName;
+    private final int price;
 
     @JsonCreator
     public CartFindItemResponse(

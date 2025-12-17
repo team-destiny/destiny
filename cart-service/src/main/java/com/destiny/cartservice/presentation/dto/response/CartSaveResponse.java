@@ -2,13 +2,16 @@ package com.destiny.cartservice.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-public class CartSaveResponse {
+public class CartSaveResponse implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final UUID cartId;
     private final UUID productId;

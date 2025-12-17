@@ -252,6 +252,7 @@ public class CartServiceImpl implements CartService {
 
         } catch (Exception e) {
             log.error("[clearCart] DB 삭제 실패. cartId: {}, userId: {}", event.cartId(), userId, e);
+            throw e;
         }
 
         }
