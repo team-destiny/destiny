@@ -12,15 +12,14 @@ import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateR
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateDetailResponse;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateListItemResponse;
 import com.destiny.global.exception.BizException;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -115,7 +114,8 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
     // 쿠폰템플릿 목록 조회
     @Override
     @Transactional
-    public Page<CouponTemplateListItemResponse> search(CouponTemplateSearchRequest req, Pageable pageable) {
+    public Page<CouponTemplateListItemResponse> search(CouponTemplateSearchRequest req,
+        Pageable pageable) {
         return couponTemplateRepository.search(req, pageable)
             .map(CouponTemplateListItemResponse::from);
     }
