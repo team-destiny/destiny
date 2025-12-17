@@ -17,8 +17,8 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.Coupon
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponCancelSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentCancelFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentCancelSuccessResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationCancelFailResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationCancelSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockCancelFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockCancelSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.producer.SagaProducer;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -120,14 +120,14 @@ public class OrderCancelService {
     }
 
     @Transactional
-    public void cancelStockSuccess(StockReservationCancelSuccessResult event) {
+    public void cancelStockSuccess(StockCancelSuccessResult event) {
         SagaState saga = sagaRepository.findById(event.sagaId());
         saga.updateStep(SagaStep.STOCK_RESERVATION_SUCCESS);
         saga.updateStatus(SagaStatus.CANCEL_PROGRESS);
     }
 
     @Transactional
-    public void cancelStockFail(StockReservationCancelFailResult event) {
+    public void cancelStockFail(StockCancelFailResult event) {
         SagaState saga = sagaRepository.findById(event.sagaId());
         saga.updateStep(SagaStep.STOCK_RESERVATION_FAIL);
         saga.updateStatus(SagaStatus.CANCEL_FAILED);
