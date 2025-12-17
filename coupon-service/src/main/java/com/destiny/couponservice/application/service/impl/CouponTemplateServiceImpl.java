@@ -12,7 +12,10 @@ import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateR
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateDetailResponse;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateListItemResponse;
 import com.destiny.global.exception.BizException;
-import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -86,7 +89,8 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
 
     // 쿠폰템플릿 상세조회
     @Override
-    @Transactional
+    @Cacheable(cacheNames = "couponTemplate", key = "#templateId")
+    @Transactional(readOnly = true)
     public CouponTemplateDetailResponse getTemplate(UUID templateId) {
 
         CouponTemplate template = couponTemplateRepository.findById(templateId)
@@ -119,6 +123,7 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
 
     //쿠폰 템플릿 수정
     @Override
+    @CacheEvict(cacheNames = "couponTemplate", key = "#templateId")
     @Transactional
     public CouponTemplateDetailResponse update(UUID templateId, CouponTemplateUpdateRequest req) {
 
@@ -154,6 +159,7 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "couponTemplate", key = "#templateId")
     @Transactional
     public void delete(UUID templateId) {
 
