@@ -84,11 +84,19 @@ public class TossPaymentsServiceImpl {
     @Transactional
     public PaymentResponse cancelPayment(TossPaymentsCancelRequest request) {
 
+        // 1. 우리 DB에서 주문 번호로 결제 내역 조회
         Payment payment = paymentRepository.findByOrderId(request.orderId())
             .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
-        // TODO: Toss cancel API 호출 (payment.getPgTxId())
+        // 2. 토스 인증 헤더 생성
+        String authHeader = "Basic " + Base64.getEncoder()
+            .encodeToString((TOSSPAYMENTS_SECRET_KEY + ":").getBytes(StandardCharsets.UTF_8));
 
+        // 3. 토스 취소 API 호출 (payment.getPgTxId()가 바로 paymentKey입니다)
+        // DTO(request)에는 취소 사유(reason)와 금액(amount)이 담겨 있습니다.
+        tossPaymentsClient.cancel(authHeader, payment.getPgTxId(), request);
+
+        // 4. 우리 DB 상태 변경 (PAID -> CANCELED)
         payment.cancel();
 
         return PaymentResponse.fromEntity(payment);
