@@ -1,14 +1,15 @@
 package com.destiny.cartservice.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-@AllArgsConstructor
-public class CartUpdateQuantityResponse {
+public class CartUpdateQuantityResponse implements Serializable {
 
     private final UUID cartId;
     private final UUID productId;
@@ -18,4 +19,22 @@ public class CartUpdateQuantityResponse {
     private final String optionName;
     private final int price;
 
+    @JsonCreator
+    public CartUpdateQuantityResponse(
+        @JsonProperty("cartId") UUID cartId,
+        @JsonProperty("productId") UUID productId,
+        @JsonProperty("brandId") UUID brandId,
+        @JsonProperty("quantity") int quantity,
+        @JsonProperty("productName") String productName,
+        @JsonProperty("optionName") String optionName,
+        @JsonProperty("price") int price
+    ) {
+        this.cartId = cartId;
+        this.productId = productId;
+        this.brandId = brandId;
+        this.quantity = quantity;
+        this.productName = productName;
+        this.optionName = optionName;
+        this.price = price;
+    }
 }
