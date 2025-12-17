@@ -2,10 +2,12 @@ package com.destiny.stockservice.application.service.message;
 
 import com.destiny.stockservice.application.dto.ProductReopenEvent;
 import com.destiny.stockservice.application.dto.ProductSoldOutEvent;
-import com.destiny.stockservice.application.dto.StockCancelSuccessEvent;
-import com.destiny.stockservice.application.dto.StockReservationCancelFailEvent;
-import com.destiny.stockservice.application.dto.StockReservationFailEvent;
-import com.destiny.stockservice.application.dto.StockReservationSuccessEvent;
+import com.destiny.stockservice.application.dto.stock.cancel.ConfirmedStockCancelFailEvent;
+import com.destiny.stockservice.application.dto.stock.cancel.ConfirmedStockCancelSuccessEvent;
+import com.destiny.stockservice.application.dto.stock.cancel.StockReservationCancelFailEvent;
+import com.destiny.stockservice.application.dto.stock.cancel.StockReservationCancelSuccessEvent;
+import com.destiny.stockservice.application.dto.stock.reservation.StockReservationFailEvent;
+import com.destiny.stockservice.application.dto.stock.reservation.StockReservationSuccessEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -36,15 +38,35 @@ public class StockProducerService {
     }
 
     @SneakyThrows
-    public void publishStockCancelSuccessEvent(StockCancelSuccessEvent stockCancelSuccessEvent) {
-        String message = objectMapper.writeValueAsString(stockCancelSuccessEvent);
+    public void publishStockReservationCancelSuccessEvent(
+        StockReservationCancelSuccessEvent event
+    ) {
+        String message = objectMapper.writeValueAsString(event);
         kafkaTemplate.send("stock-reservation-cancel-success", message);
     }
 
     @SneakyThrows
-    public void publishStockCancelFailEvent(StockReservationCancelFailEvent event) {
+    public void publishStockReservationCancelFailEvent(
+        StockReservationCancelFailEvent event
+    ) {
         String message = objectMapper.writeValueAsString(event);
         kafkaTemplate.send("stock-reservation-cancel-fail", message);
+    }
+
+    @SneakyThrows
+    public void publishConfirmedStockCancelSuccessEvent(
+        ConfirmedStockCancelSuccessEvent event
+    ) {
+        String message = objectMapper.writeValueAsString(event);
+        kafkaTemplate.send("stock-cancel-success", message);
+    }
+
+    @SneakyThrows
+    public void publishConfirmedStockCancelFailEvent(
+        ConfirmedStockCancelFailEvent event
+    ) {
+        String message = objectMapper.writeValueAsString(event);
+        kafkaTemplate.send("stock-cancel-fail", message);
     }
 
     @SneakyThrows

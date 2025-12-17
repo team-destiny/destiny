@@ -1,5 +1,6 @@
 package com.destiny.stockservice.infrastructure.repository;
 
+import com.destiny.stockservice.domain.entity.ReservationStatus;
 import com.destiny.stockservice.domain.entity.StockReservation;
 import com.destiny.stockservice.domain.repository.StockReservationRepository;
 import java.util.List;
@@ -19,7 +20,10 @@ public class StockReservationRepositoryImpl implements StockReservationRepositor
     }
 
     @Override
-    public List<StockReservation> findAllByOrderId(UUID orderId) {
-        return stockReservationJpaRepository.findAllByOrderId(orderId);
+    public List<StockReservation> findAllByOrderIdAndStatus(
+        UUID orderId,
+        ReservationStatus status
+    ) {
+        return stockReservationJpaRepository.findAllByOrderIdAndStatus(orderId, status);
     }
 }

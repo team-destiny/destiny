@@ -1,15 +1,17 @@
 package com.destiny.stockservice.application.service;
 
-import com.destiny.stockservice.application.dto.StockReservationCancelEvent;
-import com.destiny.stockservice.application.dto.StockReservationEvent;
-import com.destiny.stockservice.application.dto.StockReservationItem;
+import com.destiny.stockservice.application.dto.stock.cancel.ConfirmedStockCancelEvent;
+import com.destiny.stockservice.application.dto.stock.cancel.StockReservationCancelEvent;
+import com.destiny.stockservice.application.dto.stock.reservation.StockReservationEvent;
+import com.destiny.stockservice.application.dto.stock.reservation.StockReservationItem;
 import com.destiny.stockservice.domain.entity.ReservationStatus;
 import com.destiny.stockservice.domain.entity.Stock;
 import com.destiny.stockservice.domain.entity.StockReservation;
-import com.destiny.stockservice.domain.entity.StockReservationCancelResult;
-import com.destiny.stockservice.domain.entity.StockReservationResult;
 import com.destiny.stockservice.domain.repository.StockRepository;
 import com.destiny.stockservice.domain.repository.StockReservationRepository;
+import com.destiny.stockservice.domain.result.ConfirmedStockCancelResult;
+import com.destiny.stockservice.domain.result.StockReservationCancelResult;
+import com.destiny.stockservice.domain.result.StockReservationResult;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +93,7 @@ public class StockReservationService {
     public List<UUID> commitStock(UUID orderId) {
 
         List<StockReservation> stockReservations = stockReservationRepository
-            .findAllByOrderId(orderId);
+            .findAllByOrderIdAndStatus(orderId, ReservationStatus.RESERVED);
 
         stockReservations.forEach(StockReservation::confirm);
 
@@ -133,9 +135,10 @@ public class StockReservationService {
     }
 
     @Transactional
-    public StockReservationCancelResult cancelStock(StockReservationCancelEvent event) {
+    public StockReservationCancelResult cancelReservedStock(StockReservationCancelEvent event) {
 
-        List<StockReservation> reservations = findActiveReservations(event.orderId());
+        List<StockReservation> reservations = stockReservationRepository
+            .findAllByOrderIdAndStatus(event.orderId(), ReservationStatus.CANCELED);
 
         if (reservations.isEmpty()) {
             return StockReservationCancelResult.NO_RESERVATION;
@@ -149,15 +152,7 @@ public class StockReservationService {
 
         cancelReservations(reservations);
 
-        restoreStock(stockMap, cancelQuantityByProduct);
-
-        return StockReservationCancelResult.CANCEL_SUCCEEDED;
-    }
-
-    private List<StockReservation> findActiveReservations(UUID orderId) {
-        return stockReservationRepository.findAllByOrderId(orderId).stream()
-            .filter(r -> r.getStatus() == ReservationStatus.RESERVED)
-            .toList();
+        return restoreStock(stockMap, cancelQuantityByProduct);
     }
 
     private Map<UUID, Integer> groupCancelQuantityByProduct(
@@ -194,5 +189,45 @@ public class StockReservationService {
         }
 
         return StockReservationCancelResult.CANCEL_SUCCEEDED;
+    }
+
+    @Transactional
+    public ConfirmedStockCancelResult cancelConfirmedStock(
+        ConfirmedStockCancelEvent event
+    ) {
+        Map<UUID, Integer> cancelQuantityByProduct =
+            event.items().stream()
+                .collect(Collectors.toMap(
+                    ConfirmedStockCancelEvent.StockCancelItem::productId,
+                    ConfirmedStockCancelEvent.StockCancelItem::stock
+                ));
+
+        List<UUID> productIds = new ArrayList<>(cancelQuantityByProduct.keySet());
+
+        List<StockReservation> reservations =
+            stockReservationRepository.findAllByOrderIdAndStatus(
+                event.orderId(),
+                ReservationStatus.CONFIRMED
+            );
+
+        if (reservations.isEmpty()) {
+            return ConfirmedStockCancelResult.NO_RESERVATION;
+        }
+
+        reservations.forEach(StockReservation::cancelConfirmed);
+
+        Map<UUID, Stock> stockMap = findStocks(productIds);
+
+        for (Map.Entry<UUID, Integer> entry : cancelQuantityByProduct.entrySet()) {
+            Stock stock = stockMap.get(entry.getKey());
+
+            if (stock == null) {
+                return ConfirmedStockCancelResult.NO_RESERVATION;
+            }
+
+            stock.restoreConfirmed(entry.getValue());
+        }
+
+        return ConfirmedStockCancelResult.CANCEL_SUCCEEDED;
     }
 }
