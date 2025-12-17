@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record StockCancelCommand(
     UUID sagaId,
+    UUID orderId,
     List<StockCancelItem> items
 ) {
 
@@ -12,7 +13,6 @@ public record StockCancelCommand(
         UUID productId,
         Integer stock
     ) {
-
 
     }
 
