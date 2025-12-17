@@ -16,8 +16,8 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.Paymen
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.PaymentConfirmSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidateFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.ProductValidationSuccessResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationCancelFailResult;
-import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationCancelSuccessResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockCancelFailResult;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockCancelSuccessResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.StockReservationSuccessResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -293,14 +293,14 @@ public class SagaConsumer {
         }
     }
 
-    @KafkaListener(topics = "stock-reservation-cancel-success", groupId = "saga-orchestrator")
+    @KafkaListener(topics = "stock-cancel-success", groupId = "saga-orchestrator")
     public void onStockCancelSuccess(String message) {
 
         try {
             log.info("[⭐️ JOIN SAGA SUCCESS] - STOCK CANCEL SUCCESS : {}", message);
 
-            StockReservationCancelSuccessResult event = objectMapper.readValue(
-                message, StockReservationCancelSuccessResult.class);
+            StockCancelSuccessResult event = objectMapper.readValue(
+                message, StockCancelSuccessResult.class);
             orderCancelService.cancelStockSuccess(event);
 
         } catch (JsonProcessingException e) {
@@ -309,14 +309,14 @@ public class SagaConsumer {
         }
     }
 
-    @KafkaListener(topics = "stock-reservation-cancel-fail", groupId = "saga-orchestrator")
+    @KafkaListener(topics = "stock-cancel-fail", groupId = "saga-orchestrator")
     public void onStockCancelFail(String message) {
 
         try {
             log.info("[⭐️ JOIN SAGA SUCCESS] - STOCK CANCEL FAIL : {}", message);
 
-            StockReservationCancelFailResult event = objectMapper.readValue(
-                message, StockReservationCancelFailResult.class);
+            StockCancelFailResult event = objectMapper.readValue(
+                message, StockCancelFailResult.class);
             orderCancelService.cancelStockFail(event);
 
         } catch (JsonProcessingException e) {
