@@ -116,4 +116,8 @@ public class Payment extends BaseEntity {
         }
         this.paymentStatus = PaymentStatus.CANCELED;
     }
+
+    public void assignPgTxId(String pgTxId) {
+        this.pgTxId = pgTxId;
+    }
 }

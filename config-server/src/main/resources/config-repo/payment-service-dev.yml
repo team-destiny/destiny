@@ -33,3 +33,8 @@ jwt:
   access-header-name: Authorization
   header-prefix: Bearer
   access-subject: AccessToken
+
+payment:
+  tosspayments:
+    secret-key: ${TOSSPAYMENTS_SECRET_KEY}
+    client-key: ${TOSSPAYMENTS_CLIENT_KEY}
