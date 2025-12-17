@@ -4,18 +4,20 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
 public class CartFindItemResponse {
 
-    private final UUID cartId;
-    private final UUID productId;
-    private final UUID brandId;
-    private final int quantity;
-    private final String productName;
-    private final String optionName;
-    private final int price;
+    private UUID cartId;
+    private UUID productId;
+    private UUID brandId;
+    private int quantity;
+    private String productName;
+    private String optionName;
+    private int price;
 
 }
