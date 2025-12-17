@@ -48,10 +48,10 @@ public class CartServiceImpl implements CartService {
 
         String cacheKey = CART_CACHE_PREFIX + userId;
 
-        CartFindAllResponse CachedResponse = (CartFindAllResponse) redisTemplate.opsForValue().get(cacheKey);
-        if (CachedResponse != null) {
+        Object cached = redisTemplate.opsForValue().get(cacheKey);
+        if (cached instanceof CartFindAllResponse cachedResponse) {
             log.info("[Cache HIT] 캐시에서 장바구니 조회. userId: {}", userId);
-            return CachedResponse;
+            return cachedResponse;
         }
 
         log.info("[Cache MISS] DB에서 장바구니 조회. userId: {}", userId);
@@ -235,18 +235,26 @@ public class CartServiceImpl implements CartService {
 
         Cart cart = cartRepository.findById(event.cartId()).orElse(null);
 
-        if (cart != null) {
-            log.info("[clearCart] Cart 찾음. userId: {}, 캐시 삭제 시작", cart.getUserId());
-            evictCartCache(cart.getUserId());
-            log.info("[clearCart] 캐시 삭제 완료. userId: {}", cart.getUserId());
-        } else {
+        if (cart == null) {
             log.warn("[clearCart] Cart를 찾을 수 없음. cartId: {}", event.cartId());
+            return;
         }
 
-        cartRepository.deleteAllByIdIn(List.of(event.cartId()));
-        log.info("[clearCart] DB 삭제 완료. cartId: {}", event.cartId());
+        UUID userId = cart.getUserId();
+        log.info("[clearCart] Cart 찾음. userId: {}", userId);
 
-    }
+        try {
+            cartRepository.deleteAllByIdIn(List.of(event.cartId()));
+            log.info("[clearCart] DB 삭제 완료. cartId: {}", event.cartId());
+
+            evictCartCache(userId);
+            log.info("[clearCart] 캐시 삭제 완료. userId: {}", userId);
+
+        } catch (Exception e) {
+            log.error("[clearCart] DB 삭제 실패. cartId: {}, userId: {}", event.cartId(), userId, e);
+        }
+
+        }
 
     private void evictCartCache(UUID userId) {
         String cacheKey = CART_CACHE_PREFIX + userId;
