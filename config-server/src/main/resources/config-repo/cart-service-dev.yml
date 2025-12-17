@@ -11,6 +11,18 @@ spring:
     consumer:
       group-id: ${KAFKA_CONSUMER_GROUP_ID:cart-service}
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:5443}
+      password: ${REDIS_PASSWORD:systempass}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 2
+
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5441/cart_db
