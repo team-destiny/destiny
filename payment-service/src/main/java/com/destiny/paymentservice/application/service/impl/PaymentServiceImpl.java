@@ -2,7 +2,6 @@ package com.destiny.paymentservice.application.service.impl;
 
 import com.destiny.global.exception.BizException;
 import com.destiny.paymentservice.application.exception.PaymentErrorCode;
-import com.destiny.paymentservice.application.service.inter.PaymentService;
 import com.destiny.paymentservice.domain.entity.Payment;
 import com.destiny.paymentservice.domain.repository.PaymentRepository;
 import com.destiny.paymentservice.domain.vo.PaymentMethod;
@@ -29,14 +28,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PaymentServiceImpl implements PaymentService {
+public class PaymentServiceImpl {
 
     private final PaymentRepository paymentRepository;
     private final PaymentCreateProducer paymentCreateProducer;
     private final PaymentConfirmProducer paymentConfirmProducer;
     private final PaymentCancelProducer paymentCancelProducer;
 
-    @Override
     public PaymentProvider supports() {
         return PaymentProvider.MOCK;
     }
@@ -79,7 +77,6 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     // 결제 승인 (PENDING -> PAID)
-    @Override
     @Transactional
     public PaymentResponse confirmPayment(PaymentConfirmRequest request) {
         try {
@@ -118,7 +115,6 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     // 결제 취소 (PAID -> CANCELED)
-    @Override
     @Transactional
     public PaymentResponse cancelPayment(PaymentCancelCommand request) {
 

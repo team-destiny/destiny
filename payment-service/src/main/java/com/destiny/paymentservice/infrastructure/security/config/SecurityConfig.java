@@ -28,6 +28,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(csrf -> csrf.disable());
+//        httpSecurity.csrf(csrf -> csrf.ignoringRequestMatchers("/v1/payments/tosspayments/**"));
         httpSecurity.formLogin(form -> form.disable());
         httpSecurity.httpBasic(basic -> basic.disable());
         httpSecurity.logout(logout -> logout.disable());

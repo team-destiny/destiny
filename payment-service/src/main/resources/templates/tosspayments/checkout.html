@@ -1,101 +1,105 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
   <meta charset="utf-8" />
   <script src="https://js.tosspayments.com/v2/standard"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 50px auto;
+    .input-box {
+      border: 1px solid #e5e8eb;
       padding: 20px;
-    }
-    .order-info {
-      background: #f5f5f5;
-      padding: 20px;
-      border-radius: 8px;
+      border-radius: 12px;
       margin-bottom: 20px;
+      background-color: #f9fafb;
+      font-family: sans-serif;
     }
-    .button {
+    .input-group {
+      margin-bottom: 15px;
+    }
+    .input-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #333d4b;
+    }
+    .input-group input {
       width: 100%;
-      padding: 15px;
-      background: #3182f6;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .button:hover {
-      background: #1b64da;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
     }
   </style>
 </head>
 <body>
-<div class="order-info">
-  <p><strong>주문번호: <span th:text="${orderId}"></span></strong></p>
-  <p><strong>최종금액: <span id="final-amount" th:text="${amount} + '원'"></span></strong></p>
+
+<div class="input-box">
+  <h3 style="margin-top: 0;">결제 정보 확인 (API 개별 연동)</h3>
+  <div class="input-group">
+    <label for="userId">사용자 ID</label>
+    <input type="text" id="userId" placeholder="사용자 ID(UUID)를 입력하세요" />
+  </div>
+  <div class="input-group">
+    <label for="orderId">주문 번호</label>
+    <input type="text" id="orderId" placeholder="주문 번호를 입력하세요" />
+  </div>
+  <div class="input-group">
+    <label for="finalAmount">최종 결제 금액</label>
+    <input type="number" id="finalAmount" placeholder="결제 금액을 입력하세요" />
+  </div>
 </div>
 
-<div id="payment-method"></div>
-<div id="agreement"></div>
-<button class="button" id="payment-button">결제하기</button>
+<p style="text-align: center; color: #6b7684;">아래 버튼을 누르면 결제창이 호출됩니다.</p>
 
-<script th:inline="javascript">
-  main();
+<button id="payment-button" style="margin-top: 10px; width: 100%; padding: 15px; background-color: #3182f6; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold;">결제하기</button>
 
+<script>
   async function main() {
     const button = document.getElementById("payment-button");
+    const userIdInput = document.getElementById("userId");
+    const orderIdInput = document.getElementById("orderId");
+    const amountInput = document.getElementById("finalAmount");
 
-    // 서버에서 전달받은 모든 변수 (타임리프 변수 치환)
-    const clientKey = /*[[${clientKey}]]*/ '';
-    const initialAmount = /*[[${amount}]]*/ 0;
-    const initialOrderId = /*[[${orderId}]]*/ '';
-    const initialOrderName = /*[[${orderName}]]*/ '';
-    const customerKey = /*[[${customerKey}]]*/ '';
-    const customerEmail = /*[[${customerEmail}]]*/ '';
-    const customerName = /*[[${customerName}]]*/ '';
-    const customerMobilePhone = /*[[${customerMobilePhone}]]*/ '';
+    // 1. SDK 초기화는 페이지 로드 시 한 번만
+    const tossPayments = TossPayments("[[${clientKey}]]");
 
-    const tossPayments = TossPayments(clientKey);
-    const widgets = tossPayments.widgets({ customerKey });
-
-    // 초기 결제 금액 설정
-    await widgets.setAmount({
-      currency: "KRW",
-      value: initialAmount,
-    });
-
-    // 결제 UI 렌더링
-    await Promise.all([
-      widgets.renderPaymentMethods({
-        selector: "#payment-method",
-        variantKey: "DEFAULT",
-      }),
-      widgets.renderAgreement({
-        selector: "#agreement",
-        variantKey: "AGREEMENT"
-      }),
-    ]);
-
-    // 결제하기 버튼 클릭
     button.addEventListener("click", async function () {
+      const userId = userIdInput.value.trim(); // 입력된 값 가져오기
+      const orderId = orderIdInput.value.trim();
+      const amount = parseInt(amountInput.value);
+
+      // [추가] 검사 코드: 값이 비어있으면 진행하지 않음
+      if (!userId || !orderId || isNaN(amount)) {
+        alert("사용자 ID, 주문 번호, 금액을 모두 정확히 입력해주세요.");
+        return;
+      }
+
+      // 2. 결제 객체 생성: 버튼을 클릭했을 때의 입력값(userId)을 사용함
+      const payment = tossPayments.payment({
+        customerKey: userId,
+      });
+
+      // 3. 결제 요청
       try {
-        await widgets.requestPayment({
-          orderId: initialOrderId,
-          orderName: initialOrderName,
-          successUrl: window.location.origin + "/v1/payments/tosspayments/success",
+        await payment.requestPayment({
+          method: "CARD",
+          amount: {
+            currency: "KRW",
+            value: amount,
+          },
+          orderId: orderId,
+          orderName: "테스트 주문",
+          successUrl: window.location.origin + "/v1/payments/tosspayments/success" + `?userId=${userId}`,
           failUrl: window.location.origin + "/v1/payments/tosspayments/fail",
-          customerEmail: customerEmail,
-          customerName: customerName,
-          customerMobilePhone: customerMobilePhone,
+          customerEmail: "customer@example.com",
+          customerName: userId,
         });
       } catch (error) {
-        console.error("결제 요청 실패:", error);
-        alert("결제 요청에 실패했습니다.");
+        console.error("결제 요청 중 오류 발생:", error);
       }
     });
   }
+
+  main();
 </script>
 </body>
 </html>

@@ -52,7 +52,7 @@ public class PaymentController {
      * 결제 Key, 금액 불일치 등 복잡한 검증은 Service/PG 연동 계층에서 처리됩니다.
      */
     @PostMapping("/confirm")
-    public ResponseEntity<ApiResponse<PaymentResponse>> confirmPayment(@Valid @RequestBody PaymentConfirmRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<PaymentResponse>> confirmPayment(@Valid @RequestBody PaymentConfirmRequest request) {
         PaymentResponse response = paymentRouter.route().confirmPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRM_SUCCESS, response));
     }
@@ -61,8 +61,8 @@ public class PaymentController {
      * POST /payments/cancel : 결제 전액 취소 (PAID -> CANCELED)
      */
     @PostMapping("/cancel")
-    public ResponseEntity<ApiResponse<PaymentResponse>> cancelPayment(@Valid @RequestBody PaymentCancelCommand request, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PaymentResponse response = paymentRouter.route().cancelPayment(request);
+    public ResponseEntity<ApiResponse<PaymentResponse>> cancelPayment(@Valid @RequestBody PaymentCancelCommand request) {
+        PaymentResponse response = paymentService.cancelPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CANCEL_SUCCESS, response));
     }
 

@@ -9,7 +9,9 @@ spring:
   application:
     name: payment-service
   config:
-    import: "configserver:"
+    import:
+      - optional:file:.env[.properties]
+      - "configserver:"
   cloud:
     config:
       discovery:
