@@ -40,18 +40,6 @@ public class Stock extends BaseEntity {
         this.reservedQuantity = 0;
     }
 
-    public void tryReduceQuantity(Integer amount) {
-        if (totalQuantity < amount) {
-            return;
-        }
-
-        totalQuantity -= amount;
-    }
-
-    public void addQuantity(Integer amount) {
-        totalQuantity += amount;
-    }
-
     public int getAvailableQuantity() {
         return totalQuantity - reservedQuantity;
     }
