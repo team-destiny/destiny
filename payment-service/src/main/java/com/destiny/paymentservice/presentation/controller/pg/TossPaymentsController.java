@@ -3,6 +3,7 @@ package com.destiny.paymentservice.presentation.controller.pg;
 import com.destiny.global.response.ApiResponse;
 import com.destiny.paymentservice.application.service.impl.pg.TossPaymentsServiceImpl;
 import com.destiny.paymentservice.presentation.code.PaymentSuccessCode;
+import com.destiny.paymentservice.presentation.dto.request.pg.tosspayments.TossPaymentsCancelRequest;
 import com.destiny.paymentservice.presentation.dto.request.pg.tosspayments.TossPaymentsConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 import jakarta.validation.Valid;
@@ -77,5 +78,11 @@ public class TossPaymentsController {
     public ResponseEntity<ApiResponse<PaymentResponse>> confirm(@Valid @RequestBody TossPaymentsConfirmRequest request) {
         PaymentResponse response = tossPaymentsService.confirmPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRM_SUCCESS, response));
+    }
+
+    @PostMapping("/cancel")
+    public ResponseEntity<ApiResponse<PaymentResponse>> cancel(@Valid @RequestBody TossPaymentsCancelRequest request) {
+        PaymentResponse response = tossPaymentsService.cancelPayment(request);
+        return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CANCEL_SUCCESS, response));
     }
 }
