@@ -1,4 +1,4 @@
-package com.destiny.stockservice.domain.entity;
+package com.destiny.stockservice.domain.result;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
