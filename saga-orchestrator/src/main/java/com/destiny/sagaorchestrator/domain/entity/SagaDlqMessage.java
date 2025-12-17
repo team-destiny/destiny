@@ -102,7 +102,8 @@ public class SagaDlqMessage {
         Map<String, Object> headers
     ) {
         SagaDlqMessage message = new SagaDlqMessage();
-        message.originalTopic = record.topic();
+        message.originalTopic = getHeaderAsString(
+            headers, KafkaHeaders.DLT_ORIGINAL_TOPIC);
         message.dlqTopic = record.topic();
         message.partitionNumber = record.partition();
         message.offsetNumber = record.offset();
