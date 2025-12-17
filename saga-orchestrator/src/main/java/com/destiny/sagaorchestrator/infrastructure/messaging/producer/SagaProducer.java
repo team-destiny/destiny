@@ -5,6 +5,8 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.Coupo
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailSendCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.NotificationOrderCancelCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.NotificationOrderCancelFailCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCreateCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.ProductValidationCommand;
@@ -152,7 +154,7 @@ public class SagaProducer {
 
         try {
             String message = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("success-send-message", message);
+            kafkaTemplate.send("notification.order-create-succeed", message);
             log.info("[🍏 SAGA-SERVICE -> NOTIFICATION-SERVICE SUCCESS] - ORDER CREATE SUCCESS SEND : {}", message);
 
         } catch (JsonProcessingException e) {
@@ -165,7 +167,7 @@ public class SagaProducer {
 
         try {
             String message = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("fail-send-message", message);
+            kafkaTemplate.send("notification.order-create-failed", message);
             log.info("[🍏 SAGA-SERVICE -> NOTIFICATION-SERVICE SUCCESS] - ORDER CREATE FAIL SEND : {}", message);
 
         } catch (JsonProcessingException e) {
@@ -239,5 +241,31 @@ public class SagaProducer {
             log.info("[❌ SAGA-SERVICE -> ORDER-SERVICE FAIL JSON EXCEPTION] - ORDER CANCEL FAIL: {}", e.getMessage());
         }
 
+    }
+
+    public void publishOrderCancelRequestNotification(NotificationOrderCancelCommand event) {
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("notification.order-cancel-requested", message);
+            log.info("[🍎 SAGA-SERVICE -> NOTIFICATION-SERVICE SUCCESS] - NOTIFICATION CANCEL REQUESTED : {}", message);
+
+        } catch (JsonProcessingException e) {
+
+            log.info("[❌ SAGA-SERVICE -> NOTIFICATION-SERVICE FAIL JSON EXCEPTION] - NOTIFICATION CANCEL REQUESTED : {}", e.getMessage());
+        }
+    }
+
+    public void publishOrderCancelFailedNotification(NotificationOrderCancelFailCommand event) {
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("notification.order-cancel-failed", message);
+            log.info("[🍎 SAGA-SERVICE -> NOTIFICATION-SERVICE SUCCESS] - NOTIFICATION CANCEL FAILED : {}", message);
+
+        } catch (JsonProcessingException e) {
+
+            log.info("[❌ SAGA-SERVICE -> NOTIFICATION FAILED JSON EXCEPTION] - NOTIFICATION CANCEL FAILED: {}", e.getMessage());
+        }
     }
 }
