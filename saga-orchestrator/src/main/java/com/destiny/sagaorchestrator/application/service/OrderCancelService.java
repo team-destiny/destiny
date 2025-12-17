@@ -84,6 +84,7 @@ public class OrderCancelService {
 
         sagaProducer.cancelStock(new StockCancelCommand(
             saga.getSagaId(),
+            saga.getOrderId(),
             items
         ));
     }
