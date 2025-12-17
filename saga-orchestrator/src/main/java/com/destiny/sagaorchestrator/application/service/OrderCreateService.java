@@ -266,14 +266,14 @@ public class OrderCreateService {
                 .map(r -> new SuccessSendCommand.OrderItem(
                     r.productId(),
                     r.brandId(),
-                    r.stock(),
-                    r.price()
+                    r.stock()
                 )).toList();
 
         sagaProducer.sendSuccessMessage(new SuccessSendCommand(
             saga.getOrderId(),
             saga.getUserId(),
-            slackItems
+            slackItems,
+            saga.getFinalAmount()
         ));
 
         List<OrderItem> items = saga.getProductResults().values().stream()

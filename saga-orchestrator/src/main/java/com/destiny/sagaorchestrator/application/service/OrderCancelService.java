@@ -5,9 +5,13 @@ import com.destiny.sagaorchestrator.domain.entity.SagaStatus;
 import com.destiny.sagaorchestrator.domain.entity.SagaStep;
 import com.destiny.sagaorchestrator.domain.repository.SagaRepository;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponCancelCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.NotificationOrderCancelCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.NotificationOrderCancelFailCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.StockCancelCommand.StockCancelItem;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCancelFailEvent;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.outcome.OrderCancelSuccessEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.request.OrderCancelRequestEvent;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponCancelFailResult;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.result.CouponCancelSuccessResult;
@@ -42,6 +46,13 @@ public class OrderCancelService {
             saga.getUserId(),
             saga.getFinalAmount()
         ));
+
+        sagaProducer.publishOrderCancelRequestNotification(new NotificationOrderCancelCommand(
+            saga.getOrderId(),
+            saga.getUserId(),
+            saga.getFinalAmount(),
+            event.message()
+        ));
     }
 
     @Transactional
@@ -56,6 +67,8 @@ public class OrderCancelService {
             saga.getUserId(),
             saga.getCouponId()
         ));
+
+        sagaProducer.cancelOrderSuccess(new OrderCancelSuccessEvent(saga.getOrderId()));
     }
 
     @Transactional
@@ -63,6 +76,15 @@ public class OrderCancelService {
         SagaState saga = sagaRepository.findById(event.sagaId());
         saga.updateStep(SagaStep.PAYMENT_CANCEL_FAIL);
         saga.updateStatus(SagaStatus.CANCEL_FAILED);
+
+        sagaProducer.cancelOrderFail(new OrderCancelFailEvent(saga.getOrderId(), event.message()));
+
+        sagaProducer.publishOrderCancelFailedNotification(new NotificationOrderCancelFailCommand(
+            saga.getOrderId(),
+            saga.getUserId(),
+            saga.getStep().toString(),
+            event.message()
+        ));
     }
 
     @Transactional
@@ -88,6 +110,13 @@ public class OrderCancelService {
         SagaState saga = sagaRepository.findById(event.sagaId());
         saga.updateStep(SagaStep.COUPON_CANCEL_FAIL);
         saga.updateStatus(SagaStatus.CANCEL_FAILED);
+
+        sagaProducer.publishOrderCancelFailedNotification(new NotificationOrderCancelFailCommand(
+            saga.getOrderId(),
+            saga.getUserId(),
+            saga.getStep().toString(),
+            event.message()
+        ));
     }
 
     @Transactional
@@ -102,5 +131,12 @@ public class OrderCancelService {
         SagaState saga = sagaRepository.findById(event.sagaId());
         saga.updateStep(SagaStep.STOCK_RESERVATION_FAIL);
         saga.updateStatus(SagaStatus.CANCEL_FAILED);
+
+        sagaProducer.publishOrderCancelFailedNotification(new NotificationOrderCancelFailCommand(
+            saga.getOrderId(),
+            saga.getUserId(),
+            saga.getStep().toString(),
+            event.message()
+        ));
     }
 }

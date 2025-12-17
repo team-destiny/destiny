@@ -4,5 +4,6 @@ import java.util.UUID;
 
 public record OrderCancelRequestEvent(
 
-    UUID orderId
+    UUID orderId,
+    String message
 ) { }

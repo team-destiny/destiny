@@ -14,7 +14,6 @@ public record StockCancelCommand(
         Integer stock
     ) {
 
-
     }
 
 }

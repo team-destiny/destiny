@@ -16,12 +16,16 @@ import com.destiny.cartservice.presentation.dto.response.CartSaveResponse;
 import com.destiny.cartservice.presentation.dto.response.CartUpdateQuantityResponse;
 import com.destiny.global.exception.BizException;
 import feign.FeignException;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -29,6 +33,11 @@ public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
     private final ProductClient productClient;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+
+    private static final String CART_CACHE_PREFIX = "cart:";
+    private static final Duration CACHE_TTL = Duration.ofMinutes(30);
 
     /*
     장바구니 전체 조회
@@ -37,13 +46,29 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public CartFindAllResponse findAllCarts(UUID userId) {
 
+        String cacheKey = CART_CACHE_PREFIX + userId;
+
+        Object cached = redisTemplate.opsForValue().get(cacheKey);
+        if (cached instanceof CartFindAllResponse cachedResponse) {
+            log.info("[Cache HIT] 캐시에서 장바구니 조회. userId: {}", userId);
+            return cachedResponse;
+        }
+
+        log.info("[Cache MISS] DB에서 장바구니 조회. userId: {}", userId);
+
         List<Cart> carts = cartRepository.findAllByUserId(userId);
 
         List<CartFindItemResponse> items = carts.stream()
             .map(this::toItemResponse)
             .toList();
 
-        return CartFindAllResponse.from(items);
+        CartFindAllResponse response = CartFindAllResponse.from(items);
+
+        redisTemplate.opsForValue().set(cacheKey, response, CACHE_TTL);
+
+        log.info("[Cache SAVE] 캐시에 장바구니 저장. userId: {}, TTL: 30분", userId);
+
+        return response;
     }
 
     private ProductResponse fetchProduct(UUID productId) {
@@ -115,6 +140,8 @@ public class CartServiceImpl implements CartService {
 
         Cart savedCart = cartRepository.save(cart);
 
+        evictCartCache(userId);
+
         return toSaveResponse(savedCart);
     }
 
@@ -154,6 +181,8 @@ public class CartServiceImpl implements CartService {
         cart.updateQuantity(request.getQuantity());
         Cart updated = cartRepository.save(cart);
 
+        evictCartCache(userId);
+
         return toUpdateQuantityResponse(updated);
 
     }
@@ -192,6 +221,8 @@ public class CartServiceImpl implements CartService {
         }
 
         cartRepository.deleteAllByIdIn(cartIds);
+
+        evictCartCache(userId);
     }
 
     @Override
@@ -200,6 +231,34 @@ public class CartServiceImpl implements CartService {
             throw new BizException(CartErrorCode.INVALID_CLEAR_EVENT);
         }
 
-        cartRepository.deleteAllByIdIn(List.of(event.cartId()));
+        log.info("[clearCart] 이벤트 수신. cartId: {}", event.cartId());
+
+        Cart cart = cartRepository.findById(event.cartId()).orElse(null);
+
+        if (cart == null) {
+            log.warn("[clearCart] Cart를 찾을 수 없음. cartId: {}", event.cartId());
+            return;
+        }
+
+        UUID userId = cart.getUserId();
+        log.info("[clearCart] Cart 찾음. userId: {}", userId);
+
+        try {
+            cartRepository.deleteAllByIdIn(List.of(event.cartId()));
+            log.info("[clearCart] DB 삭제 완료. cartId: {}", event.cartId());
+
+            evictCartCache(userId);
+            log.info("[clearCart] 캐시 삭제 완료. userId: {}", userId);
+
+        } catch (Exception e) {
+            log.error("[clearCart] DB 삭제 실패. cartId: {}, userId: {}", event.cartId(), userId, e);
+            throw e;
+        }
+
+        }
+
+    private void evictCartCache(UUID userId) {
+        String cacheKey = CART_CACHE_PREFIX + userId;
+        redisTemplate.delete(cacheKey);
     }
 }

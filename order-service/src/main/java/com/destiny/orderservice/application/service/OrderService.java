@@ -12,9 +12,12 @@ import com.destiny.orderservice.infrastructure.auth.CustomUserDetails;
 import com.destiny.orderservice.infrastructure.exception.OrderError;
 import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCancelRequestEvent;
 import com.destiny.orderservice.infrastructure.messaging.event.outbound.OrderCreateRequestEvent;
+import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCancelFailedEvent;
+import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCancelSuccessEvent;
 import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateFailedEvent;
 import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateSuccessEvent;
 import com.destiny.orderservice.infrastructure.messaging.producer.OrderProducer;
+import com.destiny.orderservice.presentation.dto.request.OrderCancelRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderStatusRequest;
@@ -98,7 +101,7 @@ public class OrderService {
     }
 
     @Transactional
-    public UUID cancelOrder(CustomUserDetails customUserDetails, UUID orderId) {
+    public UUID cancelOrder(CustomUserDetails customUserDetails, OrderCancelRequest req, UUID orderId) {
 
         Order order = getOrder(orderId);
 
@@ -114,7 +117,13 @@ public class OrderService {
             throw new BizException(OrderError.ORDER_CANCEL_NOT_ALLOWED);
         }
 
-        orderProducer.sendOrderCancel(new OrderCancelRequestEvent(order.getOrderId()));
+        order.updateStatus(OrderStatus.CANCELED);
+        order.updateCancelReason(req.message());
+        order.getItems().forEach(item -> {
+            item.updateStatus(OrderItemStatus.CANCELED);
+        });
+
+        orderProducer.sendOrderCancel(new OrderCancelRequestEvent(order.getOrderId(), req.message()));
 
         return order.getOrderId();
     }
@@ -136,12 +145,16 @@ public class OrderService {
 
         // 사가 처리 전 상태 : PENDING
         if (order.getOrderStatus().equals(OrderStatus.PENDING)) {
-            return OrderProcessingResponse.of(order.getOrderId(), order.getOrderStatus());
+            return OrderProcessingResponse.from(order);
         }
 
         // 주문 요청 실패 : FAILED (존재하지 않는 상품, 재고 수량 부족, 결제 실패)
         if (order.getOrderStatus().equals(OrderStatus.FAILED)) {
-            return OrderProcessingResponse.of(order.getOrderId(), order.getOrderStatus());
+            return OrderProcessingResponse.from(order);
+        }
+
+        if (order.getOrderStatus().equals(OrderStatus.CANCELED)) {
+            return OrderProcessingResponse.from(order);
         }
 
         return OrderDetailResponse.fromEntity(order);
@@ -176,7 +189,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void successOrder(OrderCreateSuccessEvent event) {
+    public void createOrderSuccess(OrderCreateSuccessEvent event) {
 
         Order order = getOrder(event.orderId());
 
@@ -210,10 +223,34 @@ public class OrderService {
     }
 
     @Transactional
-    public void failOrder(OrderCreateFailedEvent event) {
+    public void createOrderFailed(OrderCreateFailedEvent event) {
         Order order = getOrder(event.orderId());
 
         order.updateStatus(OrderStatus.FAILED);
+        order.updateFailureReason(event.failReason());
+        orderRepository.updateOrder(order);
+    }
+
+    @Transactional
+    public void cancelOrderSuccess(OrderCancelSuccessEvent event) {
+        Order order = getOrder(event.orderId());
+        order.updateStatus(OrderStatus.CANCELED);
+
+        order.getItems().forEach(e -> {
+            OrderItem item = order.findItem(e.getProductId()).orElseThrow(
+                () -> new BizException(OrderError.ORDER_ITEM_NOT_FOUND)
+            );
+
+            item.updateStatus(OrderItemStatus.CANCELED);
+        });
+
+        orderRepository.updateOrder(order);
+    }
+
+    @Transactional
+    public void cancelOrderFailed(OrderCancelFailedEvent event) {
+        Order order = getOrder(event.orderId());
+        order.updateFailureReason(event.message());
         orderRepository.updateOrder(order);
     }
 

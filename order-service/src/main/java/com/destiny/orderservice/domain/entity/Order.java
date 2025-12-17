@@ -48,23 +48,8 @@ public class Order extends BaseEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<OrderItem> items = new ArrayList<>();
 
-    public void updateAmounts(
-        Integer originalAmount,
-        Integer discountAmount,
-        Integer finalAmount
-    ) {
-        this.originalAmount = originalAmount;
-        this.discountAmount = discountAmount;
-        this.finalAmount = finalAmount;
-    }
-
-    public void markCompleted() {
-        this.orderStatus = OrderStatus.COMPLETED;
-    }
-
-    public void updateStatus(OrderStatus status) {
-        this.orderStatus = status;
-    }
+    private String failureReason;
+    private String cancelReason;
 
     public static Order of(
         UUID userId,
@@ -100,6 +85,16 @@ public class Order extends BaseEntity {
         item.addOrder(this);
     }
 
+    public void updateAmounts(
+        Integer originalAmount,
+        Integer discountAmount,
+        Integer finalAmount
+    ) {
+        this.originalAmount = originalAmount;
+        this.discountAmount = discountAmount;
+        this.finalAmount = finalAmount;
+    }
+
     public Optional<OrderItem> findItem(UUID productId) {
         return this.items.stream()
             .filter(i -> i.getProductId().equals(productId))
@@ -113,8 +108,24 @@ public class Order extends BaseEntity {
         Integer finalPrice,
         Integer discountAmount,
         Integer stock
-        ) {
+    ) {
 
         item.updateItemInfo(brandId, unitPrice, finalPrice, discountAmount, stock);
+    }
+
+    public void updateFailureReason(String failureReason) {
+        this.failureReason = failureReason;
+    }
+
+    public void updateCancelReason(String cancelReason) {
+        this.cancelReason = cancelReason;
+    }
+
+    public void updateStatus(OrderStatus status) {
+        this.orderStatus = status;
+    }
+
+    public void markCompleted() {
+        this.orderStatus = OrderStatus.COMPLETED;
     }
 }
