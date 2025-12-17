@@ -2,6 +2,7 @@ package com.destiny.orderservice.presentation.controller;
 
 import com.destiny.orderservice.application.service.OrderService;
 import com.destiny.orderservice.infrastructure.auth.CustomUserDetails;
+import com.destiny.orderservice.presentation.dto.request.OrderCancelRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderStatusRequest;
 import com.destiny.orderservice.presentation.dto.response.OrderListResponse;
@@ -62,9 +63,10 @@ public class OrderController {
     @PatchMapping("/{orderId}/cancel")
     public ResponseEntity<UUID> cancelOrder(
         @PathVariable("orderId") UUID orderId,
+        @RequestBody OrderCancelRequest req,
         @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
-        UUID order = orderService.cancelOrder(customUserDetails, orderId);
+        UUID order = orderService.cancelOrder(customUserDetails, req,  orderId);
 
         return ResponseEntity
             .status(HttpStatus.OK)
