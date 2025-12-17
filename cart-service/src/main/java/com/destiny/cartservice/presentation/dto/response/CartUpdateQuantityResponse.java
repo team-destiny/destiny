@@ -11,6 +11,8 @@ import lombok.Getter;
 @Builder
 public class CartUpdateQuantityResponse implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     private final UUID cartId;
     private final UUID productId;
     private final UUID brandId;

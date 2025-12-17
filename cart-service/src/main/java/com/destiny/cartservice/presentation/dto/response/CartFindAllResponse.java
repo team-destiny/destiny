@@ -6,14 +6,14 @@ import java.io.Serializable;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-@NoArgsConstructor
 public class CartFindAllResponse implements Serializable {
 
-    private List<CartFindItemResponse> items;
+    private static final long serialVersionUID = 1L;
+
+    private final List<CartFindItemResponse> items;
 
     @JsonCreator
     public CartFindAllResponse(@JsonProperty("items") List<CartFindItemResponse> items) {
