@@ -7,7 +7,7 @@ import java.util.UUID;
 public record OrderCreateRequestEvent(
     UUID cartId,
     UUID orderId,
-    Long userId,
+    UUID userId,
     UUID couponId,
     List<OrderItemCreateRequestEvent> items
 ) {
@@ -15,7 +15,7 @@ public record OrderCreateRequestEvent(
         return new OrderCreateRequestEvent(
             cartId,
             order.getOrderId(),
-            1L,
+            order.getUserId(),
             order.getCouponId(),
             order.getItems().stream()
                 .map(OrderItemCreateRequestEvent::from)
