@@ -17,6 +17,7 @@ import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCance
 import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateFailedEvent;
 import com.destiny.orderservice.infrastructure.messaging.event.result.OrderCreateSuccessEvent;
 import com.destiny.orderservice.infrastructure.messaging.producer.OrderProducer;
+import com.destiny.orderservice.presentation.dto.request.OrderCancelRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderCreateRequest.OrderItemCreateRequest;
 import com.destiny.orderservice.presentation.dto.request.OrderStatusRequest;
@@ -100,7 +101,7 @@ public class OrderService {
     }
 
     @Transactional
-    public UUID cancelOrder(CustomUserDetails customUserDetails, UUID orderId) {
+    public UUID cancelOrder(CustomUserDetails customUserDetails, OrderCancelRequest req, UUID orderId) {
 
         Order order = getOrder(orderId);
 
@@ -116,7 +117,13 @@ public class OrderService {
             throw new BizException(OrderError.ORDER_CANCEL_NOT_ALLOWED);
         }
 
-        orderProducer.sendOrderCancel(new OrderCancelRequestEvent(order.getOrderId()));
+        order.updateStatus(OrderStatus.CANCELED);
+        order.updateCancelReason(req.message());
+        order.getItems().forEach(item -> {
+            item.updateStatus(OrderItemStatus.CANCELED);
+        });
+
+        orderProducer.sendOrderCancel(new OrderCancelRequestEvent(order.getOrderId(), req.message()));
 
         return order.getOrderId();
     }
