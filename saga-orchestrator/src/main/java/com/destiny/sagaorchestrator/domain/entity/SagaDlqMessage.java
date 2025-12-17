@@ -8,11 +8,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.kafka.support.KafkaHeaders;
 
 @Entity
 @Table(name = "p_saga_dlq_message")
@@ -34,7 +38,7 @@ public class SagaDlqMessage {
     private Integer partitionNumber;
 
     @Column(nullable = false)
-    private Integer offsetNumber;
+    private Long offsetNumber;
 
     @Column(nullable = false, length = 255)
     private String consumerGroup;
@@ -42,7 +46,7 @@ public class SagaDlqMessage {
     @Column
     private String messageKey;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String messagePayload;
 
     @Column(nullable = false, length = 255)
@@ -51,7 +55,7 @@ public class SagaDlqMessage {
     @Column(length = 1000)
     private String exceptionMessage;
 
-    @Column(length = 4000)
+    @Column(columnDefinition = "text")
     private String stacktrace;
 
     @Enumerated(EnumType.STRING)
@@ -70,7 +74,7 @@ public class SagaDlqMessage {
         String originalTopic,
         String dlqTopic,
         Integer partitionNumber,
-        Integer offsetNumber,
+        Long offsetNumber,
         String consumerGroup,
         String messageKey,
         String messagePayload,
@@ -93,6 +97,31 @@ public class SagaDlqMessage {
         return message;
     }
 
+    public static SagaDlqMessage fromKafka(
+        ConsumerRecord<String, String> record,
+        Map<String, Object> headers
+    ) {
+        SagaDlqMessage message = new SagaDlqMessage();
+        message.originalTopic = record.topic();
+        message.dlqTopic = record.topic();
+        message.partitionNumber = record.partition();
+        message.offsetNumber = record.offset();
+        message.consumerGroup = getHeaderAsString(
+            headers, KafkaHeaders.DLT_ORIGINAL_CONSUMER_GROUP);
+        message.messageKey = record.key();
+        message.messagePayload = record.value();
+        message.exceptionType = getHeaderAsString(
+            headers, "kafka_dlt-exception-fqcn");
+        message.exceptionMessage = getHeaderAsString(
+            headers, "kafka_dlt-exception-message");
+        message.stacktrace = getHeaderAsString(
+            headers, "kafka_dlt-exception-stacktrace");
+        message.status = SagaDlqStatus.PENDING;
+        message.retryCount = 0;
+        message.createdAt = LocalDateTime.now();
+        return message;
+    }
+
     public void markRetry() {
         this.status = SagaDlqStatus.RETRY;
         this.retryCount++;
@@ -102,6 +131,22 @@ public class SagaDlqMessage {
     public void markDropped() {
         this.status = SagaDlqStatus.DROPPED;
         this.processedAt = LocalDateTime.now();
+    }
+
+    private static String getHeaderAsString(
+        Map<String, Object> headers,
+        String key
+    ) {
+        Object value = headers.get(key);
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof byte[] bytes) {
+            return new String(bytes, StandardCharsets.UTF_8);
+        }
+
+        return value.toString();
     }
 
 }
