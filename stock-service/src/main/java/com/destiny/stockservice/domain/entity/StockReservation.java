@@ -1,5 +1,7 @@
 package com.destiny.stockservice.domain.entity;
 
+import com.destiny.stockservice.domain.result.ConfirmedStockCancelResult;
+import com.destiny.stockservice.domain.result.StockReservationCancelResult;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -60,6 +62,19 @@ public class StockReservation {
         status = ReservationStatus.CANCELED;
 
         return StockReservationCancelResult.CANCEL_SUCCEEDED;
+    }
+
+    public ConfirmedStockCancelResult cancelConfirmed() {
+        if (status == ReservationStatus.CANCELED) {
+            return ConfirmedStockCancelResult.CANCEL_FAILED;
+        }
+
+        if (status != ReservationStatus.CONFIRMED) {
+            return ConfirmedStockCancelResult.NO_RESERVATION;
+        }
+
+        status = ReservationStatus.CANCELED;
+        return ConfirmedStockCancelResult.CANCEL_SUCCEEDED;
     }
 
     public void confirm() {
