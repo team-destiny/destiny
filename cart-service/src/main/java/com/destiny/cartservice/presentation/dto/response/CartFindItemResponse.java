@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@Builder
 public class CartFindItemResponse implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -21,6 +20,7 @@ public class CartFindItemResponse implements Serializable {
     private final String optionName;
     private final int price;
 
+    @Builder
     @JsonCreator
     public CartFindItemResponse(
         @JsonProperty("cartId") UUID cartId,

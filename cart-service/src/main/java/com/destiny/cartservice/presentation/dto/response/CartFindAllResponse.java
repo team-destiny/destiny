@@ -8,13 +8,13 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@Builder
 public class CartFindAllResponse implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private final List<CartFindItemResponse> items;
 
+    @Builder
     @JsonCreator
     public CartFindAllResponse(@JsonProperty("items") List<CartFindItemResponse> items) {
         this.items = items;
