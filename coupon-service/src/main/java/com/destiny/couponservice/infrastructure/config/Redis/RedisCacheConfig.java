@@ -1,9 +1,9 @@
-package com.destiny.couponservice.infrastructure.config;
+package com.destiny.couponservice.infrastructure.config.Redis;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Duration;
 import org.springframework.cache.annotation.EnableCaching;
@@ -28,9 +28,14 @@ public class RedisCacheConfig {
         om.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         om.activateDefaultTyping(
-            LaissezFaireSubTypeValidator.instance,
+            BasicPolymorphicTypeValidator.builder()
+                .allowIfBaseType(Object.class)
+                .allowIfSubType("com.destiny")
+                .allowIfSubType("java.util")
+                .allowIfSubType("java.time")
+                .build(),
             ObjectMapper.DefaultTyping.NON_FINAL,
-            JsonTypeInfo.As.PROPERTY
+            As.PROPERTY
         );
 
         GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(om);
