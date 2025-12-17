@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+  <style>
+    body { background-color: #fff5f0; } /* 연한 오렌지 배경 */
+    .input-box {
+      border: 1px solid #ffdec2;
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 400px;
+      margin: 50px auto;
+      background-color: white;
+      box-shadow: 0 4px 12px rgba(255, 107, 0, 0.1);
+      font-family: 'Pretendard', sans-serif;
+    }
+    .input-group { margin-bottom: 20px; }
+    .input-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #4a4a4a;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #eee;
+      border-radius: 8px;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .input-group input:focus {
+      border-color: #ff6b00;
+      outline: none;
+    }
+    button {
+      width: 100%;
+      padding: 15px;
+      background-color: #ff6b00; /* 포트원 오렌지 */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #e66000;
+    }
+    h3 { color: #ff6b00; text-align: center; margin-bottom: 25px; }
+  </style>
+</head>
+<body>
+
+<div class="input-box">
+  <h3>PortOne 결제창 (V2)</h3>
+  <div class="input-group">
+    <label>사용자 ID (UUID)</label>
+    <input type="text" id="userId" placeholder="사용자 ID(UUID)를 입력하세요" />
+  </div>
+  <div class="input-group">
+    <label>주문 번호 (UUID)</label>
+    <input type="text" id="orderId" placeholder="주문 번호를 입력하세요" />
+  </div>
+  <div class="input-group">
+    <label>결제 금액</label>
+    <input type="number" id="finalAmount" placeholder="결제 금액을 입력하세요" />
+  </div>
+  <button id="payment-button">결제하기</button>
+</div>
+
+<script>
+  const button = document.getElementById("payment-button");
+
+  button.addEventListener("click", async function () {
+    const userId = document.getElementById("userId").value.trim();
+    const orderId = document.getElementById("orderId").value.trim();
+    const amount = parseInt(document.getElementById("finalAmount").value);
+
+    if (!userId || !orderId || isNaN(amount)) {
+      alert("모든 필드를 정확히 입력해주세요.");
+      return;
+    }
+
+    // 1. 포트원 결제창 호출
+    const payment = await PortOne.requestPayment({
+      storeId: "[[${storeId}]]",
+      // channelKey: "[[${channelKey}]]",
+      channelGroupId: "[[${channelGroupId}]]",
+      paymentId: `payment-${crypto.randomUUID()}`, // 포트원 V2는 고유 ID 필수
+      orderName: "MSA 프로젝트 테스트 결제",
+      totalAmount: amount,
+      currency: "CURRENCY_KRW",
+      payMethod: "EASY_PAY",
+      customer: {
+        customerId: userId
+      }
+    });
+
+    // 2. 결과 처리
+    if (payment.code != null) {
+      alert("결제 실패: " + payment.message);
+      return;
+    }
+
+    // 3. 서버 승인 요청
+    const response = await fetch("/v1/payments/portone/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        paymentId: payment.paymentId,
+        userId: userId,
+        orderId: orderId,
+        amount: amount
+      })
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+      alert("결제가 성공적으로 완료되었습니다!");
+    } else {
+      alert("서버 검증 실패: " + result.message);
+    }
+  });
+</script>
+</body>
+</html>

@@ -38,3 +38,8 @@ payment:
   tosspayments:
     secret-key: ${TOSSPAYMENTS_SECRET_KEY}
     client-key: ${TOSSPAYMENTS_CLIENT_KEY}
+  portone:
+    store-id: ${PORTONE_STORE_ID} # 포트원 상점 ID
+    channel-key: ${PORTONE_CHANNEL_KEY} # 채널 키 (결제 수단 설정)
+    channel-group-id: ${PORTONE_CHANNEL_GROUP_ID}
+    api-secret: ${PORTONE_API_SECRET} # API Secret (V2 전용)
