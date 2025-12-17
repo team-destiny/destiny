@@ -49,6 +49,7 @@ public class SagaConsumer {
         } catch (JsonProcessingException e) {
 
             log.info("[🔥️ JOIN SAGA FAIL JSON EXCEPTION] - ORDER CREATE : {}", e.getMessage());
+            throw new IllegalStateException("ORDER CREATE JSON PARSE FAIL", e);
         }
     }
 
