@@ -8,6 +8,16 @@ spring:
     username: root
     password: 1234
 
+  cache:
+    type: redis
+
+  data:
+    redis:
+      host: localhost
+      port: 5443
+      password: systempass
+      timeout: 2s
+
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
