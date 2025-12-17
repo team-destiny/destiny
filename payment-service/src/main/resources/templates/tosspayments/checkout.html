@@ -2,55 +2,113 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toss Payments Checkout</title>
   <script src="https://js.tosspayments.com/v2/standard"></script>
   <style>
-    .input-box {
-      border: 1px solid #e5e8eb;
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      background-color: #f9fafb;
-      font-family: sans-serif;
+    body {
+      background-color: #f2f4f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding-top: 50px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
+
+    .container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      width: 90%;
+      max-width: 450px;
+    }
+
+    h3 {
+      margin-top: 0;
+      margin-bottom: 24px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #191f28;
+      text-align: left;
+    }
+
     .input-group {
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
+
     .input-group label {
       display: block;
-      font-weight: bold;
-      margin-bottom: 5px;
-      color: #333d4b;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #4e5968;
     }
+
     .input-group input {
       width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      padding: 12px;
+      font-size: 15px;
+      border: 1px solid #d1d6db;
+      border-radius: 8px;
       box-sizing: border-box;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #3182f6;
+    }
+
+    .info-text {
+      color: #6b7684;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    #payment-button {
+      width: 100%;
+      padding: 16px;
+      background-color: #3182f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    #payment-button:hover {
+      background-color: #1b64da;
     }
   </style>
 </head>
 <body>
 
-<div class="input-box">
-  <h3 style="margin-top: 0;">결제 정보 확인 (API 개별 연동)</h3>
+<div class="container">
+  <h3>토스페이먼츠 결제</h3>
+
   <div class="input-group">
     <label for="userId">사용자 ID</label>
     <input type="text" id="userId" placeholder="사용자 ID(UUID)를 입력하세요" />
   </div>
+
   <div class="input-group">
     <label for="orderId">주문 번호</label>
     <input type="text" id="orderId" placeholder="주문 번호를 입력하세요" />
   </div>
+
   <div class="input-group">
     <label for="finalAmount">최종 결제 금액</label>
     <input type="number" id="finalAmount" placeholder="결제 금액을 입력하세요" />
   </div>
+
+  <p class="info-text">아래 버튼을 누르면 결제창이 호출됩니다.</p>
+
+  <button id="payment-button">결제하기</button>
 </div>
-
-<p style="text-align: center; color: #6b7684;">아래 버튼을 누르면 결제창이 호출됩니다.</p>
-
-<button id="payment-button" style="margin-top: 10px; width: 100%; padding: 15px; background-color: #3182f6; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold;">결제하기</button>
 
 <script>
   async function main() {
@@ -59,47 +117,37 @@
     const orderIdInput = document.getElementById("orderId");
     const amountInput = document.getElementById("finalAmount");
 
-    // 1. SDK 초기화는 페이지 로드 시 한 번만
     const tossPayments = TossPayments("[[${clientKey}]]");
 
     button.addEventListener("click", async function () {
-      const userId = userIdInput.value.trim(); // 입력된 값 가져오기
+      const userId = userIdInput.value.trim();
       const orderId = orderIdInput.value.trim();
       const amount = parseInt(amountInput.value);
 
-      // [추가] 검사 코드: 값이 비어있으면 진행하지 않음
       if (!userId || !orderId || isNaN(amount)) {
-        alert("사용자 ID, 주문 번호, 금액을 모두 정확히 입력해주세요.");
+        alert("모든 정보를 정확히 입력해주세요.");
         return;
       }
 
-      // 2. 결제 객체 생성: 버튼을 클릭했을 때의 입력값(userId)을 사용함
-      const payment = tossPayments.payment({
-        customerKey: userId,
-      });
+      const payment = tossPayments.payment({ customerKey: userId });
 
-      // 3. 결제 요청
       try {
         await payment.requestPayment({
           method: "CARD",
-          amount: {
-            currency: "KRW",
-            value: amount,
-          },
+          amount: { currency: "KRW", value: amount },
           orderId: orderId,
-          orderName: "테스트 주문",
+          orderName: "토스 테스트 주문",
           successUrl: window.location.origin + "/v1/payments/tosspayments/success" + `?userId=${userId}`,
           failUrl: window.location.origin + "/v1/payments/tosspayments/fail",
           customerEmail: "customer@example.com",
           customerName: userId,
         });
       } catch (error) {
-        console.error("결제 요청 중 오류 발생:", error);
+        console.error("오류 발생:", error);
         alert("결제 요청 중 오류가 발생했습니다. 다시 시도해주세요.");
       }
     });
   }
-
   main();
 </script>
 </body>
