@@ -66,7 +66,7 @@ public class StockReservation {
 
     public ConfirmedStockCancelResult cancelConfirmed() {
         if (status == ReservationStatus.CANCELED) {
-            return ConfirmedStockCancelResult.CANCEL_FAILED;
+            return ConfirmedStockCancelResult.ALREADY_CANCELED;
         }
 
         if (status != ReservationStatus.CONFIRMED) {
@@ -74,6 +74,7 @@ public class StockReservation {
         }
 
         status = ReservationStatus.CANCELED;
+
         return ConfirmedStockCancelResult.CANCEL_SUCCEEDED;
     }
 
