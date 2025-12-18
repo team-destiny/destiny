@@ -2,7 +2,6 @@ package com.destiny.paymentservice.application.service.impl.pg;
 
 import com.destiny.global.exception.BizException;
 import com.destiny.paymentservice.application.exception.PaymentErrorCode;
-import com.destiny.paymentservice.application.service.inter.PaymentService;
 import com.destiny.paymentservice.domain.entity.Payment;
 import com.destiny.paymentservice.domain.repository.PaymentRepository;
 import com.destiny.paymentservice.domain.vo.PaymentMethod;
@@ -10,8 +9,6 @@ import com.destiny.paymentservice.domain.vo.PaymentProvider;
 import com.destiny.paymentservice.domain.vo.PaymentStatus;
 import com.destiny.paymentservice.infrastructure.config.PortOneProperties;
 import com.destiny.paymentservice.infrastructure.feign.PortOneClient;
-import com.destiny.paymentservice.presentation.dto.request.PaymentCancelRequest;
-import com.destiny.paymentservice.presentation.dto.request.PaymentConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.request.pg.portone.PortOneCancelRequest;
 import com.destiny.paymentservice.presentation.dto.request.pg.portone.PortOneConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
@@ -37,6 +34,7 @@ public class PortOneServiceImpl {
     /**
      * 포트원 결제 승인 및 검증 (V2)
      */
+    @Transactional
     public PaymentResponse confirmPayment(PortOneConfirmRequest request) {
 
         // 1. 포트원 인증 헤더 생성 (V2: "PortOne {SECRET_KEY}")
@@ -106,7 +104,7 @@ public class PortOneServiceImpl {
             return PaymentResponse.fromEntity(payment);
         } catch (Exception e) {
             log.error("취소 실패: {}", e.getMessage());
-            throw new BizException(PaymentErrorCode.PAYMENT_INVALID_REQUEST);
+            throw e;
         }
     }
 }
