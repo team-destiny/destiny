@@ -6,12 +6,12 @@ import java.util.UUID;
 public record OrderCreateSuccessEvent(
     UUID orderId,
     UUID userId,
-    List<OrderItem> items
+    List<OrderItem> items,
+    Integer finalAmount
 ) {
     public record OrderItem(
         UUID productId,
         UUID brandId,
-        Integer stock,
-        Integer finalAmount
+        Integer stock
     ) {}
 }
