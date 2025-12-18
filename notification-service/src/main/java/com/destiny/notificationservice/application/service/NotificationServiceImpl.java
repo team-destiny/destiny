@@ -1,5 +1,7 @@
 package com.destiny.notificationservice.application.service;
 
+import com.destiny.notificationservice.application.dto.event.OrderCancelFailedEvent;
+import com.destiny.notificationservice.application.dto.event.OrderCancelRequestedEvent;
 import com.destiny.notificationservice.application.dto.event.OrderCreateSuccessEvent;
 import com.destiny.notificationservice.application.dto.event.SagaCreateFailedEvent;
 import com.destiny.notificationservice.domain.model.BrandNotificationChannel;
@@ -356,15 +358,11 @@ public class NotificationServiceImpl implements NotificationService {
                 .collect(Collectors.groupingBy(item ->
                     item.brandId() != null ? item.brandId() : unknownBrandId));
 
+        int totalAmount = (event.finalAmount() == null) ? 0 : event.finalAmount();
+
         itemsByBrand.forEach((brandId, items) -> {
             int totalQuantity = items.stream()
                 .mapToInt(item -> item.stock() != null ? item.stock() : 0)
-                .sum();
-
-            int totalAmount = items.stream()
-                .mapToInt(
-                    i -> (i.finalAmount() == null ? 0 : i.finalAmount()) * (i.stock() == null ? 0
-                        : i.stock()))
                 .sum();
 
             String message = String.format(
@@ -374,7 +372,7 @@ public class NotificationServiceImpl implements NotificationService {
                     "브랜드ID: %s\n" +
                     "상품 개수: %d개\n" +
                     "총 수량: %d개\n" +
-                    "총 결제 금액: %d원",
+                    "주문 최종 결제 금액: %d원",
                 event.orderId(),
                 event.userId(),
                 brandId.equals(unknownBrandId) ? "알수없음(NULL)" : brandId,
@@ -391,4 +389,70 @@ public class NotificationServiceImpl implements NotificationService {
             );
         });
     }
+
+
+    @Override
+    public void sendOrderCancelRequestedNotification(OrderCancelRequestedEvent event) {
+
+        String message = formatOrderCancelRequestedMessage(event);
+
+        sendAdminToSlack(
+            adminSlackUrl,
+            message,
+            null,
+            null
+        );
+    }
+
+    private String formatOrderCancelRequestedMessage(OrderCancelRequestedEvent event) {
+        return String.format(
+            "🚫 *[주문 취소 요청]*\n" +
+                "주문ID: %s\n" +
+                "유저ID: %s\n" +
+                "최종 결제 금액: %s원\n" +
+                "메시지: %s",
+            event.orderId(),
+            event.userId(),
+            nvl(event.finalAmount()),
+            nvl(event.message())
+        );
+    }
+
+
+    @Override
+    public void sendOrderCancelFailedNotification(OrderCancelFailedEvent event) {
+
+        String reason = event.failReason() != null ? event.failReason() : "";
+
+        if (reason.contains("결제 내역을 찾을 수 없습니다") || reason.contains("Payment not found")) {
+            log.warn("⛔ [알림 스킵] 결제 전 취소로 인한 에러(무한루프 방지) - OrderId: {}", event.orderId());
+            return; // 슬랙 발송 안 하고 여기서 끝냄!
+        }
+
+        String message = formatOrderCancelFailedMessage(event);
+
+        sendAdminToSlack(
+            adminSlackUrl,
+            message,
+            event.failStep(),
+            event.failReason()
+        );
+    }
+
+    private String formatOrderCancelFailedMessage(OrderCancelFailedEvent event) {
+        return String.format(
+            "⚠️ *[주문 취소 실패]*\n" +
+                "주문ID: %s\n" +
+                "유저ID: %s\n" +
+                "실패 단계: %s\n" +
+                "실패 사유: %s",
+            event.orderId(),
+            event.userId(),
+            nvl(event.failStep()),
+            nvl(event.failReason())
+        );
+    }
+
+
+
 }

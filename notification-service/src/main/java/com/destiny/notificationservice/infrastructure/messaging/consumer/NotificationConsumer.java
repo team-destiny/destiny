@@ -1,5 +1,7 @@
 package com.destiny.notificationservice.infrastructure.messaging.consumer;
 
+import com.destiny.notificationservice.application.dto.event.OrderCancelFailedEvent;
+import com.destiny.notificationservice.application.dto.event.OrderCancelRequestedEvent;
 import com.destiny.notificationservice.application.dto.event.OrderCreateSuccessEvent;
 import com.destiny.notificationservice.application.dto.event.SagaCreateFailedEvent;
 import com.destiny.notificationservice.application.service.NotificationService;
@@ -47,4 +49,35 @@ public class NotificationConsumer {
 
     }
 
+    @KafkaListener(topics = "${kafka.topics.order-cancel-requested}")
+    public void handleOrderCancelRequested(String message) {
+
+        try {
+            OrderCancelRequestedEvent event = objectMapper.readValue(message,
+                OrderCancelRequestedEvent.class);
+
+            log.info("[Kafka] 주문 취소 요청 이벤트 수신: {}", event);
+
+            notificationService.sendOrderCancelRequestedNotification(event);
+
+        } catch (Exception e) {
+            log.error("[Kafka] 주문 취소 요청 이벤트 수신 중 에러", e);
+        }
+    }
+
+    @KafkaListener(topics = "${kafka.topics.order-cancel-failed}")
+    public void handleOrderCancelFailed(String message) {
+
+        try {
+            OrderCancelFailedEvent event = objectMapper.readValue(message,
+                OrderCancelFailedEvent.class);
+
+            log.info("[Kafka] 주문 취소 실패 이벤트 수신: {}", event);
+
+            notificationService.sendOrderCancelFailedNotification(event);
+
+        } catch (Exception e) {
+            log.error("[Kafka] 주문 취소 실패 이벤트 수신 중 에러", e);
+        }
+    }
 }
