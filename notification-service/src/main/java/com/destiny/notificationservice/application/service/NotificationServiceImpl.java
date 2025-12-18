@@ -422,13 +422,6 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void sendOrderCancelFailedNotification(OrderCancelFailedEvent event) {
 
-        String reason = event.failReason() != null ? event.failReason() : "";
-
-        if (reason.contains("결제 내역을 찾을 수 없습니다") || reason.contains("Payment not found")) {
-            log.warn("⛔ [알림 스킵] 결제 전 취소로 인한 에러(무한루프 방지) - OrderId: {}", event.orderId());
-            return; // 슬랙 발송 안 하고 여기서 끝냄!
-        }
-
         String message = formatOrderCancelFailedMessage(event);
 
         sendAdminToSlack(
