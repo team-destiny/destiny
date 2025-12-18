@@ -1,6 +1,5 @@
 package com.destiny.paymentservice.presentation.dto.request.pg.portone;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -21,10 +20,9 @@ public record PortOneCancelRequest(
     String paymentId,
 
     @NotNull(message = "취소 금액은 필수입니다.")
-    @PositiveOrZero(message = "취소 금액은 0보다 같거나 커야 합니다.")
+    @PositiveOrZero(message = "취소 금액은 0과 같거나 커야 합니다.")
     Integer amount,
 
-    @NotBlank(message = "취소 사유를 입력해주세요.")
     String reason
 
 ) {
