@@ -7,8 +7,10 @@ slack:
 
 kafka:
   topics:
-    saga-failure: fail-send-message
-    order-success: success-send-message
+    saga-failure: notification.order-create-failed
+    order-success: notification.order-create-succeed
+    order-cancel-requested: notification.order-cancel-requested
+    order-cancel-failed: notification.order-cancel-failed
 
 spring:
   kafka:
