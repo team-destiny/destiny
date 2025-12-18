@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -19,65 +21,63 @@ public class NotificationConsumer {
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
 
+    @RetryableTopic(
+        attempts = "3",
+        backoff = @Backoff(delay = 1000, multiplier = 2.0)
+    )
     @KafkaListener(topics = "${kafka.topics.saga-failure}")
-    public void handleSagaCreateFail(String message) {
+    public void handleSagaCreateFail(String message) throws Exception {
 
-        try {
-            SagaCreateFailedEvent event = objectMapper.readValue(message,
-                SagaCreateFailedEvent.class);
-            log.info("[Kafka] 사가 실패 이벤트 수신: {}", event);
-            notificationService.sendSagaCreateFailedNotification(event);
+        SagaCreateFailedEvent event = objectMapper.readValue(message, SagaCreateFailedEvent.class);
+        log.info("[Kafka] 사가 실패 이벤트 수신: {}", event);
 
-        } catch (Exception e) {
-            log.error("[Kafka] 사가 실패 이벤트 수신 중 에러", e);
-        }
+        notificationService.sendSagaCreateFailedNotification(event);
+
     }
 
 
+    @RetryableTopic(
+        attempts = "3",
+        backoff = @Backoff(delay = 1000, multiplier = 2.0)
+    )
     @KafkaListener(topics = "${kafka.topics.order-success}")
-    public void handleOrderCreateSuccess(String message) {
+    public void handleOrderCreateSuccess(String message) throws Exception {
 
-        try {
-            OrderCreateSuccessEvent event = objectMapper.readValue(message,
-                OrderCreateSuccessEvent.class);
-            log.info("[Kafka] 주문 성공 이벤트 수신: {}", event);
-            notificationService.sendOrderCreateSuccessNotification(event);
+        OrderCreateSuccessEvent event = objectMapper.readValue(message,
+            OrderCreateSuccessEvent.class);
+        log.info("[Kafka] 주문 성공 이벤트 수신: {}", event);
 
-        } catch (Exception e) {
-            log.error("[Kafka] 주문 성공 이벤트 수신 중 에러", e);
-        }
+        notificationService.sendOrderCreateSuccessNotification(event);
 
     }
 
+    @RetryableTopic(
+        attempts = "3",
+        backoff = @Backoff(delay = 1000, multiplier = 2.0)
+    )
     @KafkaListener(topics = "${kafka.topics.order-cancel-requested}")
-    public void handleOrderCancelRequested(String message) {
+    public void handleOrderCancelRequested(String message) throws Exception {
 
-        try {
-            OrderCancelRequestedEvent event = objectMapper.readValue(message,
-                OrderCancelRequestedEvent.class);
+        OrderCancelRequestedEvent event = objectMapper.readValue(message,
+            OrderCancelRequestedEvent.class);
+        log.info("[Kafka] 주문 취소 요청 이벤트 수신: {}", event);
 
-            log.info("[Kafka] 주문 취소 요청 이벤트 수신: {}", event);
+        notificationService.sendOrderCancelRequestedNotification(event);
 
-            notificationService.sendOrderCancelRequestedNotification(event);
-
-        } catch (Exception e) {
-            log.error("[Kafka] 주문 취소 요청 이벤트 수신 중 에러", e);
-        }
     }
 
+    @RetryableTopic(
+        attempts = "3",
+        backoff = @Backoff(delay = 1000, multiplier = 2.0)
+    )
     @KafkaListener(topics = "${kafka.topics.order-cancel-failed}")
-    public void handleOrderCancelFailed(String message) {
+    public void handleOrderCancelFailed(String message) throws Exception {
 
-        try {
-            OrderCancelFailedEvent event = objectMapper.readValue(message,
-                OrderCancelFailedEvent.class);
+        OrderCancelFailedEvent event = objectMapper.readValue(message,
+            OrderCancelFailedEvent.class);
+        log.info("[Kafka] 주문 취소 실패 이벤트 수신: {}", event);
 
-            log.info("[Kafka] 주문 취소 실패 이벤트 수신: {}", event);
+        notificationService.sendOrderCancelFailedNotification(event);
 
-            notificationService.sendOrderCancelFailedNotification(event);
-
-        } catch (Exception e) {
-            log.error("[Kafka] 주문 취소 실패 이벤트 수신 중 에러", e);
-        }
     }
 }
