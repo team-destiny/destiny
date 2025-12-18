@@ -2,6 +2,7 @@ package com.destiny.sagaorchestrator.presentation.controller;
 
 import com.destiny.sagaorchestrator.application.service.SagaService;
 import com.destiny.sagaorchestrator.infrastructure.auth.CustomUserDetails;
+import com.destiny.sagaorchestrator.presentation.dto.response.SagaDlqResponse;
 import com.destiny.sagaorchestrator.presentation.dto.response.SagaResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,18 @@ public class SagaController {
     public ResponseEntity<List<SagaResponse>> sagaLogs(
         @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
-
         List<SagaResponse> logs = sagaService.sagaLogs(customUserDetails);
+
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(logs);
+    }
+
+    @GetMapping("/dlq")
+    public ResponseEntity<List<SagaDlqResponse>> dlqLogs(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        List<SagaDlqResponse> logs = sagaService.dlqLogs(customUserDetails);
 
         return ResponseEntity
             .status(HttpStatus.OK)
