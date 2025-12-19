@@ -100,8 +100,6 @@ public class BootPayServiceImpl {
     }
 
     private String getAccessToken() {
-        log.info("Token Request - RestKey: {}, PrivateKey: {}", bootPayProperties.getRestApiKey(), bootPayProperties.getPrivateKey());
-
         BootPayTokenResponse response = bootPayClient.getAccessToken(new BootPayTokenRequest(
             bootPayProperties.getRestApiKey(),
             bootPayProperties.getPrivateKey()

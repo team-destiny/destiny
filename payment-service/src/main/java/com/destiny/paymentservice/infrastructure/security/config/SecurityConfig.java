@@ -59,6 +59,7 @@ public class SecurityConfig {
         return httpSecurity.build();
     }
 
+    // TODO: 추후 해당 url요청만 허용
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
