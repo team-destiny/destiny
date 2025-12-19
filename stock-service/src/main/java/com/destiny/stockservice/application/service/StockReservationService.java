@@ -1,9 +1,9 @@
 package com.destiny.stockservice.application.service;
 
-import com.destiny.stockservice.application.dto.stock.cancel.ConfirmedStockCancelEvent;
-import com.destiny.stockservice.application.dto.stock.cancel.StockReservationCancelEvent;
-import com.destiny.stockservice.application.dto.stock.reservation.StockReservationEvent;
-import com.destiny.stockservice.application.dto.stock.reservation.StockReservationItem;
+import com.destiny.stockservice.application.dto.event.cancel.ConfirmedStockCancelEvent;
+import com.destiny.stockservice.application.dto.event.cancel.StockReservationCancelEvent;
+import com.destiny.stockservice.application.dto.event.reservation.StockReservationEvent;
+import com.destiny.stockservice.application.dto.event.reservation.StockReservationItem;
 import com.destiny.stockservice.domain.entity.ReservationStatus;
 import com.destiny.stockservice.domain.entity.Stock;
 import com.destiny.stockservice.domain.entity.StockReservation;
@@ -74,15 +74,7 @@ public class StockReservationService {
     private boolean isInvalidStock(StockReservationItem item, Map<UUID, Stock> stockMap) {
         Stock stock = stockMap.get(item.productId());
 
-        if (stock == null) {
-            return true;
-        }
-
-        if (stock.getTotalQuantity() == null) {
-            return true;
-        }
-
-        if (item.orderedQuantity() == null) {
+        if (stock == null || stock.getTotalQuantity() == null || item.orderedQuantity() == null) {
             return true;
         }
 
@@ -138,7 +130,7 @@ public class StockReservationService {
     public StockReservationCancelResult cancelReservedStock(StockReservationCancelEvent event) {
 
         List<StockReservation> reservations = stockReservationRepository
-            .findAllByOrderIdAndStatus(event.orderId(), ReservationStatus.CANCELED);
+            .findAllByOrderIdAndStatus(event.orderId(), ReservationStatus.RESERVED);
 
         if (reservations.isEmpty()) {
             return StockReservationCancelResult.NO_RESERVATION;
@@ -192,11 +184,9 @@ public class StockReservationService {
     }
 
     @Transactional
-    public ConfirmedStockCancelResult cancelConfirmedStock(
-        ConfirmedStockCancelEvent event
-    ) {
-        Map<UUID, Integer> cancelQuantityByProduct =
-            event.items().stream()
+    public ConfirmedStockCancelResult cancelConfirmedStock(ConfirmedStockCancelEvent event) {
+
+        Map<UUID, Integer> cancelQuantityByProduct = event.items().stream()
                 .collect(Collectors.toMap(
                     ConfirmedStockCancelEvent.StockCancelItem::productId,
                     ConfirmedStockCancelEvent.StockCancelItem::stock

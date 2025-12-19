@@ -1,4 +1,4 @@
-package com.destiny.stockservice.application.dto;
+package com.destiny.stockservice.application.dto.order;
 
 import java.util.List;
 import java.util.UUID;

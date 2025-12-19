@@ -1,4 +1,4 @@
-package com.destiny.stockservice.application.dto.stock.reservation;
+package com.destiny.stockservice.application.dto.event.reservation;
 
 import java.util.List;
 import java.util.UUID;
