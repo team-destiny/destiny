@@ -134,4 +134,47 @@ class CouponTemplateTest {
 
     }
 
+    // 날짜 범위 오류 테스트
+    /*
+        availableTo(발급 종료 일시)가 availableFrom(발급 시작 일시)보다 과거면
+        INVALID_DATE_RANGE 에러를 던지는지 테스트
+     */
+    @Test
+    @DisplayName("쿠폰 템플릿 생성 실패 - 날짜 범위 오류")
+    void create_invalidDateRange_throwsException() {
+
+        // given
+        LocalDateTime from = LocalDateTime.now().plusDays(1); //시작일이 미래
+        LocalDateTime to = LocalDateTime.now(); // 종료일이 과거
+
+        CouponTemplateCreateRequest req = CouponTemplateCreateRequest.builder()
+            .code("INVALID_DATE")
+            .name("날짜 오류 쿠폰")
+            .discountType(DiscountType.FIXED)
+            .discountValue(3000)
+            .discountValue(10000)
+            .maxDiscountAmount(null)
+            .availableFrom(from)
+            .availableTo(to)
+            .build();
+
+        // 중복 코드는 아님(날짜 검증까지 유도)
+        given(couponTemplateRepository.existsByCode("INVALID_DATE")).willReturn(false);
+
+        // when
+        BizException ex = assertThrows(
+            BizException.class,
+            () -> couponTemplateServiceImpl.create(req)
+        );
+
+        // then
+        // 날짜 범위 오류 인지 검증
+        assertThat(ex.getResponseCode())
+            .isEqualTo(CouponTemplateErrorCode.INVALID_DATE_RANGE);
+
+        // 저장 로직은 호출되면 안됨.
+        // 이유: 잘못된 요청 이기떄문에 쿠폰 저장 x DB 접근 X
+        verify(couponTemplateRepository, never())
+            .create(any(CouponTemplate.class));
+    }
 }
