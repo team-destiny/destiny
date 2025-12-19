@@ -50,7 +50,6 @@ public class BootPayServiceImpl {
         // 2. DB 주문 조회 (없으면 정적 팩토리 메서드 'of'를 사용하여 PENDING 상태로 생성)
         Payment payment = paymentRepository.findByOrderId(request.orderId())
             .orElseGet(() -> {
-                log.info("결제 내역이 없어 객체를 새로 생성합니다. orderId: {}", request.orderId());
                 return Payment.of(request.orderId(), request.userId(), response.price());
             });
 
@@ -60,7 +59,6 @@ public class BootPayServiceImpl {
         }
 
         // 4. 결제 정보 업데이트 (결제 완료 처리)
-        log.info("부트페이 승인 응답 상세: {}", response); // response 전체 구조 확인
         payment.paid(PaymentProvider.BOOTPAY, PaymentMethod.from(response.methodSymbol()));
         payment.assignPgTxId(response.receiptId());
 
@@ -88,9 +86,6 @@ public class BootPayServiceImpl {
             // 3. 결제 엔티티 상태 변경 (PAID -> CANCELED)
             payment.cancel();
             paymentRepository.save(payment);
-
-            log.info("부트페이 결제 취소 완료: orderId={}, receiptId={}",
-                request.orderId(), payment.getPgTxId());
 
             return PaymentResponse.fromEntity(payment);
         } catch (Exception e) {
