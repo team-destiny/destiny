@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bootpay Checkout</title>
+  <script src="https://js.bootpay.co.kr/bootpay-5.2.2.min.js" type="application/javascript"></script>
+  <style>
+    body {
+      background-color: #5555cc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding-top: 50px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      width: 90%;
+      max-width: 450px;
+    }
+    h3 { margin-top: 0; margin-bottom: 24px; font-size: 20px; font-weight: 700; color: #191f28; text-align: left; }
+    .input-group { margin-bottom: 20px; }
+    .input-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #4e5968; }
+    .input-group input { width: 100%; padding: 12px; font-size: 15px; border: 1px solid #d1d6db; border-radius: 8px; box-sizing: border-box; }
+    #payment-button { width: 100%; padding: 16px; background-color: #5555cc; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; }
+    .info-text { color: #6b7684; font-size: 13px; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h3>부트페이 결제</h3>
+  <div class="input-group">
+    <label for="userId">사용자 ID (UUID)</label>
+    <input type="text" id="userId" placeholder="사용자 ID(UUID)를 입력하세요" />
+  </div>
+  <div class="input-group">
+    <label for="orderId">주문 번호 (UUID)</label>
+    <input type="text" id="orderId" placeholder="예: 0dbc7849-655f-45d1-8897-19e8e659c0ff" />
+  </div>
+  <div class="input-group">
+    <label for="finalAmount">최종 결제 금액</label>
+    <input type="number" id="finalAmount" placeholder="결제 금액을 입력하세요" />
+  </div>
+  <p class="info-text">아래 버튼을 누르면 부트페이 결제창이 호출됩니다.</p>
+  <button id="payment-button">결제하기</button>
+</div>
+
+<script th:inline="javascript">
+  const button = document.getElementById("payment-button");
+
+  button.addEventListener("click", async function () {
+    const userIdVal = document.getElementById("userId").value.trim();
+    const orderIdVal = document.getElementById("orderId").value.trim();
+    const amountVal = parseInt(document.getElementById("finalAmount").value);
+
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!userIdVal || !orderIdVal || isNaN(amountVal) || !uuidRegex.test(orderIdVal)) {
+      alert("모든 정보를 정확한 형식으로 입력해주세요.");
+      return;
+    }
+
+    const appId = [[${applicationId}]];
+
+    try {
+      console.log("결제창 호출 시도...");
+      const response = await Bootpay.requestPayment({
+        "application_id": appId,
+        "price": amountVal,
+        "order_name": "부트페이 테스트 주문",
+        "order_id": orderIdVal,
+        "pg": "kakao",
+        "method": "easy",
+        "user": {
+          "id": userIdVal,
+          "username": "테스트유저"
+        },
+        "extra": {
+          "open_type": "iframe",
+          "separately_confirmed": true,
+          "sandbox": true
+        }
+      });
+
+      console.log("부트페이 응답 수신:", response.event);
+
+      switch (response.event) {
+        case 'confirm':
+        case 'done':
+          console.log("인증 완료됨. 서버 승인 프로세스 시작...");
+
+          // [수정 포인트] receipt_id를 찾는 안전한 방법
+          const receiptId = response.receipt_id || (response.data && response.data.receipt_id);
+
+          if (!receiptId) {
+            console.error("영수증 ID를 찾을 수 없습니다. 응답 전체:", response);
+            alert("결제 정보를 가져오지 못했습니다.");
+            break;
+          }
+
+          const requestPayload = {
+            orderId: orderIdVal,
+            receiptId: receiptId, // 찾은 ID 사용
+            userId: userIdVal
+          };
+
+          console.log("서버로 보낼 데이터:", requestPayload);
+
+          const serverResponse = await fetch("http://localhost:18130/v1/payments/bootpay/confirm", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestPayload)
+          });
+
+          if (serverResponse.ok) {
+            console.log("결제 승인 성공");
+            window.location.href = `/v1/payments/bootpay/success?receipt_id=${receiptId}&orderId=${orderIdVal}`;
+          } else {
+            const errorMsg = await serverResponse.text();
+            console.error("서버 승인 실패:", errorMsg);
+            alert("서버 저장 실패: " + errorMsg);
+          }
+          break;
+
+        case 'error':
+          console.error("결제 에러 발생:", response.message);
+          alert("결제 에러: " + response.message);
+          break;
+
+        case 'cancel':
+          console.log("사용자가 결제를 취소했습니다.");
+          break;
+      }
+    } catch (e) {
+      console.error("Bootpay SDK 실행 오류:", e);
+    }
+  });
+</script>
+</body>
+</html>
