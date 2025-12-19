@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Version;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,6 +25,7 @@ public class Stock extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(nullable = false)
     private UUID productId;
 
     @Column(nullable = false)
@@ -36,8 +38,15 @@ public class Stock extends BaseEntity {
     private Long version;
 
     public Stock(UUID productId, Integer quantity) {
-        this.productId = productId;
+
+        this.productId = Objects.requireNonNull(productId, "productId must not be null");
+
+        if (quantity < 0) {
+            throw new IllegalArgumentException("quantity must not be negative");
+        }
+
         this.totalQuantity = quantity;
+
         this.reservedQuantity = 0;
     }
 
@@ -61,6 +70,11 @@ public class Stock extends BaseEntity {
     }
 
     public void cancelReservation(int amount) {
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("cancel amount must be positive");
+        }
+
         if (reservedQuantity < amount) {
             throw new IllegalStateException("Invalid reservation cancel");
         }
@@ -69,6 +83,11 @@ public class Stock extends BaseEntity {
     }
 
     public void commitReservation(int amount) {
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("commit amount must be positive");
+        }
+
         if (reservedQuantity < amount) {
             throw new IllegalStateException("Not enough reserved stock");
         }
@@ -83,6 +102,7 @@ public class Stock extends BaseEntity {
     }
 
     public void restoreConfirmed(int quantity) {
+
         if (quantity <= 0) {
             throw new IllegalArgumentException("cancel quantity must be positive");
         }
