@@ -1,14 +1,20 @@
 package com.destiny.couponservice;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+
+import com.destiny.couponservice.application.service.exception.CouponTemplateErrorCode;
 import com.destiny.couponservice.application.service.impl.CouponTemplateServiceImpl;
 import com.destiny.couponservice.domain.entity.CouponTemplate;
 import com.destiny.couponservice.domain.enums.DiscountType;
 import com.destiny.couponservice.domain.repository.CouponTemplateRepository;
 import com.destiny.couponservice.presentation.dto.request.CouponTemplateCreateRequest;
 import com.destiny.couponservice.presentation.dto.response.CouponTemplateCreateResponse;
+import com.destiny.global.exception.BizException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -64,7 +70,6 @@ class CouponTemplateTest {
             .availableTo(req.getAvailableTo())
             .build();
 
-
         // Service가 create()를 호출하면 saved 객체를 돌려주게 설정
         given(couponTemplateRepository.create(any(CouponTemplate.class))).willReturn(saved);
 
@@ -87,4 +92,46 @@ class CouponTemplateTest {
         assertThat(passed.getDiscountValue()).isEqualTo(3000);
         assertThat(passed.getMinOrderAmount()).isEqualTo(10000);
     }
+
+    // 중복 코드 예외 테스트
+    /*
+      쿠폰 코드가 이미 존재하면
+      create()를 호출하지않고
+      BizException(DUPLICATE_TEMPLATE_CODE) 던지는지 검증
+     */
+
+    @Test
+    @DisplayName("쿠폰 템플릿 생성 실패- 중복된 코드")
+    void create_duplicateCode_throwsException() {
+
+        // given
+        CouponTemplateCreateRequest req = CouponTemplateCreateRequest.builder()
+            .code("BLACK FRIDAY2025")
+            .name("중복 쿠폰")
+            .discountType(DiscountType.FIXED)
+            .discountValue(3000)
+            .minOrderAmount(10000)
+            .maxDiscountAmount(null)
+            .availableFrom(LocalDateTime.now())
+            .availableTo(LocalDateTime.now().plusDays(7))
+            .build();
+
+        // 이 코드의 쿠폰은 "이미 존재함"이라고 가정
+        given(couponTemplateRepository.existsByCode("BLACK FRIDAY2025")).willReturn(true);
+
+        //when
+        BizException ex = assertThrows(
+            BizException.class,
+            () -> couponTemplateServiceImpl.create(req)
+        );
+
+        // then
+        assertThat(ex.getResponseCode())
+            .isEqualTo(CouponTemplateErrorCode.DUPLICATE_TEMPLATE_CODE);
+
+        verify(couponTemplateRepository, never())
+            .create(any(CouponTemplate.class));
+
+    }
+
 }
