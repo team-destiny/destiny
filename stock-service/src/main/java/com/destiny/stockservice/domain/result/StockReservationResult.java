@@ -8,7 +8,8 @@ import lombok.Getter;
 public enum StockReservationResult {
 
     RESERVED("재고 예약에 성공했습니다"),
-    INVALID_REQUEST("잘못된 재고 요청입니다"),
+    INVALID_REQUEST("잘못된 재고 요청입니다."),
+    INVALID_ORDER_ID_REQUEST("재고 예약시 주문 아이디가 유효하지 않습니다."),
     OUT_OF_STOCK("재고가 부족합니다."),
     ALREADY_RESERVED("이미 예약된 재고입니다.");
 
