@@ -13,17 +13,14 @@ public enum PaymentMethod {
         return methods[(int)(Math.random() * methods.length)];
     }
 
-    public static PaymentMethod from(String tossMethod) {
-        if (tossMethod == null) {
-            return ETC;
-        }
-
-        return switch (tossMethod) {
-            case "카드" -> CARD;
-            case "가상계좌" -> VIRTUAL_ACCOUNT;
-            case "계좌이체" -> BANK_TRANSFER;
-            case "간편결제" -> EASY_PAY;
-            case "휴대폰" -> MOBILE;
+    public static PaymentMethod from(String method) {
+        if (method == null) return ETC;
+        return switch (method) {
+            case "카드", "card" -> CARD;
+            case "가상계좌", "vbank" -> VIRTUAL_ACCOUNT;
+            case "계좌이체", "bank", "transfer" -> BANK_TRANSFER;
+            case "간편결제", "easy_pay" -> EASY_PAY;
+            case "휴대폰", "phone" -> MOBILE;
             default -> ETC;
         };
     }
