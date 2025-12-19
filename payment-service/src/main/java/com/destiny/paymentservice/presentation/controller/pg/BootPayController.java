@@ -1,11 +1,15 @@
 package com.destiny.paymentservice.presentation.controller.pg;
 
+import com.destiny.global.response.ApiResponse;
 import com.destiny.paymentservice.application.service.impl.pg.BootPayServiceImpl;
 import com.destiny.paymentservice.infrastructure.config.BootPayProperties;
+import com.destiny.paymentservice.presentation.code.PaymentSuccessCode;
+import com.destiny.paymentservice.presentation.dto.request.pg.bootpay.BootPayCancelRequest;
 import com.destiny.paymentservice.presentation.dto.request.pg.bootpay.BootPayConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -48,5 +52,15 @@ public class BootPayController {
         model.addAttribute("receiptId", receipt_id);
         model.addAttribute("orderId", orderId);
         return "bootpay/success";
+    }
+    /**
+     * [API] 결제 취소 요청
+     */
+    @PostMapping("/cancel")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<PaymentResponse>> cancel(@RequestBody BootPayCancelRequest request) {
+        log.info("부트페이 취소 요청 접수: orderId={}", request.orderId());
+        PaymentResponse response = bootPayService.cancelPayment(request);
+        return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CANCEL_SUCCESS, response));
     }
 }

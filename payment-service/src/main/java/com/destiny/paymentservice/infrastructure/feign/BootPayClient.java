@@ -19,4 +19,11 @@ public interface BootPayClient {
         @RequestHeader("Accept") String accept,
         @RequestBody BootPayConfirmPayload payload
     );
+
+    // BootPayClient.java 인터페이스 내부에 추가
+    @PostMapping(value = "/v2/cancel", consumes = "application/json")
+    BootPayReceiptResponse cancelPayment(
+        @RequestHeader("Authorization") String token,
+        @RequestBody BootPayCancelPayload payload
+    );
 }
