@@ -1,4 +1,4 @@
-package com.destiny.stockservice.application.dto.stock.cancel;
+package com.destiny.stockservice.application.dto.event.cancel;
 
 import java.util.UUID;
 

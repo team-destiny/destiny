@@ -1,4 +1,4 @@
-package com.destiny.stockservice.application.dto;
+package com.destiny.stockservice.application.dto.stock;
 
 import com.destiny.stockservice.domain.entity.Stock;
 import java.util.UUID;
