@@ -96,7 +96,6 @@
         case 'done':
           console.log("인증 완료됨. 서버 승인 프로세스 시작...");
 
-          // [수정 포인트] receipt_id를 찾는 안전한 방법
           const receiptId = response.receipt_id || (response.data && response.data.receipt_id);
 
           if (!receiptId) {
@@ -113,6 +112,7 @@
 
           console.log("서버로 보낼 데이터:", requestPayload);
 
+          // TODO: 포트번호 8080으로 추후 수정
           const serverResponse = await fetch("http://localhost:18130/v1/payments/bootpay/confirm", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

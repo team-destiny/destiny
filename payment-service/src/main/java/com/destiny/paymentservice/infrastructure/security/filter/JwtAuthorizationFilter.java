@@ -29,7 +29,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        // 부트페이 confirm 요청은 JWT 검사를 건너뜁니다.
+        // TODO: 추후 해당 url만 허용하도록 수정, 부트페이 confirm 요청은 JWT 검사를 건너뜁니다.
         if (path.startsWith("/v1/payments/bootpay/")) {
             filterChain.doFilter(request, response);
             return;
