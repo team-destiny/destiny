@@ -152,7 +152,7 @@ class CouponTemplateTest {
             .name("날짜 오류 쿠폰")
             .discountType(DiscountType.FIXED)
             .discountValue(3000)
-            .discountValue(10000)
+            .minOrderAmount(10000)
             .maxDiscountAmount(null)
             .availableFrom(from)
             .availableTo(to)

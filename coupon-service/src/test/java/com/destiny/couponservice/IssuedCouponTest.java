@@ -129,7 +129,7 @@ class IssuedCouponTest {
         CouponTemplate template = CouponTemplate.builder()
             .id(templateId)
             .availableFrom(LocalDateTime.now().plusDays(1))
-            .availableTo(LocalDateTime.now())
+            .availableTo(LocalDateTime.now().plusDays(10))
             .build();
 
         given(couponTemplateRepository.findById(templateId))
