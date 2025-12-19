@@ -242,7 +242,7 @@ class CouponTemplateTest {
             .build();
 
         // 중복 코드 체크
-        given(couponTemplateRepository.existsByCode("RATE_INVALID")).willReturn(false);
+        given(couponTemplateRepository.existsByCode("RATE_MISSING_MAX_DISCOUNT")).willReturn(false);
 
         // when
         BizException ex = assertThrows(
