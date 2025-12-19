@@ -177,4 +177,85 @@ class CouponTemplateTest {
         verify(couponTemplateRepository, never())
             .create(any(CouponTemplate.class));
     }
+
+    // 정률 할인 - 할인율 범위 오류 테스트
+    /*
+        RATE(정률)할인인데
+        할인률이 1~100 범위 벗어나면
+        INVALID_DISCOUNT_VALUE 예외 발생
+     */
+
+    @Test
+    @DisplayName("쿠폰 템플릿 생성 실패 - 정률 할인 값 범위 오류")
+    void create_rateDiscountValueInvalid_throwsException() {
+
+        // given
+        CouponTemplateCreateRequest req = CouponTemplateCreateRequest.builder()
+            .code("RATE_INVALID")
+            .name("정률 할인 오류 쿠폰")
+            .discountType(DiscountType.RATE)
+            .discountValue(0) // 1~100 범위 아님
+            .minOrderAmount(10000)
+            .maxDiscountAmount(5000)
+            .availableFrom(LocalDateTime.now())
+            .availableTo(LocalDateTime.now().plusDays(7))
+            .build();
+
+        // 중복 코드 체크
+        given(couponTemplateRepository.existsByCode("RATE_INVALID")).willReturn(false);
+
+        // when
+        BizException ex = assertThrows(
+            BizException.class,
+            () -> couponTemplateServiceImpl.create(req)
+        );
+
+        // then
+        assertThat(ex.getResponseCode())
+            .isEqualTo(CouponTemplateErrorCode.INVALID_DISCOUNT_VALUE);
+
+        // 저장 로직 호출 x
+        verify(couponTemplateRepository, never())
+            .create(any(CouponTemplate.class));
+    }
+
+    // 정률 할인 - maxDiscountAmount 누락 테스트
+    /*
+        정률 할인인데 maxDiscountAmount(최대 할인 금액) == null 이면
+        MISSING_MAX_DISCOUNT 예외 발생
+     */
+
+    @Test
+    @DisplayName("쿠폰 템플릿 생성 실패 - 정률 할인 최대 할인 금액 누락")
+    void create_rateMissingMaxDiscount_throwsException(){
+
+        // given
+        CouponTemplateCreateRequest req = CouponTemplateCreateRequest.builder()
+            .code("RATE_MISSING_MAX_DISCOUNT")
+            .name("정률 최대 할인 누락 쿠폰")
+            .discountType(DiscountType.RATE)
+            .discountValue(10)
+            .minOrderAmount(10000)
+            .maxDiscountAmount(null) // 필수값 누락
+            .availableFrom(LocalDateTime.now())
+            .availableTo(LocalDateTime.now().plusDays(7))
+            .build();
+
+        // 중복 코드 체크
+        given(couponTemplateRepository.existsByCode("RATE_INVALID")).willReturn(false);
+
+        // when
+        BizException ex = assertThrows(
+            BizException.class,
+            () -> couponTemplateServiceImpl.create(req)
+        );
+
+        // then
+        assertThat(ex.getResponseCode())
+            .isEqualTo(CouponTemplateErrorCode.MISSING_MAX_DISCOUNT);
+
+        // 저장 로직 호출 x
+        verify(couponTemplateRepository, never())
+            .create(any(CouponTemplate.class));
+    }
 }
