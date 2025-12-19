@@ -249,7 +249,7 @@ class IssuedCouponTest {
         verify(issuedCouponRepository, never())
             .save(any(IssuedCoupon.class));
 
-        // 소진이면 수량 감소로직 호출 x
+        // 수량 감소를 시도했고, 결과가 0이면 소진으로 판단
         verify(couponTemplateRepository).
             decreaseIssueLimit(templateId);
     }
