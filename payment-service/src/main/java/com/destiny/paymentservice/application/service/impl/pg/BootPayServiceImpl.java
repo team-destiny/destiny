@@ -8,10 +8,12 @@ import com.destiny.paymentservice.domain.vo.PaymentMethod;
 import com.destiny.paymentservice.domain.vo.PaymentProvider;
 import com.destiny.paymentservice.domain.vo.PaymentStatus;
 import com.destiny.paymentservice.infrastructure.config.BootPayProperties;
+import com.destiny.paymentservice.infrastructure.feign.BootPayCancelPayload;
 import com.destiny.paymentservice.infrastructure.feign.BootPayClient;
 import com.destiny.paymentservice.infrastructure.feign.BootPayConfirmPayload;
 import com.destiny.paymentservice.infrastructure.feign.BootPayTokenRequest;
 import com.destiny.paymentservice.infrastructure.feign.BootPayTokenResponse;
+import com.destiny.paymentservice.presentation.dto.request.pg.bootpay.BootPayCancelRequest;
 import com.destiny.paymentservice.presentation.dto.request.pg.bootpay.BootPayConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 import com.destiny.paymentservice.presentation.dto.response.pg.BootPayReceiptResponse;
@@ -68,9 +70,37 @@ public class BootPayServiceImpl {
         return PaymentResponse.fromEntity(payment);
     }
 
+    @Transactional
+    public PaymentResponse cancelPayment(BootPayCancelRequest request) {
+        // 1. DB에서 주문 번호로 결제 내역 조회
+        Payment payment = paymentRepository.findByOrderId(request.orderId())
+            .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        // 2. 부트페이 액세스 토큰 가져오기
+        String accessToken = getAccessToken();
+
+        try {
+            BootPayReceiptResponse response = bootPayClient.cancelPayment(
+                "Bearer " + accessToken,
+                new BootPayCancelPayload(payment.getPgTxId(), request.cancelPrice(), request.cancelReason())
+            );
+
+            // 3. 결제 엔티티 상태 변경 (PAID -> CANCELED)
+            payment.cancel();
+            paymentRepository.save(payment);
+
+            log.info("부트페이 결제 취소 완료: orderId={}, receiptId={}",
+                request.orderId(), payment.getPgTxId());
+
+            return PaymentResponse.fromEntity(payment);
+        } catch (Exception e) {
+            log.error("부트페이 취소 요청 중 오류 발생: {}", e.getMessage());
+            throw e;
+        }
+    }
+
     private String getAccessToken() {
-        log.info("Token Request - RestKey: {}, PrivateKey: {}",
-            bootPayProperties.getRestApiKey(), bootPayProperties.getPrivateKey());
+        log.info("Token Request - RestKey: {}, PrivateKey: {}", bootPayProperties.getRestApiKey(), bootPayProperties.getPrivateKey());
 
         BootPayTokenResponse response = bootPayClient.getAccessToken(new BootPayTokenRequest(
             bootPayProperties.getRestApiKey(),
