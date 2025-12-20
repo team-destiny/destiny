@@ -1,5 +1,6 @@
 package com.destiny.notificationservice.infrastructure.messaging.consumer;
 
+import com.destiny.notificationservice.application.dto.event.NotificationDlqMessageEvent;
 import com.destiny.notificationservice.application.dto.event.OrderCancelFailedEvent;
 import com.destiny.notificationservice.application.dto.event.OrderCancelRequestedEvent;
 import com.destiny.notificationservice.application.dto.event.OrderCreateSuccessEvent;
@@ -79,5 +80,16 @@ public class NotificationConsumer {
 
         notificationService.sendOrderCancelFailedNotification(event);
 
+    }
+
+    @KafkaListener(topics = "${kafka.topics.dlq-message}")
+    public void handleDlpMessage(String message) throws Exception {
+
+        NotificationDlqMessageEvent event = objectMapper.readValue(message,
+            NotificationDlqMessageEvent.class);
+        log.warn("[Kafka][DLQ] DLQ 메시지 수신: originalTopic={}, dlqTopic={}, retryCount={}",
+            event.originalTopic(), event.dlqTopic(), event.retryCount());
+
+        notificationService.sendDlqNotification(event);
     }
 }

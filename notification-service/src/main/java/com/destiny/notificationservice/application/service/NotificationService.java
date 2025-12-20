@@ -1,5 +1,6 @@
 package com.destiny.notificationservice.application.service;
 
+import com.destiny.notificationservice.application.dto.event.NotificationDlqMessageEvent;
 import com.destiny.notificationservice.application.dto.event.OrderCancelFailedEvent;
 import com.destiny.notificationservice.application.dto.event.OrderCancelRequestedEvent;
 import com.destiny.notificationservice.application.dto.event.SagaCreateFailedEvent;
@@ -32,4 +33,5 @@ public interface NotificationService {
     void sendOrderCancelFailedNotification(OrderCancelFailedEvent event);
 
 
+    void sendDlqNotification(NotificationDlqMessageEvent event);
 }
