@@ -83,7 +83,7 @@ public class NotificationConsumer {
     }
 
     @KafkaListener(topics = "${kafka.topics.dlq-message}")
-    public void handleDlpMessage(String message) throws Exception {
+    public void handleDlqMessage(String message) throws Exception {
 
         NotificationDlqMessageEvent event = objectMapper.readValue(message,
             NotificationDlqMessageEvent.class);
