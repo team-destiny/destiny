@@ -111,6 +111,6 @@ public class Stock extends BaseEntity {
     }
 
     public boolean isSoldOut() {
-        return totalQuantity == 0;
+        return getAvailableQuantity() == 0;
     }
 }
