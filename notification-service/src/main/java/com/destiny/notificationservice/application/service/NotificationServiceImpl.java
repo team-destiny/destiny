@@ -1,5 +1,6 @@
 package com.destiny.notificationservice.application.service;
 
+import com.destiny.notificationservice.application.dto.event.NotificationDlqMessageEvent;
 import com.destiny.notificationservice.application.dto.event.OrderCancelFailedEvent;
 import com.destiny.notificationservice.application.dto.event.OrderCancelRequestedEvent;
 import com.destiny.notificationservice.application.dto.event.OrderCreateSuccessEvent;
@@ -14,9 +15,12 @@ import com.destiny.notificationservice.presentation.dto.request.SagaErrorNotific
 import com.destiny.notificationservice.presentation.dto.response.NotificationLogItemResponse;
 import com.destiny.notificationservice.presentation.dto.response.NotificationLogPageResponse;
 import com.destiny.notificationservice.presentation.dto.response.NotificationResultResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,8 +44,14 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String STATUS_SUCCESS = "SUCCESS";
     private static final String STATUS_FAIL = "FAIL";
 
+    private final StringRedisTemplate stringRedisTemplate;
+
+    private static final String ORDER_BRANDS_KEY_PREFIX = "order:brands:";
+
     @Value("${slack.webhook.admin-url:}")
     private String adminSlackUrl;
+
+    private final ObjectMapper objectMapper;
 
     private final NotificationChannelRepository notificationChannelRepository;
     private final NotificationLogRepository notificationLogRepository;
@@ -82,8 +93,10 @@ public class NotificationServiceImpl implements NotificationService {
         String errorCode,
         String errorMessage
     ) {
-        BrandNotificationChannel channel = notificationChannelRepository.findByBrandId(brandId)
-            .orElse(null);
+        BrandNotificationChannel channel = null;
+        if (brandId != null) {
+            channel = notificationChannelRepository.findByBrandId(brandId).orElse(null);
+        }
 
         String logMessage = sanitizeForLog(message);
 
@@ -358,11 +371,22 @@ public class NotificationServiceImpl implements NotificationService {
                 .collect(Collectors.groupingBy(item ->
                     item.brandId() != null ? item.brandId() : unknownBrandId));
 
+        Set<UUID> brandIds = itemsByBrand.keySet().stream()
+            .filter(id -> id != null && !id.equals(unknownBrandId))
+            .collect(Collectors.toSet());
+
+        cacheOrderBrands(event.orderId(), brandIds);
+
         int totalAmount = (event.finalAmount() == null) ? 0 : event.finalAmount();
 
         itemsByBrand.forEach((brandId, items) -> {
             int totalQuantity = items.stream()
                 .mapToInt(item -> item.stock() != null ? item.stock() : 0)
+                .sum();
+
+            int brandAmount = items.stream()
+                .mapToInt(item -> (item.price() != null ? item.price() : 0) * (item.stock() != null
+                    ? item.stock() : 0))
                 .sum();
 
             String message = String.format(
@@ -371,14 +395,14 @@ public class NotificationServiceImpl implements NotificationService {
                     "유저ID: %s\n" +
                     "브랜드ID: %s\n" +
                     "상품 개수: %d개\n" +
-                    "총 수량: %d개\n" +
-                    "주문 최종 결제 금액: %d원",
+                    "총 주문 수량: %d개\n" +
+                    "브랜드 주문 금액: %d원",
                 event.orderId(),
                 event.userId(),
                 brandId.equals(unknownBrandId) ? "알수없음(NULL)" : brandId,
                 items.size(),
                 totalQuantity,
-                totalAmount
+                brandAmount
             );
 
             sendToSlackAndLog(
@@ -396,12 +420,26 @@ public class NotificationServiceImpl implements NotificationService {
 
         String message = formatOrderCancelRequestedMessage(event);
 
-        sendAdminToSlack(
-            adminSlackUrl,
-            message,
-            null,
-            null
-        );
+        Set<String> brandIdStrings = getCachedBrandIds(event.orderId());
+
+        if (brandIdStrings.isEmpty()) {
+            sendAdminToSlack(
+                adminSlackUrl,
+                message,
+                null,
+                null);
+            return;
+        }
+
+        for (String s : brandIdStrings) {
+            try {
+                UUID brandId = UUID.fromString(s);
+                sendToSlackAndLog(brandId, message, null, null);
+            } catch (IllegalArgumentException e) {
+                log.warn("[Redis] 브랜드ID 캐시 값이 UUID 형식이 아님. orderId={}, cachedValue={}",
+                    event.orderId(), s);
+            }
+        }
     }
 
     private String formatOrderCancelRequestedMessage(OrderCancelRequestedEvent event) {
@@ -446,6 +484,77 @@ public class NotificationServiceImpl implements NotificationService {
         );
     }
 
+    public void sendDlqNotification(NotificationDlqMessageEvent event) {
 
+        String payloadPreview = formatPayloadForSlack(event.messagePayload(), 1000);
+
+        String message = String.format(
+            "🧯 *[DLQ 적재]*\n" +
+                "원본 토픽: %s\n" +
+                "컨슈머 그룹: %s\n" +
+                "재시도: %s회\n" +
+                "예외: %s\n" +
+                "위치: p%s / o%s\n" +
+                "시간: %s\n" +
+                "payload(일부):\n%s",
+            nvl(event.originalTopic()),
+            nvl(event.consumerGroup()),
+            nvl(event.retryCount()),
+            nvl(event.exceptionType()),
+            nvl(event.partitionNumber()),
+            nvl(event.offsetNumber()),
+            nvl(event.createdAt()),
+            payloadPreview
+        );
+
+        sendAdminToSlack(adminSlackUrl, message, "DLQ_MESSAGE", nvl(event.exceptionType()));
+    }
+
+    private String formatPayloadForSlack(String raw, int maxLen) {
+        if (raw == null) return "없음";
+
+        String trimmed = raw.trim();
+        try {
+            Object json = objectMapper.readValue(trimmed, Object.class);
+            String formatted = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
+
+            if (formatted.length() > maxLen) {
+                formatted = formatted.substring(0, maxLen) + "\n(생략)";
+            }
+            return formatted;
+        } catch (Exception ignore) {
+            if (trimmed.length() > maxLen) trimmed = trimmed.substring(0, maxLen) + "(생략)";
+            return trimmed;
+        }
+    }
+
+
+    private void cacheOrderBrands(UUID orderId, Set<UUID> brandIds) {
+        if (orderId == null || brandIds == null || brandIds.isEmpty()) {
+            return;
+        }
+
+        String key = ORDER_BRANDS_KEY_PREFIX + orderId;
+
+        stringRedisTemplate.delete(key);
+
+        for (UUID brandId : brandIds) {
+            if (brandId != null) {
+                stringRedisTemplate.opsForSet().add(key, brandId.toString());
+            }
+        }
+
+        stringRedisTemplate.expire(key, Duration.ofDays(7));
+    }
+
+    private Set<String> getCachedBrandIds(UUID orderId) {
+        if (orderId == null) {
+            return Set.of();
+        }
+        String key = ORDER_BRANDS_KEY_PREFIX + orderId;
+
+        Set<String> members = stringRedisTemplate.opsForSet().members(key);
+        return (members == null) ? Set.of() : members;
+    }
 
 }
