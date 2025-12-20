@@ -11,6 +11,7 @@ kafka:
     order-success: notification.order-create-succeed
     order-cancel-requested: notification.order-cancel-requested
     order-cancel-failed: notification.order-cancel-failed
+    dlq-message: notification-dlq-message
 
 spring:
   kafka:
