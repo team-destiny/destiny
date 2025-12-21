@@ -4,8 +4,8 @@ import com.destiny.global.response.ApiResponse;
 import com.destiny.paymentservice.application.service.impl.pg.BootPayServiceImpl;
 import com.destiny.paymentservice.infrastructure.config.BootPayProperties;
 import com.destiny.paymentservice.presentation.code.PaymentSuccessCode;
-import com.destiny.paymentservice.presentation.dto.request.pg.bootpay.BootPayCancelRequest;
-import com.destiny.paymentservice.presentation.dto.request.pg.bootpay.BootPayConfirmRequest;
+import com.destiny.paymentservice.presentation.dto.request.PaymentCancelRequest;
+import com.destiny.paymentservice.presentation.dto.request.PaymentConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,8 +40,7 @@ public class BootPayController {
      */
     @PostMapping("/confirm")
     @ResponseBody
-    public PaymentResponse confirm(@RequestBody BootPayConfirmRequest request) {
-        log.info("부트페이 승인 요청 접수: orderId={}, receiptId={}", request.orderId(), request.receiptId());
+    public PaymentResponse confirm(@RequestBody PaymentConfirmRequest request) {
         return bootPayService.confirmPayment(request);
     }
 
@@ -59,8 +58,7 @@ public class BootPayController {
      */
     @PostMapping("/cancel")
     @ResponseBody
-    public ResponseEntity<ApiResponse<PaymentResponse>> cancel(@Valid @RequestBody BootPayCancelRequest request) {
-        log.info("부트페이 취소 요청 접수: orderId={}", request.orderId());
+    public ResponseEntity<ApiResponse<PaymentResponse>> cancel(@Valid @RequestBody PaymentCancelRequest request) {
         PaymentResponse response = bootPayService.cancelPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CANCEL_SUCCESS, response));
     }

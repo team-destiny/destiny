@@ -2,6 +2,7 @@ package com.destiny.paymentservice.application.service.impl.pg;
 
 import com.destiny.global.exception.BizException;
 import com.destiny.paymentservice.application.exception.PaymentErrorCode;
+import com.destiny.paymentservice.application.service.inter.PaymentService;
 import com.destiny.paymentservice.domain.entity.Payment;
 import com.destiny.paymentservice.domain.repository.PaymentRepository;
 import com.destiny.paymentservice.domain.vo.PaymentMethod;
@@ -12,8 +13,8 @@ import com.destiny.paymentservice.infrastructure.feign.BootPayClient;
 import com.destiny.paymentservice.infrastructure.feign.BootPayConfirmPayload;
 import com.destiny.paymentservice.infrastructure.feign.BootPayTokenRequest;
 import com.destiny.paymentservice.infrastructure.feign.BootPayTokenResponse;
-import com.destiny.paymentservice.presentation.dto.request.pg.bootpay.BootPayCancelRequest;
-import com.destiny.paymentservice.presentation.dto.request.pg.bootpay.BootPayConfirmRequest;
+import com.destiny.paymentservice.presentation.dto.request.PaymentCancelRequest;
+import com.destiny.paymentservice.presentation.dto.request.PaymentConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 import com.destiny.paymentservice.presentation.dto.response.pg.BootPayReceiptResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BootPayServiceImpl {
+public class BootPayServiceImpl implements PaymentService {
 
     private final BootPayClient bootPayClient;
     private final BootPayProperties bootPayProperties;
@@ -35,13 +36,13 @@ public class BootPayServiceImpl {
     }
 
     @Transactional
-    public PaymentResponse confirmPayment(BootPayConfirmRequest request) {
+    public PaymentResponse confirmPayment(PaymentConfirmRequest request) {
 
         // 부트페이 토큰 및 승인 요청
         BootPayReceiptResponse response = bootPayClient.confirmPayment(
             "Bearer " + getAccessToken(),
             "application/json",
-            new BootPayConfirmPayload(request.receiptId(), bootPayProperties.getRestApiKey())
+            new BootPayConfirmPayload(request.pgTxId(), bootPayProperties.getRestApiKey())
         );
 
         Payment payment = paymentRepository.findByOrderId(request.orderId())
@@ -58,13 +59,13 @@ public class BootPayServiceImpl {
     }
 
     @Transactional
-    public PaymentResponse cancelPayment(BootPayCancelRequest request) {
+    public PaymentResponse cancelPayment(PaymentCancelRequest request) {
         Payment payment = paymentRepository.findByOrderId(request.orderId())
             .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         bootPayClient.cancelPayment(
             "Bearer " + getAccessToken(),
-            new BootPayCancelPayload(payment.getPgTxId(), request.cancelPrice(), request.cancelReason())
+            new BootPayCancelPayload(payment.getPgTxId(), request.amount(), request.reason())
         );
 
         payment.cancel();

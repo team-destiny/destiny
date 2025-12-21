@@ -4,8 +4,8 @@ import com.destiny.global.response.ApiResponse;
 import com.destiny.paymentservice.application.service.impl.pg.PortOneServiceImpl;
 import com.destiny.paymentservice.infrastructure.config.PortOneProperties;
 import com.destiny.paymentservice.presentation.code.PaymentSuccessCode;
-import com.destiny.paymentservice.presentation.dto.request.pg.portone.PortOneCancelRequest;
-import com.destiny.paymentservice.presentation.dto.request.pg.portone.PortOneConfirmRequest;
+import com.destiny.paymentservice.presentation.dto.request.PaymentCancelRequest;
+import com.destiny.paymentservice.presentation.dto.request.PaymentConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +43,7 @@ public class PortOneController {
      */
     @PostMapping("/confirm")
     @ResponseBody
-    public ResponseEntity<ApiResponse<PaymentResponse>> confirm(@Valid @RequestBody PortOneConfirmRequest request) {
+    public ResponseEntity<ApiResponse<PaymentResponse>> confirm(@Valid @RequestBody PaymentConfirmRequest request) {
         PaymentResponse response = portOneService.confirmPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRM_SUCCESS, response));
     }
@@ -54,7 +54,7 @@ public class PortOneController {
      */
     @PostMapping("/cancel")
     @ResponseBody
-    public ResponseEntity<ApiResponse<PaymentResponse>> cancel(@Valid @RequestBody PortOneCancelRequest request) {
+    public ResponseEntity<ApiResponse<PaymentResponse>> cancel(@Valid @RequestBody PaymentCancelRequest request) {
         PaymentResponse response = portOneService.cancelPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CANCEL_SUCCESS, response));
     }
