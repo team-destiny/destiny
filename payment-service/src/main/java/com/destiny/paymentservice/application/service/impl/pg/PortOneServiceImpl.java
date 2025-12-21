@@ -41,18 +41,17 @@ public class PortOneServiceImpl {
         String authHeader = "PortOne " + portOneProperties.getApiSecret();
 
         // 2. 포트원 서버에 결제 단건 조회 호출
-        PortOneResponse portOne = portOneClient.getPayment(authHeader, request.paymentId());
+        PortOneResponse response = portOneClient.getPayment(authHeader, request.paymentId());
 
         // 3. 포트원 응답 상태 확인 (PAID 인지 확인)
-        if (!"PAID".equals(portOne.status())) {
-            log.error("포트원 결제가 완료되지 않았습니다. 상태: {}", portOne.status());
+        if (!"PAID".equals(response.status())) {
+            log.error("포트원 결제가 완료되지 않았습니다. 상태: {}", response.status());
             throw new BizException(PaymentErrorCode.PAYMENT_CONFIRM_FAILED);
         }
 
         // 4. 금액 검증 (DB 주문 금액 vs 포트원 실제 결제 금액)
         // 위변조 방지를 위해 서버 측에서 반드시 금액을 비교해야 합니다.
-        if (!portOne.amount().total().equals(request.amount())) {
-            log.error("결제 금액이 일치하지 않습니다. 요청: {}, 실제: {}", request.amount(), portOne.amount().total());
+        if (!response.amount().total().equals(request.amount())) {
             throw new BizException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
@@ -64,19 +63,13 @@ public class PortOneServiceImpl {
         });
 
         // 6. 결제 엔티티 생성 또는 업데이트
-        // (기존에 PENDING 데이터가 없다면 새로 생성, 있다면 조회 후 업데이트)
-        Payment payment = Payment.of(request.orderId(), request.userId(), portOne.amount().total());
+        Payment payment = Payment.of(request.orderId(), request.userId(), response.amount().total());
 
-        // 7. 결제 완료 정보 저장
-        // PortOneResponse에서 받은 결제 수단 타입을 우리 시스템의 Value Object로 변환하여 저장
-        payment.paid(PaymentProvider.PORTONE, PaymentMethod.from(portOne.method().type()));
-        payment.assignPgTxId(portOne.id()); // pgTxId에 포트원의 paymentId 저장
+        payment.validatePayableStatus();
+        payment.validateAmount(response.amount().total());
+        payment.completePayment(PaymentProvider.PORTONE, PaymentMethod.from(response.method().type()), response.id());
 
-        paymentRepository.save(payment);
-
-        log.info("포트원 결제 검증 및 저장 완료: {}", payment.getPgTxId());
-
-        return PaymentResponse.fromEntity(payment);
+        return PaymentResponse.fromEntity(paymentRepository.save(payment));
     }
 
     @Transactional

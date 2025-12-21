@@ -6,7 +6,6 @@ import com.destiny.paymentservice.domain.entity.Payment;
 import com.destiny.paymentservice.domain.repository.PaymentRepository;
 import com.destiny.paymentservice.domain.vo.PaymentMethod;
 import com.destiny.paymentservice.domain.vo.PaymentProvider;
-import com.destiny.paymentservice.domain.vo.PaymentStatus;
 import com.destiny.paymentservice.infrastructure.config.BootPayProperties;
 import com.destiny.paymentservice.infrastructure.feign.BootPayCancelPayload;
 import com.destiny.paymentservice.infrastructure.feign.BootPayClient;
@@ -17,8 +16,6 @@ import com.destiny.paymentservice.presentation.dto.request.pg.bootpay.BootPayCan
 import com.destiny.paymentservice.presentation.dto.request.pg.bootpay.BootPayConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 import com.destiny.paymentservice.presentation.dto.response.pg.BootPayReceiptResponse;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,65 +30,45 @@ public class BootPayServiceImpl {
     private final BootPayProperties bootPayProperties;
     private final PaymentRepository paymentRepository;
 
-    public PaymentProvider getProvider() {
+    public PaymentProvider supports() {
         return PaymentProvider.BOOTPAY;
     }
 
     @Transactional
     public PaymentResponse confirmPayment(BootPayConfirmRequest request) {
-        String accessToken = getAccessToken();
 
+        // 부트페이 토큰 및 승인 요청
         BootPayReceiptResponse response = bootPayClient.confirmPayment(
-            "Bearer " + accessToken,
+            "Bearer " + getAccessToken(),
             "application/json",
             new BootPayConfirmPayload(request.receiptId(), bootPayProperties.getRestApiKey())
         );
 
-        // 2. DB 주문 조회 (없으면 정적 팩토리 메서드 'of'를 사용하여 PENDING 상태로 생성)
         Payment payment = paymentRepository.findByOrderId(request.orderId())
             .orElseGet(() -> {
                 return Payment.of(request.orderId(), request.userId(), response.price());
             });
 
-        // 3. 금액 검증
-        if (!payment.getAmount().equals(response.price())) {
-            throw new BizException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
-        }
+        // 3. 금액 검증 및 완료 처리
+        payment.validatePayableStatus();
+        payment.validateAmount(response.price());
+        payment.completePayment(PaymentProvider.BOOTPAY, PaymentMethod.from(response.methodSymbol()), response.receiptId());
 
-        // 4. 결제 정보 업데이트 (결제 완료 처리)
-        payment.paid(PaymentProvider.BOOTPAY, PaymentMethod.from(response.methodSymbol()));
-        payment.assignPgTxId(response.receiptId());
-
-        // 5. 최종 결과 저장
-        paymentRepository.save(payment);
-
-        return PaymentResponse.fromEntity(payment);
+        return PaymentResponse.fromEntity(paymentRepository.save(payment));
     }
 
     @Transactional
     public PaymentResponse cancelPayment(BootPayCancelRequest request) {
-        // 1. DB에서 주문 번호로 결제 내역 조회
         Payment payment = paymentRepository.findByOrderId(request.orderId())
             .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
-        // 2. 부트페이 액세스 토큰 가져오기
-        String accessToken = getAccessToken();
+        bootPayClient.cancelPayment(
+            "Bearer " + getAccessToken(),
+            new BootPayCancelPayload(payment.getPgTxId(), request.cancelPrice(), request.cancelReason())
+        );
 
-        try {
-            BootPayReceiptResponse response = bootPayClient.cancelPayment(
-                "Bearer " + accessToken,
-                new BootPayCancelPayload(payment.getPgTxId(), request.cancelPrice(), request.cancelReason())
-            );
-
-            // 3. 결제 엔티티 상태 변경 (PAID -> CANCELED)
-            payment.cancel();
-            paymentRepository.save(payment);
-
-            return PaymentResponse.fromEntity(payment);
-        } catch (Exception e) {
-            log.error("부트페이 취소 요청 중 오류 발생: {}", e.getMessage());
-            throw e;
-        }
+        payment.cancel();
+        return PaymentResponse.fromEntity(paymentRepository.save(payment));
     }
 
     private String getAccessToken() {
@@ -99,7 +76,6 @@ public class BootPayServiceImpl {
             bootPayProperties.getRestApiKey(),
             bootPayProperties.getPrivateKey()
         ));
-
         return response.access_token();
     }
 }
