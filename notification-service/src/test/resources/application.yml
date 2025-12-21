@@ -1,0 +1,12 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
+
+slack:
+  webhook:
+    admin-url: https://hooks.slack.com/test
