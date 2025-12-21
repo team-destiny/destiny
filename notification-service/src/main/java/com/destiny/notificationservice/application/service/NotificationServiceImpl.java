@@ -17,6 +17,7 @@ import com.destiny.notificationservice.presentation.dto.response.NotificationLog
 import com.destiny.notificationservice.presentation.dto.response.NotificationResultResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -180,7 +181,6 @@ public class NotificationServiceImpl implements NotificationService {
         );
 
     }
-
 
 
     private void saveLog(
@@ -367,11 +367,15 @@ public class NotificationServiceImpl implements NotificationService {
 
         UUID unknownBrandId = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
+        if (event == null || event.items() == null || event.items().isEmpty()) {
+            log.warn("[Order] items is empty. orderId={}", event != null ? event.orderId() : null);
+            return;
+        }
+
         Map<UUID, List<OrderCreateSuccessEvent.OrderItem>> itemsByBrand =
             event.items().stream()
                 .collect(Collectors.groupingBy(item ->
                     item.brandId() != null ? item.brandId() : unknownBrandId));
-
 
         int totalOrderAmount = (event.finalAmount() == null) ? 0 : event.finalAmount();
 
@@ -379,27 +383,45 @@ public class NotificationServiceImpl implements NotificationService {
             .mapToInt(item -> item.stock() != null ? item.stock() : 0)
             .sum();
 
-        if (totalOrderQuantity == 0) totalOrderQuantity = 1;
+        if (totalOrderQuantity <= 0) {
+            log.warn("[Order] 주문 아이템이 없거나 수량이 0입니다. orderId={}", event.orderId());
+            return;
+        }
 
-
-        int finalTotalQuantity = totalOrderQuantity;
 
         long realBrandCount = itemsByBrand.keySet().stream()
             .filter(id -> id != null && !id.equals(unknownBrandId))
             .count();
 
-        itemsByBrand.forEach((brandId, items) -> {
+        List<Map.Entry<UUID, List<OrderCreateSuccessEvent.OrderItem>>> brandList =
+            new ArrayList<>(itemsByBrand.entrySet());
+
+        int distributedTotal = 0;
+
+        for (int idx = 0; idx < brandList.size(); idx++) {
+
+            UUID brandId = brandList.get(idx).getKey();
+            List<OrderCreateSuccessEvent.OrderItem> items = brandList.get(idx).getValue();
+
             int brandQuantity = items.stream()
                 .mapToInt(item -> item.stock() != null ? item.stock() : 0)
                 .sum();
 
 
             int brandAmount;
+
             if (realBrandCount <= 1) {
                 brandAmount = totalOrderAmount;
+            } else if (idx == brandList.size() - 1) {
+                brandAmount = Math.max(0, totalOrderAmount - distributedTotal);
             } else {
-                brandAmount = (int) ((long) totalOrderAmount * brandQuantity / finalTotalQuantity);
+                brandAmount = (int) ((long) totalOrderAmount * brandQuantity / totalOrderQuantity);
                 if (brandQuantity > 0 && totalOrderAmount > 0 && brandAmount == 0) brandAmount = 1;
+
+                int remaining = totalOrderAmount - distributedTotal;
+                brandAmount = Math.max(0, Math.min(brandAmount, remaining));
+
+                distributedTotal += brandAmount;
             }
 
             String message = String.format(
@@ -424,7 +446,7 @@ public class NotificationServiceImpl implements NotificationService {
                 null,
                 null
             );
-        });
+        }
     }
 
 
@@ -458,7 +480,9 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private Set<String> getCachedBrandIdsWithRetry(UUID orderId, int attempts, long delayMs) {
-        if (orderId == null) return Set.of();
+        if (orderId == null) {
+            return Set.of();
+        }
 
         String key = ORDER_BRANDS_KEY_PREFIX + orderId;
 
@@ -556,19 +580,24 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private String formatPayloadForSlack(String raw, int maxLen) {
-        if (raw == null) return "없음";
+        if (raw == null) {
+            return "없음";
+        }
 
         String trimmed = raw.trim();
         try {
             Object json = objectMapper.readValue(trimmed, Object.class);
-            String formatted = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
+            String formatted = objectMapper.writerWithDefaultPrettyPrinter()
+                .writeValueAsString(json);
 
             if (formatted.length() > maxLen) {
                 formatted = formatted.substring(0, maxLen) + "\n(생략)";
             }
             return formatted;
         } catch (Exception ignore) {
-            if (trimmed.length() > maxLen) trimmed = trimmed.substring(0, maxLen) + "(생략)";
+            if (trimmed.length() > maxLen) {
+                trimmed = trimmed.substring(0, maxLen) + "(생략)";
+            }
             return trimmed;
         }
     }

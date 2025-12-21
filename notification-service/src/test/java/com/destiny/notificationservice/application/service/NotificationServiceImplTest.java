@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,7 +65,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    @DisplayName("주문 성공 알림 - 브랜드별 금액 계산 및 Redis 저장 확인")
+    @DisplayName("주문 성공 알림 - 브랜드별 금액 계산 및 Slack 전송 확인")
     void sendOrderCreateSuccessNotification() {
         // given: 주문 이벤트 및 브랜드 채널 생성
         UUID orderId = UUID.randomUUID();
@@ -87,17 +88,14 @@ class NotificationServiceImplTest {
         notificationService.sendOrderCreateSuccessNotification(event);
 
         // then
-        // 1. Redis에 브랜드 정보가 저장되었는지 확인
-        verify(redisTemplate).delete("order:brands:" + orderId);
-        verify(setOps).add("order:brands:" + orderId, brandId.toString());
-        verify(redisTemplate).expire(eq("order:brands:" + orderId), any(Duration.class));
+        verify(restTemplate, times(1))
+            .postForEntity(eq("https://brand-webhook"), any(), eq(String.class));
 
-        // 2. Slack 전송이 호출되었는지 확인
-        verify(restTemplate, times(1)).postForEntity(eq("https://brand-webhook"), any(),
-            eq(String.class));
-
-        // 3. 로그 저장이 호출되었는지 확인
         verify(notificationLogRepository, times(1)).save(any());
+
+        verify(redisTemplate, never()).delete(anyString());
+        verify(redisTemplate, never()).expire(anyString(), any(Duration.class));
+        verify(setOps, never()).add(anyString(), anyString());
     }
 
     @Test
