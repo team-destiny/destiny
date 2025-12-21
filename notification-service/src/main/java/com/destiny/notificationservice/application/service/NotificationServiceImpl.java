@@ -38,7 +38,6 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class NotificationServiceImpl implements NotificationService {
 
     private static final String STATUS_SUCCESS = "SUCCESS";
@@ -181,6 +180,8 @@ public class NotificationServiceImpl implements NotificationService {
         );
 
     }
+
+
 
     private void saveLog(
         UUID brandId,
@@ -371,23 +372,35 @@ public class NotificationServiceImpl implements NotificationService {
                 .collect(Collectors.groupingBy(item ->
                     item.brandId() != null ? item.brandId() : unknownBrandId));
 
-        Set<UUID> brandIds = itemsByBrand.keySet().stream()
+
+        int totalOrderAmount = (event.finalAmount() == null) ? 0 : event.finalAmount();
+
+        int totalOrderQuantity = event.items().stream()
+            .mapToInt(item -> item.stock() != null ? item.stock() : 0)
+            .sum();
+
+        if (totalOrderQuantity == 0) totalOrderQuantity = 1;
+
+
+        int finalTotalQuantity = totalOrderQuantity;
+
+        long realBrandCount = itemsByBrand.keySet().stream()
             .filter(id -> id != null && !id.equals(unknownBrandId))
-            .collect(Collectors.toSet());
-
-        cacheOrderBrands(event.orderId(), brandIds);
-
-        int totalAmount = (event.finalAmount() == null) ? 0 : event.finalAmount();
+            .count();
 
         itemsByBrand.forEach((brandId, items) -> {
-            int totalQuantity = items.stream()
+            int brandQuantity = items.stream()
                 .mapToInt(item -> item.stock() != null ? item.stock() : 0)
                 .sum();
 
-            int brandAmount = items.stream()
-                .mapToInt(item -> (item.price() != null ? item.price() : 0) * (item.stock() != null
-                    ? item.stock() : 0))
-                .sum();
+
+            int brandAmount;
+            if (realBrandCount <= 1) {
+                brandAmount = totalOrderAmount;
+            } else {
+                brandAmount = (int) ((long) totalOrderAmount * brandQuantity / finalTotalQuantity);
+                if (brandQuantity > 0 && totalOrderAmount > 0 && brandAmount == 0) brandAmount = 1;
+            }
 
             String message = String.format(
                 "📢 *[신규 주문 알림]*\n" +
@@ -395,13 +408,13 @@ public class NotificationServiceImpl implements NotificationService {
                     "유저ID: %s\n" +
                     "브랜드ID: %s\n" +
                     "상품 개수: %d개\n" +
-                    "총 주문 수량: %d개\n" +
+                    "주문 수량: %d개\n" +
                     "브랜드 주문 금액: %d원",
                 event.orderId(),
                 event.userId(),
                 brandId.equals(unknownBrandId) ? "알수없음(NULL)" : brandId,
                 items.size(),
-                totalQuantity,
+                brandQuantity,
                 brandAmount
             );
 
@@ -420,14 +433,16 @@ public class NotificationServiceImpl implements NotificationService {
 
         String message = formatOrderCancelRequestedMessage(event);
 
-        Set<String> brandIdStrings = getCachedBrandIds(event.orderId());
+        Set<String> brandIdStrings = getCachedBrandIdsWithRetry(event.orderId(), 3, 300);
 
+        // 브랜드 정보가 없을 시 Admin 전송
         if (brandIdStrings.isEmpty()) {
-            sendAdminToSlack(
-                adminSlackUrl,
-                message,
-                null,
-                null);
+            log.warn("[Redis] 주문별 브랜드 캐시 없음(재시도 후). orderId={}", event.orderId());
+
+            // 왜 Admin한테 왔는지
+            String adminMsg = "[브랜드 정보 유실] 캐시 재시도 실패로 관리자에게 전송합니다.\n" + message;
+
+            sendAdminToSlack(adminSlackUrl, adminMsg, "CACHE_MISS", "Redis retry failed");
             return;
         }
 
@@ -440,6 +455,36 @@ public class NotificationServiceImpl implements NotificationService {
                     event.orderId(), s);
             }
         }
+    }
+
+    private Set<String> getCachedBrandIdsWithRetry(UUID orderId, int attempts, long delayMs) {
+        if (orderId == null) return Set.of();
+
+        String key = ORDER_BRANDS_KEY_PREFIX + orderId;
+
+        for (int i = 1; i <= attempts; i++) {
+            Set<String> members = stringRedisTemplate.opsForSet().members(key);
+
+            // 데이터가 있으면 바로 리턴
+            if (members != null && !members.isEmpty()) {
+                if (i > 1) {
+                    log.info("[Redis] 캐시 재시도 성공. orderId={}, attempt={}", orderId, i);
+                }
+                return members;
+            }
+
+            // 없으면 잠깐 대기
+            if (i < attempts) {
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }
+        // 끝까지 없으면 빈 값 리턴
+        return Set.of();
     }
 
     private String formatOrderCancelRequestedMessage(OrderCancelRequestedEvent event) {
@@ -547,14 +592,5 @@ public class NotificationServiceImpl implements NotificationService {
         stringRedisTemplate.expire(key, Duration.ofDays(7));
     }
 
-    private Set<String> getCachedBrandIds(UUID orderId) {
-        if (orderId == null) {
-            return Set.of();
-        }
-        String key = ORDER_BRANDS_KEY_PREFIX + orderId;
-
-        Set<String> members = stringRedisTemplate.opsForSet().members(key);
-        return (members == null) ? Set.of() : members;
-    }
 
 }
