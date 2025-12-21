@@ -291,6 +291,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendSagaCreateFailedNotification(SagaCreateFailedEvent event) {
+        if (event == null) { log.warn("[SagaFailed] event is null"); return; }
+
         String message = String.format(
             "🚨 *[사가 실패 알림]*\n" +
                 "주문ID: %s\n" +
@@ -375,6 +377,7 @@ public class NotificationServiceImpl implements NotificationService {
             return;
         }
 
+
         Map<UUID, List<OrderCreateSuccessEvent.OrderItem>> itemsByBrand =
             event.items().stream()
                 .collect(Collectors.groupingBy(item ->
@@ -391,13 +394,29 @@ public class NotificationServiceImpl implements NotificationService {
             return;
         }
 
-
-        long realBrandCount = itemsByBrand.keySet().stream()
+        Set<UUID> brandIds = itemsByBrand.keySet().stream()
             .filter(id -> id != null && !id.equals(unknownBrandId))
-            .count();
+            .collect(Collectors.toSet());
+
+        cacheOrderBrands(event.orderId(), brandIds);
+
 
         List<Map.Entry<UUID, List<OrderCreateSuccessEvent.OrderItem>>> brandList =
-            new ArrayList<>(itemsByBrand.entrySet());
+            itemsByBrand.entrySet().stream()
+                .filter(e -> e.getKey() != null && !e.getKey().equals(unknownBrandId))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        int totalRealBrandQuantity = brandList.stream()
+            .flatMap(e -> e.getValue().stream())
+            .mapToInt(i -> i.stock() != null ? i.stock() : 0)
+            .sum();
+
+        if (totalRealBrandQuantity <= 0) {
+            log.warn("[Order] real brand quantity is 0. orderId={}", event.orderId());
+            return;
+        }
+
+        int realBrandCount = brandList.size();
 
         int distributedTotal = 0;
 
@@ -423,7 +442,7 @@ public class NotificationServiceImpl implements NotificationService {
                 if (remaining <= 0) {
                     brandAmount = 0;
                 } else {
-                    brandAmount = (int) ((long) totalOrderAmount * brandQuantity / totalOrderQuantity);
+                    brandAmount = (int) ((long) totalOrderAmount * brandQuantity / totalRealBrandQuantity);
 
                     if (brandQuantity > 0 && totalOrderAmount > 0 && brandAmount == 0 && remaining > 0) {
                         brandAmount = 1;
@@ -432,6 +451,8 @@ public class NotificationServiceImpl implements NotificationService {
                     brandAmount = Math.min(brandAmount, remaining);
                 }
 
+            }
+            if (realBrandCount > 1 && idx < brandList.size() - 1) {
                 distributedTotal += brandAmount;
             }
 
@@ -463,6 +484,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendOrderCancelRequestedNotification(OrderCancelRequestedEvent event) {
+        if (event == null) { log.warn("[CancelRequested] event is null"); return; }
 
         String message = formatOrderCancelRequestedMessage(event);
 
@@ -540,6 +562,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendOrderCancelFailedNotification(OrderCancelFailedEvent event) {
+        if (event == null) { log.warn("[CancelFailed] event is null"); return; }
 
         String message = formatOrderCancelFailedMessage(event);
 
@@ -566,6 +589,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public void sendDlqNotification(NotificationDlqMessageEvent event) {
+        if (event == null) { log.warn("[DLQ] event is null"); return; }
 
         String payloadPreview = formatPayloadForSlack(event.messagePayload(), 1000);
 
