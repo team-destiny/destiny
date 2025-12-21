@@ -9,6 +9,7 @@ import com.destiny.notificationservice.domain.model.BrandNotificationChannel;
 import com.destiny.notificationservice.domain.model.BrandNotificationLog;
 import com.destiny.notificationservice.domain.repository.NotificationChannelRepository;
 import com.destiny.notificationservice.domain.repository.NotificationLogRepository;
+import com.destiny.notificationservice.infrastructure.config.NotificationCacheRetryProperties;
 import com.destiny.notificationservice.presentation.dto.request.NotificationLogSearchRequest;
 import com.destiny.notificationservice.presentation.dto.request.OrderCreatedNotificationRequest;
 import com.destiny.notificationservice.presentation.dto.request.SagaErrorNotificationRequest;
@@ -45,6 +46,8 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String STATUS_FAIL = "FAIL";
 
     private final StringRedisTemplate stringRedisTemplate;
+
+    private final NotificationCacheRetryProperties retryProperties;
 
     private static final String ORDER_BRANDS_KEY_PREFIX = "order:brands:";
 
@@ -415,11 +418,19 @@ public class NotificationServiceImpl implements NotificationService {
             } else if (idx == brandList.size() - 1) {
                 brandAmount = Math.max(0, totalOrderAmount - distributedTotal);
             } else {
-                brandAmount = (int) ((long) totalOrderAmount * brandQuantity / totalOrderQuantity);
-                if (brandQuantity > 0 && totalOrderAmount > 0 && brandAmount == 0) brandAmount = 1;
-
                 int remaining = totalOrderAmount - distributedTotal;
-                brandAmount = Math.max(0, Math.min(brandAmount, remaining));
+
+                if (remaining <= 0) {
+                    brandAmount = 0;
+                } else {
+                    brandAmount = (int) ((long) totalOrderAmount * brandQuantity / totalOrderQuantity);
+
+                    if (brandQuantity > 0 && totalOrderAmount > 0 && brandAmount == 0 && remaining > 0) {
+                        brandAmount = 1;
+                    }
+
+                    brandAmount = Math.min(brandAmount, remaining);
+                }
 
                 distributedTotal += brandAmount;
             }
@@ -455,7 +466,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         String message = formatOrderCancelRequestedMessage(event);
 
-        Set<String> brandIdStrings = getCachedBrandIdsWithRetry(event.orderId(), 3, 300);
+        Set<String> brandIdStrings = getCachedBrandIdsWithRetry(event.orderId());
 
         // 브랜드 정보가 없을 시 Admin 전송
         if (brandIdStrings.isEmpty()) {
@@ -479,35 +490,36 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private Set<String> getCachedBrandIdsWithRetry(UUID orderId, int attempts, long delayMs) {
+    private Set<String> getCachedBrandIdsWithRetry(UUID orderId) {
         if (orderId == null) {
             return Set.of();
         }
 
+
         String key = ORDER_BRANDS_KEY_PREFIX + orderId;
 
-        for (int i = 1; i <= attempts; i++) {
+        int maxAttempts = retryProperties.maxAttempts();
+        long delayMs = retryProperties.delayMillis();
+
+        for (int i = 1; i <= maxAttempts; i++) {
             Set<String> members = stringRedisTemplate.opsForSet().members(key);
 
-            // 데이터가 있으면 바로 리턴
             if (members != null && !members.isEmpty()) {
-                if (i > 1) {
-                    log.info("[Redis] 캐시 재시도 성공. orderId={}, attempt={}", orderId, i);
-                }
+                if (i > 1) log.info("[Redis] 캐시 재시도 성공. orderId={}, attempt={}", orderId, i);
                 return members;
             }
 
-            // 없으면 잠깐 대기
-            if (i < attempts) {
+            if (i < maxAttempts) {
+                log.debug("[Redis] 캐시 재시도 대기. orderId={}, attempt={}/{}", orderId, i, maxAttempts);
                 try {
                     Thread.sleep(delayMs);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    break;
+                    log.warn("[Redis] 재시도 중단됨. orderId={}", orderId);
+                    return Set.of();
                 }
             }
         }
-        // 끝까지 없으면 빈 값 리턴
         return Set.of();
     }
 

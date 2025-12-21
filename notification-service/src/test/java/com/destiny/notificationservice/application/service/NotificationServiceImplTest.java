@@ -14,6 +14,7 @@ import com.destiny.notificationservice.application.dto.event.OrderCreateSuccessE
 import com.destiny.notificationservice.domain.model.BrandNotificationChannel;
 import com.destiny.notificationservice.domain.repository.NotificationChannelRepository;
 import com.destiny.notificationservice.domain.repository.NotificationLogRepository;
+import com.destiny.notificationservice.infrastructure.config.NotificationCacheRetryProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.List;
@@ -53,16 +54,22 @@ class NotificationServiceImplTest {
     void setUp() {
         lenient().when(redisTemplate.opsForSet()).thenReturn(setOps);
 
+        NotificationCacheRetryProperties props =
+            new NotificationCacheRetryProperties(3, 300);
+
         notificationService = new NotificationServiceImpl(
             redisTemplate,
+            props,
             objectMapper,
             notificationChannelRepository,
             notificationLogRepository,
-            restTemplate);
+            restTemplate
+        );
 
         ReflectionTestUtils.setField(notificationService, "adminSlackUrl",
             "https://hooks.slack.com/services/admin");
     }
+
 
     @Test
     @DisplayName("주문 성공 알림 - 브랜드별 금액 계산 및 Slack 전송 확인")
@@ -223,4 +230,35 @@ class NotificationServiceImplTest {
         verify(restTemplate).postForEntity(eq("https://hooks.slack.com/services/admin"), any(),
             eq(String.class));
     }
+
+    @Test
+    @DisplayName("Redis retry 설정(maxAttempts)이 members 조회 횟수에 반영된다")
+    void redisRetry_usesMaxAttempts() {
+        // given
+        NotificationCacheRetryProperties props = new NotificationCacheRetryProperties(2, 1);
+
+        notificationService = new NotificationServiceImpl(
+            redisTemplate,
+            props,
+            objectMapper,
+            notificationChannelRepository,
+            notificationLogRepository,
+            restTemplate
+        );
+
+        UUID orderId = UUID.randomUUID();
+        OrderCancelRequestedEvent event = new OrderCancelRequestedEvent(
+            orderId, UUID.randomUUID(), 20000, "취소 요청"
+        );
+
+        when(setOps.members("order:brands:" + orderId)).thenReturn(Set.of()); // 항상 miss
+
+        // when
+        notificationService.sendOrderCancelRequestedNotification(event);
+
+        // then
+        verify(setOps, times(2)).members("order:brands:" + orderId);
+    }
+
+
 }
