@@ -9,6 +9,7 @@ import com.destiny.notificationservice.domain.model.BrandNotificationChannel;
 import com.destiny.notificationservice.domain.model.BrandNotificationLog;
 import com.destiny.notificationservice.domain.repository.NotificationChannelRepository;
 import com.destiny.notificationservice.domain.repository.NotificationLogRepository;
+import com.destiny.notificationservice.infrastructure.config.NotificationCacheRetryProperties;
 import com.destiny.notificationservice.presentation.dto.request.NotificationLogSearchRequest;
 import com.destiny.notificationservice.presentation.dto.request.OrderCreatedNotificationRequest;
 import com.destiny.notificationservice.presentation.dto.request.SagaErrorNotificationRequest;
@@ -17,6 +18,7 @@ import com.destiny.notificationservice.presentation.dto.response.NotificationLog
 import com.destiny.notificationservice.presentation.dto.response.NotificationResultResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -38,13 +40,16 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class NotificationServiceImpl implements NotificationService {
+
+    private static final Duration IDEMPOTENCY_TTL = Duration.ofMinutes(5);
 
     private static final String STATUS_SUCCESS = "SUCCESS";
     private static final String STATUS_FAIL = "FAIL";
 
     private final StringRedisTemplate stringRedisTemplate;
+
+    private final NotificationCacheRetryProperties retryProperties;
 
     private static final String ORDER_BRANDS_KEY_PREFIX = "order:brands:";
 
@@ -182,6 +187,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     }
 
+
     private void saveLog(
         UUID brandId,
         String message,
@@ -287,6 +293,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendSagaCreateFailedNotification(SagaCreateFailedEvent event) {
+        if (event == null) { log.warn("[SagaFailed] event is null"); return; }
+
         String message = String.format(
             "🚨 *[사가 실패 알림]*\n" +
                 "주문ID: %s\n" +
@@ -366,10 +374,27 @@ public class NotificationServiceImpl implements NotificationService {
 
         UUID unknownBrandId = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
+        if (event == null || event.items() == null || event.items().isEmpty()) {
+            log.warn("[Order] items is empty. orderId={}", event != null ? event.orderId() : null);
+            return;
+        }
+
+
         Map<UUID, List<OrderCreateSuccessEvent.OrderItem>> itemsByBrand =
             event.items().stream()
                 .collect(Collectors.groupingBy(item ->
                     item.brandId() != null ? item.brandId() : unknownBrandId));
+
+        int totalOrderAmount = (event.finalAmount() == null) ? 0 : event.finalAmount();
+
+        int totalOrderQuantity = event.items().stream()
+            .mapToInt(item -> item.stock() != null ? item.stock() : 0)
+            .sum();
+
+        if (totalOrderQuantity <= 0) {
+            log.warn("[Order] 주문 아이템이 없거나 수량이 0입니다. orderId={}", event.orderId());
+            return;
+        }
 
         Set<UUID> brandIds = itemsByBrand.keySet().stream()
             .filter(id -> id != null && !id.equals(unknownBrandId))
@@ -377,17 +402,61 @@ public class NotificationServiceImpl implements NotificationService {
 
         cacheOrderBrands(event.orderId(), brandIds);
 
-        int totalAmount = (event.finalAmount() == null) ? 0 : event.finalAmount();
 
-        itemsByBrand.forEach((brandId, items) -> {
-            int totalQuantity = items.stream()
+        List<Map.Entry<UUID, List<OrderCreateSuccessEvent.OrderItem>>> brandList =
+            itemsByBrand.entrySet().stream()
+                .filter(e -> e.getKey() != null && !e.getKey().equals(unknownBrandId))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        int totalRealBrandQuantity = brandList.stream()
+            .flatMap(e -> e.getValue().stream())
+            .mapToInt(i -> i.stock() != null ? i.stock() : 0)
+            .sum();
+
+        if (totalRealBrandQuantity <= 0) {
+            log.warn("[Order] real brand quantity is 0. orderId={}", event.orderId());
+            return;
+        }
+
+        int realBrandCount = brandList.size();
+
+        int distributedTotal = 0;
+
+        for (int idx = 0; idx < brandList.size(); idx++) {
+
+            UUID brandId = brandList.get(idx).getKey();
+            List<OrderCreateSuccessEvent.OrderItem> items = brandList.get(idx).getValue();
+
+            int brandQuantity = items.stream()
                 .mapToInt(item -> item.stock() != null ? item.stock() : 0)
                 .sum();
 
-            int brandAmount = items.stream()
-                .mapToInt(item -> (item.price() != null ? item.price() : 0) * (item.stock() != null
-                    ? item.stock() : 0))
-                .sum();
+
+            int brandAmount;
+
+            if (realBrandCount <= 1) {
+                brandAmount = totalOrderAmount;
+            } else if (idx == brandList.size() - 1) {
+                brandAmount = Math.max(0, totalOrderAmount - distributedTotal);
+            } else {
+                int remaining = totalOrderAmount - distributedTotal;
+
+                if (remaining <= 0) {
+                    brandAmount = 0;
+                } else {
+                    brandAmount = (int) ((long) totalOrderAmount * brandQuantity / totalRealBrandQuantity);
+
+                    if (brandQuantity > 0 && totalOrderAmount > 0 && brandAmount == 0 && remaining > 0) {
+                        brandAmount = 1;
+                    }
+
+                    brandAmount = Math.min(brandAmount, remaining);
+                }
+
+            }
+            if (realBrandCount > 1 && idx < brandList.size() - 1) {
+                distributedTotal += brandAmount;
+            }
 
             String message = String.format(
                 "📢 *[신규 주문 알림]*\n" +
@@ -395,13 +464,13 @@ public class NotificationServiceImpl implements NotificationService {
                     "유저ID: %s\n" +
                     "브랜드ID: %s\n" +
                     "상품 개수: %d개\n" +
-                    "총 주문 수량: %d개\n" +
+                    "주문 수량: %d개\n" +
                     "브랜드 주문 금액: %d원",
                 event.orderId(),
                 event.userId(),
                 brandId.equals(unknownBrandId) ? "알수없음(NULL)" : brandId,
                 items.size(),
-                totalQuantity,
+                brandQuantity,
                 brandAmount
             );
 
@@ -411,23 +480,26 @@ public class NotificationServiceImpl implements NotificationService {
                 null,
                 null
             );
-        });
+        }
     }
 
 
     @Override
     public void sendOrderCancelRequestedNotification(OrderCancelRequestedEvent event) {
+        if (event == null) { log.warn("[CancelRequested] event is null"); return; }
 
         String message = formatOrderCancelRequestedMessage(event);
 
-        Set<String> brandIdStrings = getCachedBrandIds(event.orderId());
+        Set<String> brandIdStrings = getCachedBrandIdsWithRetry(event.orderId());
 
+        // 브랜드 정보가 없을 시 Admin 전송
         if (brandIdStrings.isEmpty()) {
-            sendAdminToSlack(
-                adminSlackUrl,
-                message,
-                null,
-                null);
+            log.warn("[Redis] 주문별 브랜드 캐시 없음(재시도 후). orderId={}", event.orderId());
+
+            // 왜 Admin한테 왔는지
+            String adminMsg = "[브랜드 정보 유실] 캐시 재시도 실패로 관리자에게 전송합니다.\n" + message;
+
+            sendAdminToSlack(adminSlackUrl, adminMsg, "CACHE_MISS", "Redis retry failed");
             return;
         }
 
@@ -440,6 +512,39 @@ public class NotificationServiceImpl implements NotificationService {
                     event.orderId(), s);
             }
         }
+    }
+
+    private Set<String> getCachedBrandIdsWithRetry(UUID orderId) {
+        if (orderId == null) {
+            return Set.of();
+        }
+
+
+        String key = ORDER_BRANDS_KEY_PREFIX + orderId;
+
+        int maxAttempts = retryProperties.maxAttempts();
+        long delayMs = retryProperties.delayMillis();
+
+        for (int i = 1; i <= maxAttempts; i++) {
+            Set<String> members = stringRedisTemplate.opsForSet().members(key);
+
+            if (members != null && !members.isEmpty()) {
+                if (i > 1) log.info("[Redis] 캐시 재시도 성공. orderId={}, attempt={}", orderId, i);
+                return members;
+            }
+
+            if (i < maxAttempts) {
+                log.debug("[Redis] 캐시 재시도 대기. orderId={}, attempt={}/{}", orderId, i, maxAttempts);
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.warn("[Redis] 재시도 중단됨. orderId={}", orderId);
+                    return Set.of();
+                }
+            }
+        }
+        return Set.of();
     }
 
     private String formatOrderCancelRequestedMessage(OrderCancelRequestedEvent event) {
@@ -459,7 +564,14 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendOrderCancelFailedNotification(OrderCancelFailedEvent event) {
+        if (event == null) { log.warn("[CancelFailed] event is null"); return; }
 
+        String dedupKey = "notif:orderCancelFail:" + event.orderId() + ":" + nvl(event.failStep());
+        if (!shouldSendOnce(dedupKey)) {
+            log.info("[Dedup] skip cancel fail notification. key={}", dedupKey);
+            return;
+        }
+        
         String message = formatOrderCancelFailedMessage(event);
 
         sendAdminToSlack(
@@ -469,6 +581,12 @@ public class NotificationServiceImpl implements NotificationService {
             event.failReason()
         );
     }
+
+    private boolean shouldSendOnce(String key) {
+        Boolean ok = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", IDEMPOTENCY_TTL);
+        return Boolean.TRUE.equals(ok);
+    }
+
 
     private String formatOrderCancelFailedMessage(OrderCancelFailedEvent event) {
         return String.format(
@@ -485,6 +603,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public void sendDlqNotification(NotificationDlqMessageEvent event) {
+        if (event == null) { log.warn("[DLQ] event is null"); return; }
 
         String payloadPreview = formatPayloadForSlack(event.messagePayload(), 1000);
 
@@ -511,19 +630,24 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private String formatPayloadForSlack(String raw, int maxLen) {
-        if (raw == null) return "없음";
+        if (raw == null) {
+            return "없음";
+        }
 
         String trimmed = raw.trim();
         try {
             Object json = objectMapper.readValue(trimmed, Object.class);
-            String formatted = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
+            String formatted = objectMapper.writerWithDefaultPrettyPrinter()
+                .writeValueAsString(json);
 
             if (formatted.length() > maxLen) {
                 formatted = formatted.substring(0, maxLen) + "\n(생략)";
             }
             return formatted;
         } catch (Exception ignore) {
-            if (trimmed.length() > maxLen) trimmed = trimmed.substring(0, maxLen) + "(생략)";
+            if (trimmed.length() > maxLen) {
+                trimmed = trimmed.substring(0, maxLen) + "(생략)";
+            }
             return trimmed;
         }
     }
@@ -547,14 +671,5 @@ public class NotificationServiceImpl implements NotificationService {
         stringRedisTemplate.expire(key, Duration.ofDays(7));
     }
 
-    private Set<String> getCachedBrandIds(UUID orderId) {
-        if (orderId == null) {
-            return Set.of();
-        }
-        String key = ORDER_BRANDS_KEY_PREFIX + orderId;
-
-        Set<String> members = stringRedisTemplate.opsForSet().members(key);
-        return (members == null) ? Set.of() : members;
-    }
 
 }
