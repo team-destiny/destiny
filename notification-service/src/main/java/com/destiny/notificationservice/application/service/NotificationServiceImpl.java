@@ -42,6 +42,8 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
+    private static final Duration IDEMPOTENCY_TTL = Duration.ofMinutes(5);
+
     private static final String STATUS_SUCCESS = "SUCCESS";
     private static final String STATUS_FAIL = "FAIL";
 
@@ -564,6 +566,12 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendOrderCancelFailedNotification(OrderCancelFailedEvent event) {
         if (event == null) { log.warn("[CancelFailed] event is null"); return; }
 
+        String dedupKey = "notif:orderCancelFail:" + event.orderId() + ":" + nvl(event.failStep());
+        if (!shouldSendOnce(dedupKey)) {
+            log.info("[Dedup] skip cancel fail notification. key={}", dedupKey);
+            return;
+        }
+        
         String message = formatOrderCancelFailedMessage(event);
 
         sendAdminToSlack(
@@ -573,6 +581,12 @@ public class NotificationServiceImpl implements NotificationService {
             event.failReason()
         );
     }
+
+    private boolean shouldSendOnce(String key) {
+        Boolean ok = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", IDEMPOTENCY_TTL);
+        return Boolean.TRUE.equals(ok);
+    }
+
 
     private String formatOrderCancelFailedMessage(OrderCancelFailedEvent event) {
         return String.format(
