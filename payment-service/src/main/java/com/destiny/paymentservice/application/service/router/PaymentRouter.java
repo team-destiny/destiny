@@ -19,11 +19,7 @@ public class PaymentRouter {
 
     public PaymentRouter(PgSelectionPolicy pgSelectionPolicy, List<PaymentService> services) {
         this.pgSelectionPolicy = pgSelectionPolicy;
-        this.serviceMap = services.stream()
-            .collect(Collectors.toMap(
-                PaymentService::supports,
-                Function.identity()
-            ));
+        this.serviceMap = services.stream().collect(Collectors.toMap(PaymentService::supports, Function.identity()));
     }
 
     public PaymentService route() {

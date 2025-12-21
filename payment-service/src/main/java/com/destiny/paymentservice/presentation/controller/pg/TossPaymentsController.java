@@ -3,24 +3,12 @@ package com.destiny.paymentservice.presentation.controller.pg;
 import com.destiny.global.response.ApiResponse;
 import com.destiny.paymentservice.application.service.impl.pg.TossPaymentsServiceImpl;
 import com.destiny.paymentservice.presentation.code.PaymentSuccessCode;
-import com.destiny.paymentservice.presentation.dto.request.pg.tosspayments.TossPaymentsCancelRequest;
-import com.destiny.paymentservice.presentation.dto.request.pg.tosspayments.TossPaymentsConfirmRequest;
+import com.destiny.paymentservice.presentation.dto.request.PaymentCancelRequest;
+import com.destiny.paymentservice.presentation.dto.request.PaymentConfirmRequest;
 import com.destiny.paymentservice.presentation.dto.response.PaymentResponse;
 import jakarta.validation.Valid;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -75,13 +63,13 @@ public class TossPaymentsController {
     }
 
     @PostMapping("/confirm")
-    public ResponseEntity<ApiResponse<PaymentResponse>> confirm(@Valid @RequestBody TossPaymentsConfirmRequest request) {
+    public ResponseEntity<ApiResponse<PaymentResponse>> confirm(@Valid @RequestBody PaymentConfirmRequest request) {
         PaymentResponse response = tossPaymentsService.confirmPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRM_SUCCESS, response));
     }
 
     @PostMapping("/cancel")
-    public ResponseEntity<ApiResponse<PaymentResponse>> cancel(@Valid @RequestBody TossPaymentsCancelRequest request) {
+    public ResponseEntity<ApiResponse<PaymentResponse>> cancel(@Valid @RequestBody PaymentCancelRequest request) {
         PaymentResponse response = tossPaymentsService.cancelPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CANCEL_SUCCESS, response));
     }
