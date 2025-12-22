@@ -1,5 +1,6 @@
 package com.destiny.cartservice.presentation.dto.request;
 
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CartDeleteRequest {
 
+    @NotEmpty(message = "삭제할 장바구니 ID 목록은 필수입니다")
     private List<UUID> cartIds;
 
 }
