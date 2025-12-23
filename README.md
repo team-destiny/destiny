@@ -1,11 +1,9 @@
 # 운명(Destiny) 💜 - 블랙프라이데이 피크 타임 백엔드 솔루션
 
-![운명_메인_이미지](https://r2.community.canvaslms.com/texts/14420-destiny-main-concept)
-
 ---
 
 ## 💜 서비스 소개
-![메인이미지.png](docs/%E1%84%86%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AB%E1%84%8B%E1%85%B5%E1%84%86%E1%85%B5%E1%84%8C%E1%85%B5.png)
+<img width="1024" height="1024" alt="메인이미지" src="https://github.com/user-attachments/assets/edc19483-c4d8-439d-9ccd-d550a52ce61b" />
 > **"혼란스러운 피크 타임 속에서 정해진 질서를 만드는 것, 그것이 '운명'이 설계하는 백엔드입니다."**
 >
 > **운명**은 블랙프라이데이와 같은 초고부하 트래픽 상황에서도 안정적인 이커머스 경험을 제공하기 위해 설계된 MSA 기반 플랫폼입니다. 최적화된 캐싱 전략과 Saga 오케스트레이션을 통해 수만 명의 동시 접속자 앞에서도 끊김 없는 서비스 흐름을 구현했습니다. 🚀
@@ -23,12 +21,14 @@
 ---
 
 ## 🏛️ 아키텍쳐
-![아키텍쳐.png](docs/%E1%84%8B%E1%85%A1%E1%84%8F%E1%85%B5%E1%84%90%E1%85%A6%E1%86%A8%E1%84%8E%E1%85%A7.png)
+<img width="1137" height="748" alt="아키텍쳐" src="https://github.com/user-attachments/assets/a2eb03b2-4b11-417c-86dc-b47afcabc015" />
+
 
 ---
 
 ## 💿 컨텍스트 구조
-![컨텍스트구조.png](docs/%EC%BB%A8%ED%85%8D%EC%8A%A4%ED%8A%B8%EA%B5%AC%EC%A1%B0.png)
+<img width="752" height="688" alt="스크린샷 2025-12-23 오후 3 31 59" src="https://github.com/user-attachments/assets/955d94c5-dfc0-46bf-a814-f1c509b140e3" />
+
 
 ---
 
