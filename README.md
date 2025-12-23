@@ -15,14 +15,20 @@
 ## 🌸 개발 환경 및 기술 스택
 - **Language**: ![Java 17](https://img.shields.io/badge/Java-17-red?style=flat-square)
 - **Framework**: ![SpringBoot 3.5.8](https://img.shields.io/badge/SpringBoot-3.5.8-green?style=flat-square) ![SpringCloud](https://img.shields.io/badge/SpringCloud-MSA-6DB33F?style=flat-square)
-- **Database**: ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat&logo=postgresql&logoColor=white) ![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white)
+- **Database**: ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat&logo=postgresql&logoColor=white) ![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white) ![Elasticsearch](https://img.shields.io/badge/Elasticsearch-005571?style=flat&logo=elasticsearch&logoColor=white)
 - **Messaging**: ![Kafka](https://img.shields.io/badge/Kafka-231F20?style=flat&logo=apachekafka&logoColor=white)
 - **Infrastructure**: ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white) ![Docker_Compose](https://img.shields.io/badge/Docker_Compose-2496ED?style=flat&logo=docker&logoColor=white)
 - **Test**: ![JUnit5](https://img.shields.io/badge/JUnit5-25A162?style=flat&logo=junit5&logoColor=white) ![Jmeter](https://img.shields.io/badge/JMeter-D22128?style=flat&logo=apachejmeter&logoColor=white)
+
 ---
 
 ## 🏛️ 아키텍쳐
-*(이곳에 최신화된 인프라 설계도 및 MSA 시스템 흐름도 이미지를 삽입하세요)*
+![아키텍쳐.png](docs/%E1%84%8B%E1%85%A1%E1%84%8F%E1%85%B5%E1%84%90%E1%85%A6%E1%86%A8%E1%84%8E%E1%85%A7.png)
+
+---
+
+## 💿 컨텍스트 구조
+![컨텍스트구조.png](docs/%EC%BB%A8%ED%85%8D%EC%8A%A4%ED%8A%B8%EA%B5%AC%EC%A1%B0.png)
 
 ---
 
@@ -73,3 +79,16 @@ docker-compose up -d
 chmod +x kill_duplicate_servers.sh
 ./kill_duplicate_servers.sh
 ```
+
+---
+
+## 🔗 관련 문서 및 링크
+
+> **프로젝트의 상세한 기록과 설계 과정을 아래 링크에서 확인하실 수 있습니다.** 💫
+
+| 📂 분류 | 📄 문서 명                       | 🔗 바로가기 |
+|:---:|:------------------------------|:---:|
+| **Notion** | **운명(Destiny) 프로젝트 기획서 & 일지** | [👉 노션 링크 바로가기](https://www.notion.so/teamsparta/16-2b52dc3ef514801eaaded4347dac0360) |
+| **Canva** | **발표 자료**                     | [👉 캔바 링크 바로가기](https://www.canva.com/design/DAG8Mk-yUlg/UHkLMyrHqc4d0qAWl49KzA/edit) |
+
+---
