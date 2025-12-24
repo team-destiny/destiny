@@ -53,7 +53,7 @@ public class PaymentController {
      */
     @PostMapping("/confirm")
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmPayment(@Valid @RequestBody PaymentConfirmRequest request) {
-        PaymentResponse response = paymentRouter.route().confirmPayment(request);
+        PaymentResponse response = paymentService.confirmPayment(request);
         return ResponseEntity.ok(ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRM_SUCCESS, response));
     }
 
