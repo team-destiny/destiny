@@ -233,42 +233,4 @@ public class StockReservationService {
 
         return ConfirmedStockCancelResult.CANCEL_SUCCEEDED;
     }
-
-    @Transactional
-    public ConfirmedStockCancelResult cancelConfirmedStock(ConfirmedStockCancelEvent event) {
-
-        Map<UUID, Integer> cancelQuantityByProduct = event.items().stream()
-                .collect(Collectors.toMap(
-                    ConfirmedStockCancelEvent.StockCancelItem::productId,
-                    ConfirmedStockCancelEvent.StockCancelItem::stock
-                ));
-
-        List<UUID> productIds = new ArrayList<>(cancelQuantityByProduct.keySet());
-
-        List<StockReservation> reservations =
-            stockReservationRepository.findAllByOrderIdAndStatus(
-                event.orderId(),
-                ReservationStatus.CONFIRMED
-            );
-
-        if (reservations.isEmpty()) {
-            return ConfirmedStockCancelResult.NO_RESERVATION;
-        }
-
-        reservations.forEach(StockReservation::cancelConfirmed);
-
-        Map<UUID, Stock> stockMap = findStocks(productIds);
-
-        for (Map.Entry<UUID, Integer> entry : cancelQuantityByProduct.entrySet()) {
-            Stock stock = stockMap.get(entry.getKey());
-
-            if (stock == null) {
-                return ConfirmedStockCancelResult.NO_RESERVATION;
-            }
-
-            stock.restoreConfirmed(entry.getValue());
-        }
-
-        return ConfirmedStockCancelResult.CANCEL_SUCCEEDED;
-    }
 }
