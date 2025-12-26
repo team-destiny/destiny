@@ -60,7 +60,7 @@ class StockProducerTest {
     }
 
     @Test
-    @DisplayName("[확정 재소 취소 성공 이벤트 발행] topic : stock-cancel-success")
+    @DisplayName("[확정 재고 취소 성공 이벤트 발행] topic : stock-cancel-success")
     void publishConfirmedStockCancelSuccess_sendsToCorrectTopic() {
         String event = "{\"type\":\"stock-cancel-success\"}";
 
@@ -70,7 +70,7 @@ class StockProducerTest {
     }
 
     @Test
-    @DisplayName("[확정 재소 취소 실패 이벤트 발행] topic : stock-cancel-fail")
+    @DisplayName("[확정 재고 취소 실패 이벤트 발행] topic : stock-cancel-fail")
     void publishConfirmedStockCancelFail_sendsToCorrectTopic() {
         String event = "{\"type\":\"stock-cancel-fail\"}";
 

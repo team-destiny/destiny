@@ -1,6 +1,8 @@
 package com.destiny.stockservice.infrastructure.event.kafka;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.destiny.stockservice.application.StockEventHandler;
 import org.junit.jupiter.api.DisplayName;
@@ -70,24 +72,26 @@ class StockConsumerTest {
     }
 
     @Test
-    @DisplayName("DitHandler가 알고 있는 토픽에 대해 예외를 발생하지 않는 테스트")
+    @DisplayName("Stock DLT 처리: 알려진 토픽이면 예외 없이 로깅한다")
     void handleStockDlt_doesNotThrow_forKnownTopic() {
-        stockConsumer.handleStockDlt(
+        assertDoesNotThrow(() -> stockConsumer.handleStockDlt(
             "{\"payload\":\"x\"}",
             "stock-reservation-request-dlt",
             "some exception"
-        );
-        // 예외 없이 동작하면 통과 (현재 메서드가 로깅만 수행)
+        ));
+
+        verifyNoInteractions(stockEventHandler);
     }
 
     @Test
-    @DisplayName("DitHandler가 모르는 토픽에 예외를 발생하는 테스트")
+    @DisplayName("Stock DLT 처리: 알 수 없는 토픽이어도 예외 없이 로깅한다")
     void handleStockDlt_doesNotThrow_forUnknownTopic() {
-        stockConsumer.handleStockDlt(
+        assertDoesNotThrow(() -> stockConsumer.handleStockDlt(
             "{\"payload\":\"x\"}",
             "some-unknown-topic-dlt",
             "some exception"
-        );
-        // 예외 없이 동작하면 통과
+        ));
+
+        verifyNoInteractions(stockEventHandler);
     }
 }
