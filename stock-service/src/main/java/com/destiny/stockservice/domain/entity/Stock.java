@@ -69,45 +69,51 @@ public class Stock extends BaseEntity {
         return StockReservationResult.RESERVED;
     }
 
-    public void cancelReservation(int amount) {
+    public boolean cancelReservation(int amount) {
 
         if (amount <= 0) {
-            throw new IllegalArgumentException("cancel amount must be positive");
+            return false;
         }
 
         if (reservedQuantity < amount) {
-            throw new IllegalStateException("Invalid reservation cancel");
-        }
-
-        reservedQuantity -= amount;
-    }
-
-    public void commitReservation(int amount) {
-
-        if (amount <= 0) {
-            throw new IllegalArgumentException("commit amount must be positive");
-        }
-
-        if (reservedQuantity < amount) {
-            throw new IllegalStateException("Not enough reserved stock");
+            return false;
         }
 
         reservedQuantity -= amount;
 
-        totalQuantity -= amount;
-
-        if (totalQuantity < 0) {
-            throw new IllegalStateException("Stock became negative");
-        }
+        return true;
     }
 
-    public void restoreConfirmed(int quantity) {
+    public boolean commitReservation(int amount) {
+
+        if (amount <= 0) {
+            return false;
+        }
+
+        if (reservedQuantity < amount) {
+            return false;
+        }
+
+        if (totalQuantity < amount) {
+            return false;
+        }
+
+        this.reservedQuantity -= amount;
+
+        this.totalQuantity -= amount;
+
+        return true;
+    }
+
+    public boolean restoreConfirmed(int quantity) {
 
         if (quantity <= 0) {
-            throw new IllegalArgumentException("cancel quantity must be positive");
+            return false;
         }
 
         this.totalQuantity += quantity;
+
+        return true;
     }
 
     public boolean isSoldOut() {

@@ -1,5 +1,8 @@
 package com.destiny.stockservice.application.service;
 
+import static com.destiny.stockservice.domain.result.StockReservationCancelResult.CANCEL_SUCCEEDED;
+import static com.destiny.stockservice.domain.result.StockReservationCancelResult.INVALID_REQUEST;
+
 import com.destiny.stockservice.application.dto.event.cancel.ConfirmedStockCancelEvent;
 import com.destiny.stockservice.application.dto.event.cancel.StockReservationCancelEvent;
 import com.destiny.stockservice.application.dto.event.reservation.StockReservationEvent;
@@ -111,12 +114,14 @@ public class StockReservationService {
             Stock stock = stockMap.get(entry.getKey());
 
             if (stock == null) {
-                throw new IllegalStateException(
-                    "Stock not found for productId=" + entry.getKey()
-                );
+                return List.of();
             }
 
-            stock.commitReservation(entry.getValue());
+            boolean success = stock.commitReservation(entry.getValue());
+
+            if (!success) {
+                return List.of();
+            }
 
             if (stock.isSoldOut()) {
                 soldOutProductIds.add(entry.getKey());
@@ -144,7 +149,9 @@ public class StockReservationService {
 
         cancelReservations(reservations);
 
-        return restoreStock(stockMap, cancelQuantityByProduct);
+        boolean canceled = restoreStock(stockMap, cancelQuantityByProduct);
+
+        return canceled ? CANCEL_SUCCEEDED : INVALID_REQUEST;
     }
 
     private Map<UUID, Integer> groupCancelQuantityByProduct(
@@ -166,7 +173,7 @@ public class StockReservationService {
         reservations.forEach(StockReservation::cancel);
     }
 
-    private StockReservationCancelResult restoreStock(
+    private boolean restoreStock(
         Map<UUID, Stock> stockMap,
         Map<UUID, Integer> cancelQuantityByProduct
     ) {
@@ -174,13 +181,15 @@ public class StockReservationService {
             Stock stock = stockMap.get(entry.getKey());
 
             if (stock == null) {
-                return StockReservationCancelResult.NO_RESERVATION;
+                return false;
             }
 
-            stock.cancelReservation(entry.getValue());
+            if (!stock.cancelReservation(entry.getValue())) {
+                return false;
+            }
         }
 
-        return StockReservationCancelResult.CANCEL_SUCCEEDED;
+        return true;
     }
 
     @Transactional
@@ -215,7 +224,11 @@ public class StockReservationService {
                 return ConfirmedStockCancelResult.NO_RESERVATION;
             }
 
-            stock.restoreConfirmed(entry.getValue());
+            boolean success = stock.restoreConfirmed(entry.getValue());
+
+            if (!success) {
+                return ConfirmedStockCancelResult.INVALID_REQUEST;
+            }
         }
 
         return ConfirmedStockCancelResult.CANCEL_SUCCEEDED;
