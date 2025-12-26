@@ -1,7 +1,7 @@
 package com.destiny.stockservice.application.service;
 
 import com.destiny.stockservice.application.dto.event.cancel.ConfirmedStockCancelEvent;
-import com.destiny.stockservice.application.dto.event.cancel.StockReservationCancelEvent;
+import com.destiny.stockservice.application.dto.event.reservation.StockReservationCancelEvent;
 import com.destiny.stockservice.application.dto.event.reservation.StockReservationEvent;
 import com.destiny.stockservice.application.dto.event.reservation.StockReservationItem;
 import com.destiny.stockservice.domain.entity.ReservationStatus;
