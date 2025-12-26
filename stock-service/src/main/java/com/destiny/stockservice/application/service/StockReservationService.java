@@ -1,10 +1,7 @@
 package com.destiny.stockservice.application.service;
 
-import static com.destiny.stockservice.domain.result.StockReservationCancelResult.CANCEL_SUCCEEDED;
-import static com.destiny.stockservice.domain.result.StockReservationCancelResult.INVALID_REQUEST;
-
 import com.destiny.stockservice.application.dto.event.cancel.ConfirmedStockCancelEvent;
-import com.destiny.stockservice.application.dto.event.reservation.StockReservationCancelEvent;
+import com.destiny.stockservice.application.dto.event.cancel.StockReservationCancelEvent;
 import com.destiny.stockservice.application.dto.event.reservation.StockReservationEvent;
 import com.destiny.stockservice.application.dto.event.reservation.StockReservationItem;
 import com.destiny.stockservice.domain.entity.ReservationStatus;
@@ -149,9 +146,7 @@ public class StockReservationService {
 
         cancelReservations(reservations);
 
-        boolean canceled = restoreStock(stockMap, cancelQuantityByProduct);
-
-        return canceled ? CANCEL_SUCCEEDED : INVALID_REQUEST;
+        return restoreStock(stockMap, cancelQuantityByProduct);
     }
 
     private Map<UUID, Integer> groupCancelQuantityByProduct(
@@ -173,7 +168,7 @@ public class StockReservationService {
         reservations.forEach(StockReservation::cancel);
     }
 
-    private boolean restoreStock(
+    private StockReservationCancelResult restoreStock(
         Map<UUID, Stock> stockMap,
         Map<UUID, Integer> cancelQuantityByProduct
     ) {
@@ -181,15 +176,17 @@ public class StockReservationService {
             Stock stock = stockMap.get(entry.getKey());
 
             if (stock == null) {
-                return false;
+                return StockReservationCancelResult.NO_RESERVATION;
             }
 
-            if (!stock.cancelReservation(entry.getValue())) {
-                return false;
+            boolean success = stock.cancelReservation(entry.getValue());
+
+            if (!success) {
+                return StockReservationCancelResult.INVALID_REQUEST;
             }
         }
 
-        return true;
+        return StockReservationCancelResult.CANCEL_SUCCEEDED;
     }
 
     @Transactional

@@ -98,9 +98,9 @@ public class Stock extends BaseEntity {
             return false;
         }
 
-        this.reservedQuantity -= amount;
+        reservedQuantity -= amount;
 
-        this.totalQuantity -= amount;
+        totalQuantity -= amount;
 
         return true;
     }
