@@ -4,7 +4,9 @@ spring:
   profiles:
     active: dev
   config:
-    import: "configserver:"
+    import:
+      - optional:file:.env[.properties]
+      - "configserver:"
   cloud:
     config:
       discovery:
@@ -21,3 +23,9 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+notification:
+  cache:
+    retry:
+      max-attempts: 3
+      delay-millis: 300

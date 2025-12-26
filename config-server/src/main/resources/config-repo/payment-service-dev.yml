@@ -43,3 +43,7 @@ payment:
     channel-key: ${PORTONE_CHANNEL_KEY}
     channel-group-id: ${PORTONE_CHANNEL_GROUP_ID}
     api-secret: ${PORTONE_API_SECRET}
+  bootpay:
+    private-key: ${BOOTPAY_PRIVATE_KEY}
+    application-id: ${BOOTPAY_APPLICATION_ID}
+    rest-api-key: ${BOOTPAY_REST_API_KEY}

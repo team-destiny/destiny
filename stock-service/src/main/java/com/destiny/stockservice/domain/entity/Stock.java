@@ -116,6 +116,15 @@ public class Stock extends BaseEntity {
         return true;
     }
 
+    public void restoreConfirmed(int quantity) {
+
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("cancel quantity must be positive");
+        }
+
+        this.totalQuantity += quantity;
+    }
+
     public boolean isSoldOut() {
         return getAvailableQuantity() == 0;
     }

@@ -80,23 +80,19 @@ public class PaymentServiceImpl {
     @Transactional
     public PaymentResponse confirmPayment(PaymentConfirmRequest request) {
         try {
-            // [1] 결제 내역 조회 (PENDING 상태만 승인 가능)
+            // 결제 내역 조회 (PENDING 상태만 승인 가능)
             Payment payment = paymentRepository.findByOrderId(request.orderId())
                 .orElseThrow(() -> new BizException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
-            // [2] PENDING 상태인지 확인
-            if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
-                throw new BizException(PaymentErrorCode.PAYMENT_NOT_PENDING);
-            }
+            // PENDING 상태인지 확인
+            payment.validatePayableStatus();
 
-            // [3] 실제 PG 연동 로직
+            // 상태 변경: PENDING -> PAID
+            payment.completePayment(PaymentProvider.MOCK, PaymentMethod.random(), "MOCK");
 
-            // [4] 도메인 행위 호출 (상태 변경: PENDING -> PAID)
-            // 실제연동시 결제사 api 요청 후 받아온 값으로 저장
-            payment.paid(PaymentProvider.MOCK, PaymentMethod.random());
             PaymentSuccessEvent event = PaymentSuccessEvent.builder().orderId(request.orderId()).build();
-
             paymentConfirmProducer.sendSuccess(event);
+
             return PaymentResponse.fromEntity(payment);
         } catch (BizException e) {
             PaymentFailEvent failEvent = PaymentFailEvent.builder()

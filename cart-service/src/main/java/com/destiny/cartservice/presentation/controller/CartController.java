@@ -63,7 +63,7 @@ public class CartController {
     // 장바구니 선택 삭제
     @DeleteMapping
     public ResponseEntity<Void> deleteCartItems( @AuthenticationPrincipal CustomUserDetails user,
-        @RequestBody CartDeleteRequest request) {
+        @RequestBody @Valid CartDeleteRequest request) {
         cartService.deleteCartItems(user.getUserId(), request);
         return ResponseEntity.noContent().build();
     }

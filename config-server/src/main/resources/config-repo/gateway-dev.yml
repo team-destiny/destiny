@@ -47,6 +47,10 @@ spring:
               uri: lb://CART-SERVICE
               predicates:
                 - Path=/v*/carts/**
+            - id: saga-orchestrator
+              uri: lb://SAGA-ORCHESTRATOR
+              predicates:
+                - Path=/v*/sagas/**
 
   data:
     redis:

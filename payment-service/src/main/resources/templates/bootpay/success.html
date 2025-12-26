@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>결제 완료</title>
+  <style>
+    body {
+      background-color: #f2f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      font-family: -apple-system, sans-serif;
+    }
+    .result-card {
+      background-color: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .icon { font-size: 48px; margin-bottom: 20px; }
+    h2 { color: #191f28; margin-bottom: 24px; }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 15px;
+      color: #4e5968;
+    }
+    .info-value { font-weight: 600; color: #191f28; }
+    .home-button {
+      margin-top: 30px;
+      display: inline-block;
+      width: 100%;
+      padding: 16px;
+      background-color: #55C;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+<div class="result-card">
+  <div class="icon">✅</div>
+  <h2>결제가 완료되었습니다</h2>
+
+  <div class="info-row">
+    <span>주문번호</span>
+    <span class="info-value" th:text="${orderId}"></span>
+  </div>
+  <div class="info-row">
+    <span>영수증 ID</span>
+    <span class="info-value" th:text="${receiptId}"></span>
+  </div>
+
+  <a href="/" class="home-button">홈으로 이동</a>
+</div>
+</body>
+</html>

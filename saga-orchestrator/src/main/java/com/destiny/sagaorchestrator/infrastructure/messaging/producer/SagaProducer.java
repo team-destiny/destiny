@@ -5,6 +5,7 @@ import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.Coupo
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.CouponUseRollbackCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.FailSendCommand;
+import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.NotificationDlqCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.NotificationOrderCancelCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.NotificationOrderCancelFailCommand;
 import com.destiny.sagaorchestrator.infrastructure.messaging.event.command.PaymentCancelCommand;
@@ -266,6 +267,19 @@ public class SagaProducer {
         } catch (JsonProcessingException e) {
 
             log.info("[❌ SAGA-SERVICE -> NOTIFICATION FAILED JSON EXCEPTION] - NOTIFICATION CANCEL FAILED: {}", e.getMessage());
+        }
+    }
+
+    public void publishDlqNotification(NotificationDlqCommand event) {
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("notification-dlq-message", message);
+            log.info("[📌 SAGA-SERVICE -> NOTIFICATION-SERVICE SUCCESS] - NOTIFICATION DLQ : {}", message);
+
+        } catch (JsonProcessingException e) {
+
+            log.info("[❌ SAGA-SERVICE -> NOTIFICATION FAILED JSON EXCEPTION] - NOTIFICATION DLQ: {}", e.getMessage());
         }
     }
 }

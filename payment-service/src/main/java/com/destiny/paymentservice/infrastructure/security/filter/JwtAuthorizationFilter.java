@@ -28,6 +28,13 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+        // TODO: 추후 해당 url만 허용하도록 수정, 부트페이 confirm 요청은 JWT 검사를 건너뜁니다.
+        if (path.startsWith("/v1/payments/bootpay/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String authorizationHeader = request.getHeader(jwtProperties.getAccessHeaderName());
         if (!StringUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith(jwtProperties.getHeaderPrefix())) {
             filterChain.doFilter(request, response);
