@@ -32,7 +32,7 @@ class StockConsumerTest {
     }
 
     @Test
-    @DisplayName("재고 생성 메세지 수신시 재고 이벤트 핸들러로 전달 테스트")
+    @DisplayName("재고 예약 메세지 수신시 재고 이벤트 핸들러로 전달 테스트")
     void consumeStockReservation_callsHandler() {
         String message = "{\"type\":\"stock-reservation-request\"}";
 
@@ -42,7 +42,7 @@ class StockConsumerTest {
     }
 
     @Test
-    @DisplayName("재고 예약 메세지 수신시 재고 이벤트 핸들러로 전달 테스트")
+    @DisplayName("재고 예약 취소 메세지 수신시 재고 이벤트 핸들러로 전달 테스트")
     void consumeStockReservationCancel_callsHandler() {
         String message = "{\"type\":\"stock-reservation-cancel\"}";
 
