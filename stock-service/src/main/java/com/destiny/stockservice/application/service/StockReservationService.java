@@ -36,64 +36,53 @@ public class StockReservationService {
 
         List<StockReservationItem> reservationItems = event.items();
 
-        Map<UUID, Integer> orderedQuantityByProduct = new java.util.HashMap<>();
-
-        for (StockReservationItem item : reservationItems) {
-            if (item.orderedQuantity() == null) {
-                return StockReservationResult.INVALID_REQUEST;
-            }
-            orderedQuantityByProduct.merge(
-                item.productId(),
-                item.orderedQuantity(),
-                Integer::sum
-            );
-        }
-
-        List<UUID> productIds = new ArrayList<>(orderedQuantityByProduct.keySet());
+        List<UUID> productIds = reservationItems.stream()
+            .map(StockReservationItem::productId)
+            .toList();
 
         Map<UUID, Stock> stockMap = stockRepository.findAllByProductIdIn(productIds)
             .stream()
             .collect(Collectors.toMap(Stock::getProductId, s -> s));
 
-        for (Map.Entry<UUID, Integer> entry : orderedQuantityByProduct.entrySet()) {
-            if (isInvalidStock(entry.getKey(), entry.getValue(), stockMap)) {
+        for (StockReservationItem item : reservationItems) {
+            if (isInvalidStock(item, stockMap)) {
                 return StockReservationResult.INVALID_REQUEST;
             }
         }
 
-        for (Map.Entry<UUID, Integer> entry : orderedQuantityByProduct.entrySet()) {
-            Stock stock = stockMap.get(entry.getKey());
+        List<StockReservation> reservations = new ArrayList<>();
 
-            StockReservationResult result = stock.reserve(entry.getValue());
+        for (StockReservationItem item : reservationItems) {
+            Stock stock = stockMap.get(item.productId());
+
+            StockReservationResult result = stock.reserve(item.orderedQuantity());
 
             if (result != StockReservationResult.RESERVED) {
                 return result;
             }
 
             StockReservation reservation = StockReservation.create(
-                entry.getKey(),
+                item.productId(),
                 event.orderId(),
-                entry.getValue()
+                item.orderedQuantity()
             );
 
-            stockReservationRepository.save(reservation);
+            reservations.add(reservation);
         }
+
+        stockReservationRepository.saveAll(reservations);
 
         return StockReservationResult.RESERVED;
     }
 
-    private boolean isInvalidStock(
-        UUID productId,
-        Integer orderedQuantity,
-        Map<UUID, Stock> stockMap
-    ) {
-        Stock stock = stockMap.get(productId);
+    private boolean isInvalidStock(StockReservationItem item, Map<UUID, Stock> stockMap) {
+        Stock stock = stockMap.get(item.productId());
 
-        if (stock == null || stock.getTotalQuantity() == null || orderedQuantity == null) {
+        if (stock == null || stock.getTotalQuantity() == null || item.orderedQuantity() == null) {
             return true;
         }
 
-        return stock.getAvailableQuantity() < orderedQuantity;
+        return stock.getAvailableQuantity() < item.orderedQuantity();
     }
 
     @Transactional
@@ -104,12 +93,21 @@ public class StockReservationService {
 
         stockReservations.forEach(StockReservation::confirm);
 
-        Map<UUID, Integer> reservedQuantityByProduct =
-            groupReservedQuantityByProduct(stockReservations);
+        List<UUID> productIds = stockReservations.stream()
+            .map(StockReservation::getProductId)
+            .toList();
 
-        Map<UUID, Stock> stockMap = findStocks(
-            new ArrayList<>(reservedQuantityByProduct.keySet())
-        );
+        Map<UUID, Integer> reservedQuantityByProduct =
+            stockReservations.stream()
+                .collect(Collectors.groupingBy(
+                    StockReservation::getProductId,
+                    Collectors.summingInt(StockReservation::getReservedQuantity)
+                ));
+
+        Map<UUID, Stock> stockMap = stockRepository
+            .findAllByProductIdIn(productIds)
+            .stream()
+            .collect(Collectors.toMap(Stock::getProductId, s -> s));
 
         List<UUID> soldOutProductIds = new ArrayList<>();
 
@@ -143,7 +141,7 @@ public class StockReservationService {
         }
 
         Map<UUID, Integer> cancelQuantityByProduct =
-            groupReservedQuantityByProduct(reservations);
+            groupCancelQuantityByProduct(reservations);
 
         Map<UUID, Stock> stockMap =
             findStocks(cancelQuantityByProduct.keySet().stream().toList());
@@ -153,7 +151,7 @@ public class StockReservationService {
         return restoreStock(stockMap, cancelQuantityByProduct);
     }
 
-    private Map<UUID, Integer> groupReservedQuantityByProduct(
+    private Map<UUID, Integer> groupCancelQuantityByProduct(
         List<StockReservation> reservations
     ) {
         return reservations.stream()
@@ -192,8 +190,11 @@ public class StockReservationService {
     @Transactional
     public ConfirmedStockCancelResult cancelConfirmedStock(ConfirmedStockCancelEvent event) {
 
-        Map<UUID, Integer> cancelQuantityByProduct =
-            groupConfirmedCancelQuantityByProduct(event.items());
+        Map<UUID, Integer> cancelQuantityByProduct = event.items().stream()
+                .collect(Collectors.toMap(
+                    ConfirmedStockCancelEvent.StockCancelItem::productId,
+                    ConfirmedStockCancelEvent.StockCancelItem::stock
+                ));
 
         List<UUID> productIds = new ArrayList<>(cancelQuantityByProduct.keySet());
 
@@ -222,15 +223,5 @@ public class StockReservationService {
         }
 
         return ConfirmedStockCancelResult.CANCEL_SUCCEEDED;
-    }
-
-    private Map<UUID, Integer> groupConfirmedCancelQuantityByProduct(
-        List<ConfirmedStockCancelEvent.StockCancelItem> items
-    ) {
-        return items.stream()
-            .collect(Collectors.groupingBy(
-                ConfirmedStockCancelEvent.StockCancelItem::productId,
-                Collectors.summingInt(ConfirmedStockCancelEvent.StockCancelItem::stock)
-            ));
     }
 }
