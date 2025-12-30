@@ -51,6 +51,7 @@ public class KafkaConfig {
 
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
+        factory.setConcurrency(3);
         factory.setConsumerFactory(consumerFactory());
         factory.setReplyTemplate(kafkaTemplate());
 
@@ -71,6 +72,10 @@ public class KafkaConfig {
             JsonDeserializer.TRUSTED_PACKAGES,
             "com.destiny.stockservice.application.dto"
         );
+
+        configProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 200);
+        configProps.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300_000);
+        configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
 
         return new DefaultKafkaConsumerFactory<>(configProps);
     }
