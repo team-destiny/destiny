@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface StockReservationRepository {
 
-    void save(StockReservation reservation);
+    void saveAll(List<StockReservation> reservations);
 
     List<StockReservation> findAllByOrderIdAndStatus(UUID orderId, ReservationStatus status);
 }
