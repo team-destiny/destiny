@@ -15,8 +15,8 @@ public class StockReservationRepositoryImpl implements StockReservationRepositor
     private final StockReservationJpaRepository stockReservationJpaRepository;
 
     @Override
-    public void save(StockReservation reservation) {
-        stockReservationJpaRepository.save(reservation);
+    public void saveAll(List<StockReservation> reservations) {
+        stockReservationJpaRepository.saveAll(reservations);
     }
 
     @Override
