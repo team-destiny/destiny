@@ -75,7 +75,6 @@ public class KafkaConfig {
 
         configProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 200);
         configProps.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300_000);
-        configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
 
         return new DefaultKafkaConsumerFactory<>(configProps);
     }
