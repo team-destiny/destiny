@@ -2,6 +2,7 @@ package com.destiny.stockservice.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -61,11 +62,11 @@ class StockReservationServiceTest {
         assertThat(result).isEqualTo(StockReservationResult.RESERVED);
         assertThat(stock.getReservedQuantity()).isEqualTo(3);
         verify(stockReservationRepository, times(1))
-            .save(any(StockReservation.class));
+            .saveAll(anyList());
     }
 
     @Test
-    @DisplayName("재고 예약 실패: 재고가 부족한 상품이 포함된 경우 OUT_OF_STOCK을 반환한다.")
+    @DisplayName("재고 예약 실패: 재고가 부족한 상품이 포함된 경우 INVALID_REQUEST을 반환한다.")
     void reserveStock_Fail_OutOfStock() {
         // given
         UUID productId = UUID.randomUUID();
@@ -80,7 +81,7 @@ class StockReservationServiceTest {
 
         // then
         assertThat(result).isEqualTo(StockReservationResult.INVALID_REQUEST); // isInvalidStock 체크에서 걸림
-        verify(stockReservationRepository, never()).save(any());
+        verify(stockReservationRepository, never()).saveAll(any());
     }
 
     @Test
